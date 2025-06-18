@@ -22,7 +22,7 @@ body {
 
 .container {
   max-width: var(--container-width);
-  margin: 0 auto;
+  margin: 15px auto 0;
   padding: 0 20px;
 }
 
@@ -30,7 +30,7 @@ body {
 .header {
   background-color: var(--primary-color);
   color: white;
-  padding: 40px 0 30px;
+  padding: 20px 0 30px;
   text-align: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
@@ -99,37 +99,39 @@ main {
 }
 
 /* Form Elements */
-.input-group, .result-group {
+.input-group,
+.result-group {
   margin-bottom: 20px;
-}
 
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #555;
-}
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+  }
 
-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 0.95rem;
-  min-height: 100px;
-  transition: border-color 0.2s ease;
-}
+  textarea {
+    width: calc(100% - 24px);
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    min-height: 100px;
+    max-height: 300px;
+    transition: border-color 0.2s ease;
 
-textarea:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(84, 104, 255, 0.2);
-}
+    &:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(84, 104, 255, 0.2);
+    }
+  }
 
-textarea[readonly] {
-  background-color: var(--secondary-color);
-  cursor: default;
+  textarea[readonly] {
+    background-color: var(--secondary-color);
+    cursor: default;
+  }
 }
 
 /* Controls */
