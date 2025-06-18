@@ -1,0 +1,268 @@
+/* URL Parser Tool Styles */
+:root {
+  --primary-color: #5468ff;
+  --primary-hover: #4054e9;
+  --secondary-color: #f5f7ff;
+  --text-color: #333;
+  --border-color: #e1e4e8;
+  --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --success-color: #00c853;
+  --container-width: 1000px;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #f9fafc;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 40px 0 30px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-top: 10px;
+}
+
+/* Main Content */
+main {
+  padding: 40px 0;
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 30px;
+  overflow: hidden;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.tab-btn:hover {
+  background-color: var(--secondary-color);
+}
+
+.tab-btn.active {
+  color: var(--primary-color);
+  box-shadow: inset 0 -3px 0 var(--primary-color);
+}
+
+/* Tab Content */
+.tab-content {
+  display: none;
+  padding: 25px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Form Elements */
+.input-group, .result-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #555;
+}
+
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-height: 100px;
+  transition: border-color 0.2s ease;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(84, 104, 255, 0.2);
+}
+
+textarea[readonly] {
+  background-color: var(--secondary-color);
+  cursor: default;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn.primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn.secondary {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+.btn.secondary:hover {
+  background-color: #e6eaff;
+}
+
+/* Info Card */
+.info-card {
+  padding: 25px;
+}
+
+.info-card h2 {
+  margin-top: 0;
+  color: #444;
+  font-size: 1.5rem;
+}
+
+code {
+  background-color: var(--secondary-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.encoding-examples {
+  margin-top: 20px;
+}
+
+.encoding-examples h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  text-align: left;
+}
+
+table th, table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+table th {
+  background-color: var(--secondary-color);
+  font-weight: 600;
+}
+
+/* Footer */
+.footer {
+  background-color: #f2f4f9;
+  padding: 20px 0;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Toast Notification */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: var(--success-color);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .controls {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .tab-btn {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  .tab-content {
+    padding: 15px;
+  }
+}

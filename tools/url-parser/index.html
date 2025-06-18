@@ -1,0 +1,132 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>URL Parser Tool</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="css/url-parser.css">
+  <meta name="description" content="A modern tool to encode and decode URLs">
+
+  <meta property="og:title" content="URL Parser Tool">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta property="og:image:alt" content="URL Parser Tool Screenshot">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icon.png">
+
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>URL Parser Tool</h1>
+      <p class="subtitle">Easily encode and decode URLs with this modern tool</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="encode">Encode URL</button>
+        <button class="tab-btn" data-tab="decode">Decode URL</button>
+      </div>
+
+      <div class="tab-content active" id="encode-tab">
+        <div class="input-group">
+          <label for="url-input">Enter URL to encode:</label>
+          <textarea id="url-input" placeholder="https://example.com/path?param=value with spaces"></textarea>
+        </div>
+        <div class="controls">
+          <button id="encode-btn" class="btn primary">Encode URL</button>
+          <button id="copy-encoded" class="btn secondary">Copy Result</button>
+          <button id="clear-encode" class="btn secondary">Clear</button>
+        </div>
+        <div class="result-group">
+          <label for="encoded-result">Encoded URL:</label>
+          <textarea id="encoded-result" readonly></textarea>
+        </div>
+      </div>
+
+      <div class="tab-content" id="decode-tab">
+        <div class="input-group">
+          <label for="encoded-input">Enter encoded URL to decode:</label>
+          <textarea id="encoded-input" placeholder="https%3A%2F%2Fexample.com%2Fpath%3Fparam%3Dvalue%20with%20spaces"></textarea>
+        </div>
+        <div class="controls">
+          <button id="decode-btn" class="btn primary">Decode URL</button>
+          <button id="copy-decoded" class="btn secondary">Copy Result</button>
+          <button id="clear-decode" class="btn secondary">Clear</button>
+        </div>
+        <div class="result-group">
+          <label for="decoded-result">Decoded URL:</label>
+          <textarea id="decoded-result" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card info-card">
+      <h2>About URL Encoding/Decoding</h2>
+      <p>URL encoding converts characters that are not allowed in a URL into character-entity equivalents. For example, spaces are converted to <code>%20</code>.</p>
+      <p>URL decoding reverses this process, converting encoded characters back to their original form.</p>
+
+      <div class="encoding-examples">
+        <h3>Common URL Encodings:</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Character</th>
+              <th>Encoded Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Space</td>
+              <td><code>%20</code></td>
+            </tr>
+            <tr>
+              <td>!</td>
+              <td><code>%21</code></td>
+            </tr>
+            <tr>
+              <td>#</td>
+              <td><code>%23</code></td>
+            </tr>
+            <tr>
+              <td>$</td>
+              <td><code>%24</code></td>
+            </tr>
+            <tr>
+              <td>&</td>
+              <td><code>%26</code></td>
+            </tr>
+            <tr>
+              <td>+</td>
+              <td><code>%2B</code></td>
+            </tr>
+            <tr>
+              <td>=</td>
+              <td><code>%3D</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 Dev Tools. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/url-parser.js"></script>
+</body>
+
+</html>
