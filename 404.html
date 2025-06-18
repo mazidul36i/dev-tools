@@ -1,61 +1,102 @@
 <!doctype html>
-<html lang="en">
+<html class="no-js" lang="en">
 
 <head>
   <meta charset="utf-8">
-  <title>Page Not Found</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page Not Found | DevTools Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="The page you were looking for could not be found.">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.png">
+
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+
   <style>
-    * {
-      line-height: 1.2;
-      margin: 0;
-    }
-
-    html {
-      color: #888;
-      display: table;
-      font-family: sans-serif;
-      height: 100%;
+    .error-page {
       text-align: center;
-      width: 100%;
+      max-width: 800px;
+      margin: 0 auto 50px;
+      padding: 40px 20px;
     }
 
-    body {
-      display: table-cell;
-      vertical-align: middle;
-      margin: 2em auto;
+    .error-icon {
+      font-size: 6rem;
+      margin-bottom: 20px;
+      color: #5468ff;
     }
 
-    h1 {
-      color: #555;
-      font-size: 2em;
-      font-weight: 400;
+    .error-page h1 {
+      color: #5468ff;
+      font-size: 3rem;
+      margin-bottom: 20px;
     }
 
-    p {
-      margin: 0 auto;
-      width: 280px;
+    .error-page p {
+      font-size: 1.2rem;
+      color: #4a5568;
+      margin-bottom: 30px;
     }
 
-    @media only screen and (max-width: 280px) {
+    .back-home {
+      display: inline-block;
+      background-color: #5468ff;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
 
-      body,
-      p {
-        width: 95%;
+    .back-home:hover {
+      background-color: #4054e6;
+    }
+
+    @media (max-width: 768px) {
+      .error-icon {
+        font-size: 4rem;
       }
 
-      h1 {
-        font-size: 1.5em;
-        margin: 0 0 0.3em;
+      .error-page h1 {
+        font-size: 2.2rem;
       }
-
     }
   </style>
 </head>
 
 <body>
-  <h1>Page Not Found</h1>
-  <p>Sorry, but the page you were trying to view does not exist.</p>
+
+  <header class="site-header">
+    <div class="container">
+      <h1>DevTools Hub</h1>
+      <p class="tagline">Your essential toolkit for web development tasks</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="error-page">
+      <div class="error-icon">🔍</div>
+      <h1>404 - Page Not Found</h1>
+      <p>Sorry, but the page you were trying to view does not exist. It might have been moved, deleted, or perhaps never existed at all.</p>
+      <a href="/" class="back-home">Return to Homepage</a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/mazidul36i" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
 </body>
 
 </html>
