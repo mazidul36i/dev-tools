@@ -9,5 +9,13 @@ module.exports = merge(common, {
     hot: true,
     open: true,
     static: ['./'],
+    historyApiFallback: {
+      rewrites: [
+        // Handle specific tool routes
+        { from: /^\/tools\/url-parser/, to: '/tools/url-parser/index.html' },
+        // Handle all other routes - serve 404.html
+        { from: /./, to: '/404.html' }
+      ]
+    }
   },
 });
