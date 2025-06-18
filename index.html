@@ -16,7 +16,7 @@
 
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="apple-touch-icon" href="/icon.png">
 
   <link rel="manifest" href="site.webmanifest">
   <meta name="theme-color" content="#fafafa">
@@ -24,19 +24,54 @@
 
 <body>
 
-  <!-- Add your site or application content here -->
-  <div class="container">
-    <h1>DevTools</h1>
-    <p>Welcome to DevTools! A collection of useful development tools.</p>
-
-    <div class="tool-links">
-      <a href="/tools/url-parser/" class="tool-link">
-        <h3>URL Parser</h3>
-        <p>Encode and decode URLs with a modern interface</p>
-      </a>
-      <!-- Add more tools here as they are developed -->
+  <header class="site-header">
+    <div class="container">
+      <h1>DevTools Hub</h1>
+      <p class="tagline">Your essential toolkit for web development tasks</p>
     </div>
-  </div>
+  </header>
+
+  <main class="container">
+    <section class="intro">
+      <h2>Web Developer Utilities</h2>
+      <p>Welcome to DevTools Hub, a collection of free, browser-based tools designed to streamline your web development workflow. No downloads or installations required — just the tools you need, when you need them.</p>
+    </section>
+
+    <section class="tools-section">
+      <h2>Available Tools</h2>
+      <div class="tool-links">
+        <a href="/tools/url-parser/" class="tool-link">
+          <div class="tool-icon">🔗</div>
+          <h3>URL Parser</h3>
+          <p>Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.</p>
+        </a>
+        <!-- Placeholders for future tools -->
+        <div class="tool-link coming-soon">
+          <div class="tool-icon">🎨</div>
+          <h3>Color Converter</h3>
+          <p>Coming soon: Convert between color formats (HEX, RGB, HSL) with live preview</p>
+          <span class="badge">Coming Soon</span>
+        </div>
+        <div class="tool-link coming-soon">
+          <div class="tool-icon">📝</div>
+          <h3>JSON Formatter</h3>
+          <p>Coming soon: Format, validate and beautify JSON data</p>
+          <span class="badge">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/example/devtools" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
 
   <script src="js/app.js"></script>
 

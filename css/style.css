@@ -91,54 +91,234 @@ textarea {
      color: #333;
      background-color: #f9fafc;
      margin: 0;
-     padding: 20px;
+     padding: 0;
+     display: flex;
+     flex-direction: column;
+     min-height: 100vh;
    }
 
    .container {
-     max-width: 1000px;
+     max-width: 1200px;
      margin: 0 auto;
-     padding: 20px;
+     padding: 0 20px;
+     width: 100%;
+   }
+
+   main {
+     flex: 1;
+     padding: 40px 0;
+   }
+
+   h1, h2, h3, h4, h5, h6 {
+     color: #2d3748;
+     margin-top: 0;
    }
 
    h1 {
+     font-size: 2.5rem;
+     margin-bottom: 0.5rem;
      color: #5468ff;
-     margin-bottom: 0.5em;
    }
 
-   /* Tool Links */
+   h2 {
+     font-size: 1.8rem;
+     margin-bottom: 1rem;
+     padding-bottom: 0.5rem;
+     border-bottom: 1px solid #edf2f7;
+   }
+
+   /* Header Styles */
+   .site-header {
+     background-color: #5468ff;
+     color: white;
+     padding: 40px 0;
+     text-align: center;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+   }
+
+   .site-header h1 {
+     margin: 0;
+     color: white;
+     font-size: 3rem;
+     font-weight: 700;
+   }
+
+   .tagline {
+     font-size: 1.2rem;
+     margin: 10px 0 0;
+     opacity: 0.9;
+   }
+
+   /* Intro Section */
+   .intro {
+     text-align: center;
+     max-width: 800px;
+     margin: 0 auto 50px;
+   }
+
+   .intro p {
+     font-size: 1.1rem;
+     color: #4a5568;
+   }
+
+   /* Tools Section */
+   .tools-section {
+     margin-bottom: 60px;
+   }
+
    .tool-links {
      display: grid;
-     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-     gap: 20px;
+     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+     gap: 30px;
      margin-top: 30px;
    }
 
    .tool-link {
      display: block;
-     padding: 20px;
+     padding: 30px;
      background-color: white;
-     border-radius: 8px;
-     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+     border-radius: 12px;
+     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
      text-decoration: none;
      color: inherit;
-     transition: transform 0.2s ease, box-shadow 0.2s ease;
+     transition: transform 0.3s ease, box-shadow 0.3s ease;
+     position: relative;
+     overflow: hidden;
+     border: 1px solid rgba(0, 0, 0, 0.05);
    }
 
    .tool-link:hover {
      transform: translateY(-5px);
-     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+   }
+
+   .tool-link.coming-soon {
+     opacity: 0.8;
+     cursor: not-allowed;
    }
 
    .tool-link h3 {
      color: #5468ff;
-     margin-top: 0;
-     margin-bottom: 10px;
-     font-size: 1.3rem;
+     margin-top: 10px;
+     margin-bottom: 15px;
+     font-size: 1.4rem;
+     font-weight: 600;
    }
 
    .tool-link p {
      margin: 0;
-     color: #666;
+     color: #4a5568;
+     font-size: 1rem;
+     line-height: 1.5;
+   }
+
+   .tool-icon {
+     font-size: 2.5rem;
+     margin-bottom: 15px;
+   }
+
+   .badge {
+     position: absolute;
+     top: 15px;
+     right: 15px;
+     background-color: #718096;
+     color: white;
+     padding: 5px 10px;
+     border-radius: 20px;
+     font-size: 0.8rem;
+     font-weight: 500;
+   }
+
+   /* Footer Styles */
+   .site-footer {
+     background-color: #2d3748;
+     color: #e2e8f0;
+     padding: 30px 0;
+     text-align: center;
+     margin-top: auto;
+   }
+
+   .site-footer p {
+     margin: 5px 0;
+     font-size: 0.9rem;
+   }
+
+   .footer-links {
+     margin-top: 15px;
+   }
+
+   .footer-links a {
+     color: #a0aec0;
+     text-decoration: none;
+     transition: color 0.2s ease;
+     margin: 0 5px;
+   }
+
+   .footer-links a:hover {
+     color: #cbd5e0;
+     text-decoration: underline;
+   }
+
+   /* Responsive Styles */
+   @media (max-width: 768px) {
+     .site-header {
+       padding: 30px 0;
+     }
+
+     .site-header h1 {
+       font-size: 2.2rem;
+     }
+
+     .tool-links {
+       grid-template-columns: 1fr;
+     }
+
+     .tool-link {
+       padding: 25px;
+     }
+
+     h1 {
+       font-size: 2rem;
+     }
+
+     h2 {
+       font-size: 1.5rem;
+     }
+   }
+
+   @media (max-width: 480px) {
+     .site-header h1 {
+       font-size: 1.8rem;
+     }
+
+     .tagline {
+       font-size: 1rem;
+     }
+
+     .intro p {
+       font-size: 1rem;
+     }
+   }
+
+   /* Toast Notification */
+   .toast {
+     position: fixed;
+     bottom: 20px;
+     right: 20px;
+     background-color: #5468ff;
+     color: white;
+     padding: 12px 20px;
+     border-radius: 6px;
+     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+     transform: translateY(100px);
+     opacity: 0;
+     transition: all 0.3s ease;
+     z-index: 1000;
+   }
+
+   .toast.show {
+     transform: translateY(0);
+     opacity: 1;
    }
 
 /* ==========================================================================
