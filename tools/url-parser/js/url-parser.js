@@ -1,6 +1,14 @@
 // URL Parser Tool JavaScript
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Back navigation
+  const backLink = document.querySelector('.back-link a');
+  if (backLink) {
+    backLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = '/';
+    });
+  }
   // Elements
   const tabButtons = document.querySelectorAll('.tab-btn');
   const tabContents = document.querySelectorAll('.tab-content');
