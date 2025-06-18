@@ -8,6 +8,10 @@
     ],
     "rewrites": [
       {
+        "source": "/tools/url-parser/**",
+        "destination": "/tools/url-parser/index.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
