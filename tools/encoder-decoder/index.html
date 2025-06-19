@@ -1,0 +1,201 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Encoder/Decoder Tool | DevTools Hub</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="./encoder-decoder.css">
+  <meta name="description" content="A modern tool to encode and decode data in various formats including Base64, URL encoding, and more.">
+  <meta name="keywords" content="base64 encoder, base64 decoder, url encoder, url decoder, text encoder, web development tools">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Encoder/Decoder Tool | DevTools Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devtools-hub.example.com/tools/encoder-decoder/">
+  <meta property="og:image" content="/img/encoder-decoder-preview.png">
+  <meta property="og:image:alt" content="Encoder/Decoder Tool Screenshot">
+  <meta property="og:description" content="Free online tool to encode and decode data in various formats including Base64, URL encoding, and more.">
+  <meta property="og:site_name" content="DevTools Hub">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Encoder/Decoder Tool | DevTools Hub">
+  <meta name="twitter:description" content="Free online tool to encode and decode data in various formats including Base64, URL encoding, and more.">
+  <meta name="twitter:image" content="/encoder-decoder-preview.png">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icon.png">
+
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Encoder/Decoder Tool</h1>
+      <p class="tagline">Convert data between various encoding formats</p>
+      <div class="back-link">
+        <a href="/">← Back to DevTools Hub</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="tool-content" style="padding: 25px;">
+        <div class="encoder-tool-container">
+          <div class="encoding-mode-selector">
+            <button class="tab-button active" data-mode="base64">Base64</button>
+            <button class="tab-button" data-mode="url">URL</button>
+            <button class="tab-button" data-mode="html">HTML</button>
+            <button class="tab-button" data-mode="hex">Hex</button>
+          </div>
+
+          <div class="converter-grid">
+            <!-- Input Area -->
+            <div class="input-group">
+              <label for="input-text">Input:</label>
+              <div class="input-with-controls">
+                <textarea id="input-text" placeholder="Enter text to encode or decode..."></textarea>
+                <div class="input-actions">
+                  <button id="clear-input" class="btn secondary small" title="Clear input">Clear</button>
+                  <button id="paste-input" class="btn secondary small" title="Paste from clipboard">Paste</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+              <button id="encode-button" class="btn primary action-btn">Encode</button>
+              <button id="decode-button" class="btn primary action-btn">Decode</button>
+              <button id="swap-button" class="btn secondary action-btn" title="Swap input and output">↑↓</button>
+            </div>
+
+            <!-- Output Area -->
+            <div class="input-group">
+              <label for="output-text">Output:</label>
+              <div class="input-with-controls">
+                <textarea id="output-text" placeholder="Result will appear here..." readonly></textarea>
+                <div class="input-actions">
+                  <button id="copy-output" class="btn secondary small" title="Copy to clipboard">Copy</button>
+                  <button id="download-output" class="btn secondary small" title="Download as file">Download</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Options -->
+          <div class="encoding-options">
+            <div class="option-group" id="base64-options">
+              <label><input type="checkbox" id="base64-url-safe"> URL-safe Base64</label>
+              <label><input type="checkbox" id="base64-no-padding"> No padding (=)</label>
+            </div>
+            <div class="option-group hidden" id="url-options">
+              <label><input type="checkbox" id="url-component"> Encode/decode URI Component</label>
+            </div>
+            <div class="option-group hidden" id="hex-options">
+              <label><input type="checkbox" id="hex-uppercase"> Uppercase hex</label>
+              <label><input type="checkbox" id="hex-with-prefix"> Add 0x prefix</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card info-card">
+      <h2>About Encoding/Decoding</h2>
+      <p>This tool helps you convert data between different encoding formats used in web development and data transmission:</p>
+
+      <div class="encoding-info">
+        <div class="encoding-type">
+          <h3>Base64 Encoding</h3>
+          <p>Base64 is a group of binary-to-text encoding schemes that represent binary data in an ASCII string format by translating it into a radix-64 representation.</p>
+          <p>Use cases:</p>
+          <ul>
+            <li>Encoding binary data in emails (MIME)</li>
+            <li>Storing complex data in JSON</li>
+            <li>Embedding image data directly in HTML/CSS</li>
+            <li>Transmitting binary data over text-only protocols</li>
+          </ul>
+          <div class="example-box">
+            <div class="example-pair">
+              <div><strong>Original:</strong> Hello World</div>
+              <div><strong>Base64:</strong> SGVsbG8gV29ybGQ=</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="encoding-type">
+          <h3>URL Encoding</h3>
+          <p>URL encoding converts characters into a format that can be transmitted over the Internet. It replaces unsafe ASCII characters with a "%" followed by hexadecimal digits.</p>
+          <p>Use cases:</p>
+          <ul>
+            <li>Encoding query parameters in URLs</li>
+            <li>Handling special characters in form submissions</li>
+            <li>Ensuring data integrity in HTTP requests</li>
+          </ul>
+          <div class="example-box">
+            <div class="example-pair">
+              <div><strong>Original:</strong> Hello World!</div>
+              <div><strong>URL Encoded:</strong> Hello%20World%21</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="encoding-type">
+          <h3>HTML Encoding</h3>
+          <p>HTML encoding converts characters to their corresponding HTML entities to prevent browsers from interpreting them as HTML markup.</p>
+          <p>Use cases:</p>
+          <ul>
+            <li>Preventing XSS (Cross-Site Scripting) attacks</li>
+            <li>Displaying HTML code as text</li>
+            <li>Ensuring correct rendering of special characters</li>
+          </ul>
+          <div class="example-box">
+            <div class="example-pair">
+              <div><strong>Original:</strong> &lt;script&gt;alert('XSS')&lt;/script&gt;</div>
+              <div><strong>HTML Encoded:</strong> &amp;lt;script&amp;gt;alert('XSS')&amp;lt;/script&amp;gt;</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="encoding-type">
+          <h3>Hex Encoding</h3>
+          <p>Hexadecimal encoding represents binary data as a sequence of hexadecimal (base 16) digits.</p>
+          <p>Use cases:</p>
+          <ul>
+            <li>Representing binary data in a human-readable format</li>
+            <li>Encoding color values in CSS</li>
+            <li>Working with low-level binary protocols</li>
+          </ul>
+          <div class="example-box">
+            <div class="example-pair">
+              <div><strong>Original:</strong> Hello</div>
+              <div><strong>Hex:</strong> 48656c6c6f</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="/">Home</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/mazidul36i" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="./encoder-decoder.js"></script>
+</body>
+
+</html>
