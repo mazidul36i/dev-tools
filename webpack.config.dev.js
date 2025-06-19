@@ -13,6 +13,8 @@ module.exports = merge(common, {
       rewrites: [
         // Handle specific tool routes
         { from: /^\/tools\/url-parser/, to: '/tools/url-parser/index.html' },
+        { from: /^\/tools\/json-formatter/, to: '/tools/json-formatter/index.html'},
+
         // Handle all other routes - serve 404.html
         { from: /./, to: '/404.html' }
       ]

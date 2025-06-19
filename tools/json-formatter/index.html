@@ -1,0 +1,175 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSON Formatter Tool | DevTools Hub</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="./json-formatter.css">
+  <meta name="description" content="A modern tool to format, validate and prettify JSON data. Easily format minified JSON and validate syntax.">
+  <meta name="keywords" content="JSON formatter, JSON validator, JSON prettify, JSON beautifier, web development tools">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="JSON Formatter Tool | DevTools Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devtools-hub.example.com/tools/json-formatter/">
+  <meta property="og:image" content="../../img/json-formatter-preview.png">
+  <meta property="og:image:alt" content="JSON Formatter Tool Screenshot">
+  <meta property="og:description" content="Free online tool to format, validate and prettify JSON data. Makes minified JSON readable.">
+  <meta property="og:site_name" content="DevTools Hub">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="JSON Formatter Tool | DevTools Hub">
+  <meta name="twitter:description" content="Free online tool to format, validate and prettify JSON data. Makes minified JSON readable.">
+  <meta name="twitter:image" content="../../img/json-formatter-preview.png">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icon.png">
+
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>JSON Formatter Tool</h1>
+      <p class="tagline">Easily format, validate and beautify JSON data</p>
+      <div class="back-link">
+        <a href="/">← Back to DevTools Hub</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="format">Format JSON</button>
+        <button class="tab-btn" data-tab="minify">Minify JSON</button>
+      </div>
+
+      <div class="tab-content active" id="format-tab">
+        <div class="input-group">
+          <label for="json-input">Enter JSON to format:</label>
+          <textarea id="json-input" placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'></textarea>
+        </div>
+        <div class="controls">
+          <button id="format-btn" class="btn primary">Format JSON</button>
+          <button id="copy-formatted" class="btn secondary">Copy Result</button>
+          <button id="clear-format" class="btn secondary">Clear</button>
+        </div>
+        <div class="format-options">
+          <label>Indentation:</label>
+          <select id="indent-select">
+            <option value="2">2 spaces</option>
+            <option value="4">4 spaces</option>
+            <option value="tab">Tab</option>
+          </select>
+          <div class="view-toggle">
+            <label>View:</label>
+            <div class="toggle-buttons">
+              <button id="text-view-btn" class="toggle-btn active">Text</button>
+              <button id="tree-view-btn" class="toggle-btn">Tree</button>
+            </div>
+          </div>
+        </div>
+        <div class="search-container">
+          <div class="search-box">
+            <input type="text" id="json-search" placeholder="Search in JSON...">
+            <button id="search-btn" class="btn secondary"><i class="search-icon"></i>Search</button>
+          </div>
+          <div class="search-controls">
+            <span id="search-results-count"></span>
+            <button id="prev-result" class="btn icon-btn" disabled><i class="arrow-up-icon"></i></button>
+            <button id="next-result" class="btn icon-btn" disabled><i class="arrow-down-icon"></i></button>
+          </div>
+        </div>
+        <div class="result-container">
+          <div class="action-buttons">
+            <button id="expand-all" class="btn mini">Expand All</button>
+            <button id="collapse-all" class="btn mini">Collapse All</button>
+          </div>
+          <div class="result-group">
+            <label for="formatted-result">Formatted JSON:</label>
+            <textarea id="formatted-result" class="active-view" readonly></textarea>
+            <div id="json-tree-view" class="json-tree"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="minify-tab">
+        <div class="input-group">
+          <label for="json-minify-input">Enter JSON to minify:</label>
+          <textarea id="json-minify-input" placeholder='{\n  "example": {\n    "property": "value",\n    "numbers": [1, 2, 3]\n  }\n}'></textarea>
+        </div>
+        <div class="controls">
+          <button id="minify-btn" class="btn primary">Minify JSON</button>
+          <button id="copy-minified" class="btn secondary">Copy Result</button>
+          <button id="clear-minify" class="btn secondary">Clear</button>
+        </div>
+        <div class="result-group">
+          <label for="minified-result">Minified JSON:</label>
+          <textarea id="minified-result" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card info-card">
+      <h2>About JSON Formatting</h2>
+      <p>JSON (JavaScript Object Notation) is a lightweight data interchange format that is easy for humans to read and write and easy for machines to parse and generate.</p>
+      <p>This tool helps you:</p>
+      <ul>
+        <li><strong>Format JSON</strong> - Convert minified JSON into a readable, indented format</li>
+        <li><strong>Validate JSON</strong> - Check if your JSON is valid and correctly formatted</li>
+        <li><strong>Minify JSON</strong> - Remove whitespace and make JSON compact for transmission</li>
+      </ul>
+
+      <div class="json-examples">
+        <h3>JSON Example:</h3>
+        <div class="example-container">
+          <div class="example-column">
+            <h4>Formatted JSON</h4>
+            <pre><code>{
+  "name": "John Doe",
+  "age": 30,
+  "isActive": true,
+  "address": {
+    "street": "123 Main St",
+    "city": "Anytown",
+    "zipCode": "12345"
+  },
+  "hobbies": [
+    "reading",
+    "swimming",
+    "coding"
+  ]
+}</code></pre>
+          </div>
+          <div class="example-column">
+            <h4>Minified JSON</h4>
+            <pre><code>{"name":"John Doe","age":30,"isActive":true,"address":{"street":"123 Main St","city":"Anytown","zipCode":"12345"},"hobbies":["reading","swimming","coding"]}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="/">Home</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/mazidul36i" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="./json-formatter.js"></script>
+</body>
+
+</html>
