@@ -1,0 +1,211 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Picker Tool | DevTools Hub</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="./color-picker.css">
+  <meta name="description" content="A modern tool to pick colors and convert between formats (HEX, RGB, HSL) with live preview. Create and export color palettes for your projects.">
+  <meta name="keywords" content="color picker, hex to rgb, rgb to hsl, web development tools, color picker">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Color Picker Tool | DevTools Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devtools-hub.example.com/tools/color-picker/">
+  <meta property="og:image" content="/img/color-picker-preview.png">
+  <meta property="og:image:alt" content="Color Picker Tool Screenshot">
+  <meta property="og:description" content="Free online tool to pick colors and convert between formats. Create and export color palettes for your web projects.">
+  <meta property="og:site_name" content="DevTools Hub">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Color Picker Tool | DevTools Hub">
+  <meta name="twitter:description" content="Free online tool to pick colors and convert between formats. Create and export color palettes for your web projects.">
+  <meta name="twitter:image" content="/color-picker-preview.png">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icon.png">
+
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Color Picker Tool</h1>
+      <p class="tagline">Pick colors and convert between formats with live preview</p>
+      <div class="back-link">
+        <a href="/">← Back to DevTools Hub</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="tool-content">
+        <div class="color-tool-container">
+          <div class="converter-grid">
+            <!-- HEX Input -->
+            <div class="input-group">
+              <label for="hex-input">HEX Color:</label>
+              <div class="input-with-button">
+                <input type="text" id="hex-input" placeholder="#FFFFFF" maxlength="9">
+                <button id="copy-hex" class="btn secondary small" title="Copy HEX value to clipboard">Copy HEX</button>
+              </div>
+            </div>
+
+            <!-- RGB Input -->
+            <div class="input-group">
+              <label for="rgb-r">RGB Color:</label>
+              <div class="rgb-inputs">
+                <div class="labeled-input">
+                  <span>R:</span>
+                  <input type="number" id="rgb-r" min="0" max="255" value="255">
+                </div>
+                <div class="labeled-input">
+                  <span>G:</span>
+                  <input type="number" id="rgb-g" min="0" max="255" value="255">
+                </div>
+                <div class="labeled-input">
+                  <span>B:</span>
+                  <input type="number" id="rgb-b" min="0" max="255" value="255">
+                </div>
+                <button id="copy-rgb" class="btn secondary small" title="Copy RGB value to clipboard">Copy RGB</button>
+              </div>
+            </div>
+
+            <!-- HSL Input -->
+            <div class="input-group">
+              <label for="hsl-h">HSL Color:</label>
+              <div class="hsl-inputs">
+                <div class="labeled-input">
+                  <span>H:</span>
+                  <input type="number" id="hsl-h" min="0" max="360" value="0">
+                </div>
+                <div class="labeled-input">
+                  <span>S:</span>
+                  <input type="number" id="hsl-s" min="0" max="100" value="0">%
+                </div>
+                <div class="labeled-input">
+                  <span>L:</span>
+                  <input type="number" id="hsl-l" min="0" max="100" value="100">%
+                </div>
+                <button id="copy-hsl" class="btn secondary small" title="Copy HSL value to clipboard">Copy HSL</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="color-picker-layout">
+            <div class="color-picker-main">
+              <div class="color-gradient" id="color-gradient"></div>
+              <input type="range" id="hue-slider" min="0" max="360" value="0" class="hue-slider">
+              <div class="action-buttons">
+                <button id="random-color" class="btn primary action-btn" title="Generate a random color (Shortcut: R)">Generate Random Color</button>
+                <button id="clear-color" class="btn secondary action-btn" title="Reset to default white color">Reset to White</button>
+                <button id="add-to-palette" class="btn primary action-btn" title="Add this color to your saved palette (Shortcut: S)">Save to Palette</button>
+              </div>
+            </div>
+            <div class="picker-preview">
+              <div id="picker-preview-color" class="preview-box"></div>
+              <div class="picker-values">
+                <div id="picker-hex-value">#FFFFFF</div>
+                <div id="picker-rgb-value">rgb(255, 255, 255)</div>
+                <div id="picker-hsl-value">hsl(0, 0%, 100%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="palette-tab">
+        <div class="palette-controls">
+          <button id="new-palette" class="btn primary" title="Generate a new color palette based on color theory">Generate New Palette</button>
+          <button id="export-palette" class="btn secondary" title="Export your palette as code">Export as Code</button>
+          <button id="clear-palette" class="btn secondary" title="Remove all colors from your palette">Clear All Colors</button>
+        </div>
+        <div id="color-palette" class="color-palette">
+          <div class="empty-palette-message">Your palette is empty. Add colors from the Color Picker tab.</div>
+        </div>
+
+        <div id="palette-export" class="palette-export">
+          <h3>Export Format</h3>
+          <div class="export-options">
+            <button data-format="css" class="btn mini active" title="Export as CSS variables">CSS Variables</button>
+            <button data-format="scss" class="btn mini" title="Export as SCSS variables">SCSS Variables</button>
+            <button data-format="json" class="btn mini" title="Export as JSON object">JSON Object</button>
+          </div>
+          <textarea id="export-code" readonly></textarea>
+          <button id="copy-export" class="btn secondary" title="Copy the code to clipboard">Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card info-card">
+      <h2>About Color Conversion</h2>
+      <p>Colors can be represented in different formats for web development. This tool helps you convert between the most common formats:</p>
+      <ul>
+        <li><strong>HEX</strong> - Hexadecimal color notation (#RRGGBB) used in CSS</li>
+        <li><strong>RGB</strong> - Red, Green, Blue color model (rgb(R, G, B))</li>
+        <li><strong>HSL</strong> - Hue, Saturation, Lightness model (hsl(H, S%, L%))</li>
+      </ul>
+
+      <div class="color-examples">
+        <h3>Examples:</h3>
+        <div class="example-colors">
+          <div class="example-color">
+            <div class="color-box" style="background-color: #FF5733;"></div>
+            <div class="color-info">
+              <div>#FF5733</div>
+              <div>rgb(255, 87, 51)</div>
+              <div>hsl(14, 100%, 60%)</div>
+            </div>
+          </div>
+          <div class="example-color">
+            <div class="color-box" style="background-color: #3498DB;"></div>
+            <div class="color-info">
+              <div>#3498DB</div>
+              <div>rgb(52, 152, 219)</div>
+              <div>hsl(204, 70%, 53%)</div>
+            </div>
+          </div>
+          <div class="example-color">
+            <div class="color-box" style="background-color: #2ECC71;"></div>
+            <div class="color-info">
+              <div>#2ECC71</div>
+              <div>rgb(46, 204, 113)</div>
+              <div>hsl(145, 63%, 49%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Tips for Working with Colors</h3>
+      <ul>
+        <li>Use HSL when you need to create variations of the same hue</li>
+        <li>RGB is useful when working with color manipulation at the pixel level</li>
+        <li>HEX is the most common format for web design and CSS</li>
+        <li>Save colors to your palette for creating consistent color schemes</li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="/">Home</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/mazidul36i" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="./color-picker.js"></script>
+</body>
+
+</html>
