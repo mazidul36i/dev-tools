@@ -1,0 +1,55 @@
+/* Importing global CSS styles */
+@import "/css/global.css";
+
+.container {
+  max-width: var(--container-width);
+  margin: 15px auto 0;
+  padding: 0 20px;
+  width: 100%;
+}
+
+/* Header Overrides */
+.site-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 40px 0 30px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: white;
+}
+
+.tagline {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-top: 10px;
+}
+
+.back-link {
+  margin-top: 20px;
+}
+
+.back-link a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.back-link a:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+/* Main Content */
+main {
+  padding: 40px 0;
+}
