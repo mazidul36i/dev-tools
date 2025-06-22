@@ -37,7 +37,7 @@ This section guides you through submitting a bug report. Following these guideli
 ## Development Workflow
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/mazidul36i/dev-tool.git`
+2. Clone your fork: `git clone https://github.com/mazidul36i/dev-tools.git`
 3. Create a branch: `git checkout -b your-feature-name`
 4. Make your changes
 5. Install dependencies: `npm install`
