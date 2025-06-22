@@ -6,6 +6,18 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "https://gs-devtools.web.app/**",
+        "destination": "https://devtools.mazidul.com/:splat",
+        "type": 301
+      },
+      {
+        "source": "https://gs-devtools.firebaseapp.com/**",
+        "destination": "https://devtools.mazidul.com/:splat",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "/tools/url-parser/**",
