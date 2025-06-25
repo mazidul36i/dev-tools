@@ -128,9 +128,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Convert JSON tab elements
+  const jsonConvertInput = document.getElementById('json-convert-input');
+  const convertBtn = document.getElementById('convert-btn');
+  const convertedResult = document.getElementById('converted-result');
+  const copyConvertedBtn = document.getElementById('copy-converted');
+  const clearConvertBtn = document.getElementById('clear-convert');
+  const normalToStringBtn = document.getElementById('normal-to-string-btn');
+  const stringToNormalBtn = document.getElementById('string-to-normal-btn');
+
+  // Convert mode
+  let convertMode = 'normalToString'; // Default mode
+
   // Copy functionality
   copyFormattedBtn.addEventListener('click', () => copyToClipboard(formattedResult));
   copyMinifiedBtn.addEventListener('click', () => copyToClipboard(minifiedResult));
+  copyConvertedBtn.addEventListener('click', () => copyToClipboard(convertedResult));
 
   // Clear functionality
   clearFormatBtn.addEventListener('click', () => {
@@ -145,6 +158,49 @@ document.addEventListener('DOMContentLoaded', () => {
     jsonMinifyInput.value = '';
     minifiedResult.value = '';
     jsonMinifyInput.focus();
+  });
+
+  clearConvertBtn.addEventListener('click', () => {
+    jsonConvertInput.value = '';
+    convertedResult.value = '';
+    jsonConvertInput.focus();
+  });
+
+  // Convert toggle functionality
+  normalToStringBtn.addEventListener('click', () => {
+    normalToStringBtn.classList.add('active');
+    stringToNormalBtn.classList.remove('active');
+    convertMode = 'normalToString';
+    jsonConvertInput.placeholder = '{\n  "example": {\n    "property": "value",\n    "numbers": [1, 2, 3]\n  }\n}';
+  });
+
+  stringToNormalBtn.addEventListener('click', () => {
+    stringToNormalBtn.classList.add('active');
+    normalToStringBtn.classList.remove('active');
+    convertMode = 'stringToNormal';
+    jsonConvertInput.placeholder = '"{\\"example\": {\\"property\\": \\"value\\", \\"numbers\\": [1, 2, 3]}}"';
+  });
+
+  // Convert JSON functionality
+  convertBtn.addEventListener('click', () => {
+    const inputJson = jsonConvertInput.value.trim();
+    if (!inputJson) {
+      showToast('Please enter JSON to convert');
+      return;
+    }
+
+    try {
+      if (convertMode === 'normalToString') {
+        // Convert normal JSON to stringified JSON
+        convertedResult.value = stringifyJSON(inputJson);
+      } else {
+        // Convert stringified JSON back to normal JSON
+        convertedResult.value = parseStringifiedJSON(inputJson);
+      }
+      showToast('JSON converted successfully!');
+    } catch (error) {
+      showToast('Error: ' + error.message, true);
+    }
   });
 
   // Search functionality
@@ -384,6 +440,34 @@ document.addEventListener('DOMContentLoaded', () => {
       return JSON.stringify(jsonObj);
     } catch (error) {
       throw new Error('Invalid JSON format: ' + error.message);
+    }
+  }
+
+  function parseStringifiedJSON(stringifiedJson) {
+    try {
+      // Parse the stringified JSON first to get the JSON string
+      const jsonString = JSON.parse(stringifiedJson);
+
+      // Try to parse that string to validate it's a valid JSON string
+      // and then format it nicely
+      const jsonObj = JSON.parse(jsonString);
+      const indent = 2; // Default to 2 spaces
+
+      return JSON.stringify(jsonObj, null, indent);
+    } catch (error) {
+      throw new Error('Invalid stringified JSON: ' + error.message);
+    }
+  }
+
+  function stringifyJSON(jsonString) {
+    try {
+      // Parse the input to ensure it's valid JSON
+      const jsonObj = JSON.parse(jsonString);
+
+      // Convert the JSON object to a string, then stringify that string
+      return JSON.stringify(JSON.stringify(jsonObj));
+    } catch (error) {
+      throw new Error('Invalid JSON: ' + error.message);
     }
   }
 

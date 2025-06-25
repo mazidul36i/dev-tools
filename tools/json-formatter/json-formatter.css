@@ -149,11 +149,22 @@
   box-shadow: 0 0 0 3px rgba(84, 104, 255, 0.1);
 }
 
-/* View Toggle */
-.view-toggle {
+/* View Toggle and Conversion Type */
+.view-toggle,
+.conversion-type {
   display: flex;
   align-items: center;
   margin-left: auto;
+}
+
+.conversion-type {
+  margin: 0 0 24px 0;
+  width: 100%;
+  justify-content: flex-start;
+  background-color: var(--secondary-color);
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(84, 104, 255, 0.15);
 }
 
 .toggle-buttons {

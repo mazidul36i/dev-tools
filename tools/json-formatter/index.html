@@ -49,6 +49,7 @@
       <div class="tabs">
         <button class="tab-btn active" data-tab="format">Format JSON</button>
         <button class="tab-btn" data-tab="minify">Minify JSON</button>
+        <button class="tab-btn" data-tab="convert">JSON Stringify/Parse</button>
       </div>
 
       <div class="tab-content active" id="format-tab">
@@ -115,6 +116,34 @@
           <textarea id="minified-result" readonly></textarea>
         </div>
       </div>
+
+      <div class="tab-content" id="convert-tab">
+        <div class="conversion-type">
+          <label>Conversion Type:</label>
+          <div class="toggle-buttons">
+            <button id="normal-to-string-btn" class="toggle-btn active">Normal to Stringified</button>
+            <button id="string-to-normal-btn" class="toggle-btn">Stringified to Normal</button>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="json-convert-input">Enter JSON to convert:</label>
+          <textarea id="json-convert-input" placeholder='{
+  "example": {
+    "property": "value",
+    "numbers": [1, 2, 3]
+  }
+}'></textarea>
+        </div>
+        <div class="controls">
+          <button id="convert-btn" class="btn primary">Convert JSON</button>
+          <button id="copy-converted" class="btn secondary">Copy Result</button>
+          <button id="clear-convert" class="btn secondary">Clear</button>
+        </div>
+        <div class="result-group">
+          <label for="converted-result">Converted JSON:</label>
+          <textarea id="converted-result" readonly></textarea>
+        </div>
+      </div>
     </div>
 
     <div class="card info-card">
@@ -125,6 +154,7 @@
         <li><strong>Format JSON</strong> - Convert minified JSON into a readable, indented format</li>
         <li><strong>Validate JSON</strong> - Check if your JSON is valid and correctly formatted</li>
         <li><strong>Minify JSON</strong> - Remove whitespace and make JSON compact for transmission</li>
+        <li><strong>JSON Stringify/Parse</strong> - Convert between normal JSON and stringified JSON format</li>
       </ul>
 
       <div class="json-examples">
