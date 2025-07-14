@@ -1,0 +1,325 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network Status Monitor | DevTools Hub</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="./network-status.css">
+  <meta name="description" content="Monitor your network connection status in real-time. Get notified when you go offline or come back online with visual indicators and connection quality metrics.">
+  <meta name="keywords" content="network status, connection monitor, offline detection, online status, web development tools">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Network Status Monitor | DevTools Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devtools-hub.example.com/tools/network-status/">
+  <meta property="og:image" content="/img/network-status-preview.png">
+  <meta property="og:image:alt" content="Network Status Monitor Tool Screenshot">
+  <meta property="og:description" content="Free online tool to monitor your network connection status in real-time with visual indicators.">
+  <meta property="og:site_name" content="DevTools Hub">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Network Status Monitor | DevTools Hub">
+  <meta name="twitter:description" content="Free online tool to monitor your network connection status in real-time with visual indicators.">
+  <meta name="twitter:image" content="/img/network-status-preview.png">
+
+  <link rel="icon" href="/icon.svg" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../../icon.svg">
+
+  <link rel="manifest" href="../../site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Network Status Monitor</h1>
+      <p class="tagline">Monitor your network connection status in real-time</p>
+      <div class="back-link">
+        <a href="/">← Back to DevTools Hub</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Global Network Status Banner -->
+    <div id="network-banner" class="network-banner">
+      <div class="banner-content">
+        <span id="banner-icon" class="banner-icon">🌐</span>
+        <span id="banner-text" class="banner-text">Checking connection...</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tool-content">
+        <div class="status-dashboard">
+          <div class="status-card current-status">
+            <div class="status-header">
+              <h3>Current Status</h3>
+              <div id="status-indicator" class="status-indicator checking">
+                <div class="indicator-dot"></div>
+                <span id="status-text">Checking...</span>
+              </div>
+            </div>
+            <div class="status-details">
+              <div class="detail-item">
+                <span class="detail-label">Connection Type:</span>
+                <span id="connection-type" class="detail-value">Unknown</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Effective Type:</span>
+                <span id="effective-type" class="detail-value">Unknown</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Downlink:</span>
+                <span id="downlink" class="detail-value">Unknown</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">RTT:</span>
+                <span id="rtt" class="detail-value">Unknown</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Last Updated:</span>
+                <span id="last-updated" class="detail-value">Never</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="status-card connection-test">
+            <div class="status-header">
+              <h3>Connection Test</h3>
+              <button id="test-connection" class="btn primary small">Test Now</button>
+            </div>
+            <div class="test-results">
+              <div class="test-item">
+                <span class="test-label">Ping Test:</span>
+                <span id="ping-result" class="test-result">Not tested</span>
+              </div>
+              <div class="test-item">
+                <span class="test-label">Speed Test:</span>
+                <span id="speed-result" class="test-result">Not tested</span>
+              </div>
+              <div class="test-item">
+                <span class="test-label">DNS Resolution:</span>
+                <span id="dns-result" class="test-result">Not tested</span>
+              </div>
+            </div>
+            <div id="test-progress" class="test-progress">
+              <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+              </div>
+              <span id="progress-text" class="progress-text"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls-section">
+          <div class="control-group">
+            <h3>Notification Settings</h3>
+            <div class="control-item">
+              <label class="toggle-switch">
+                <input type="checkbox" id="enable-notifications" checked>
+                <span class="slider"></span>
+              </label>
+              <span class="control-label">Enable status notifications</span>
+            </div>
+            <div class="control-item">
+              <label class="toggle-switch">
+                <input type="checkbox" id="enable-sound" checked>
+                <span class="slider"></span>
+              </label>
+              <span class="control-label">Enable sound alerts</span>
+            </div>
+            <div class="control-item">
+              <label class="toggle-switch">
+                <input type="checkbox" id="auto-test" checked>
+                <span class="slider"></span>
+              </label>
+              <span class="control-label">Auto-test connection every 30s</span>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <h3>Actions</h3>
+            <div class="action-buttons">
+              <button id="clear-history" class="btn secondary">Clear History</button>
+              <button id="export-log" class="btn secondary">Export Log</button>
+              <button id="reset-settings" class="btn secondary">Reset Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="history">Connection History</button>
+        <button class="tab-btn" data-tab="statistics">Statistics</button>
+      </div>
+
+      <div class="tab-content active" id="history-tab">
+        <div class="history-controls">
+          <select id="history-filter" class="form-select">
+            <option value="all">All Events</option>
+            <option value="online">Online Events</option>
+            <option value="offline">Offline Events</option>
+            <option value="errors">Connection Errors</option>
+          </select>
+          <button id="refresh-history" class="btn secondary small">Refresh</button>
+        </div>
+        <div id="connection-history" class="connection-history">
+          <div class="history-empty">
+            <p>No connection events recorded yet. The history will populate as your connection status changes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="statistics-tab">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="uptime-percentage">0%</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-disconnections">0</div>
+            <div class="stat-label">Disconnections</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avg-connection-time">0s</div>
+            <div class="stat-label">Avg Connection Time</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="longest-offline">0s</div>
+            <div class="stat-label">Longest Offline</div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <h3>Connection Timeline</h3>
+          <div id="connection-chart" class="connection-chart">
+            <div class="chart-placeholder">
+              <p>Connection data will be visualized here as events are recorded.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card info-card">
+      <h2>About Network Status Monitoring</h2>
+      <p>This tool helps you monitor your network connection status in real-time using the browser's Network Information API and connection event listeners.</p>
+      
+      <div class="feature-grid">
+        <div class="feature-item">
+          <h3>🌐 Real-time Monitoring</h3>
+          <p>Continuously monitors your connection status and provides instant feedback when your network state changes.</p>
+        </div>
+        <div class="feature-item">
+          <h3>📊 Connection Metrics</h3>
+          <p>Displays detailed information about your connection including type, speed, and round-trip time when available.</p>
+        </div>
+        <div class="feature-item">
+          <h3>🔔 Smart Notifications</h3>
+          <p>Get notified when you go offline or come back online with customizable visual and audio alerts.</p>
+        </div>
+        <div class="feature-item">
+          <h3>📈 Historical Data</h3>
+          <p>Track your connection history and view statistics about uptime, disconnections, and connection quality over time.</p>
+        </div>
+      </div>
+
+      <h3>Implementation Guide</h3>
+      <p>Learn how to implement network status monitoring in your own applications:</p>
+      
+      <div class="code-example">
+        <h4>Basic Network Status Detection</h4>
+        <pre><code>// Check current online status
+if (navigator.onLine) {
+  console.log('Online');
+} else {
+  console.log('Offline');
+}
+
+// Listen for network status changes
+window.addEventListener('online', () => {
+  console.log('Connection restored');
+});
+
+window.addEventListener('offline', () => {
+  console.log('Connection lost');
+});</code></pre>
+      </div>
+
+      <div class="code-example">
+        <h4>Advanced Connection Information</h4>
+        <pre><code>// Get connection information (if supported)
+if ('connection' in navigator) {
+  const connection = navigator.connection;
+  
+  console.log('Connection type:', connection.type);
+  console.log('Effective type:', connection.effectiveType);
+  console.log('Downlink:', connection.downlink, 'Mbps');
+  console.log('RTT:', connection.rtt, 'ms');
+  
+  // Listen for connection changes
+  connection.addEventListener('change', () => {
+    console.log('Connection changed');
+  });
+}</code></pre>
+      </div>
+
+      <div class="code-example">
+        <h4>Connection Testing</h4>
+        <pre><code>// Test connection with a ping
+async function testConnection() {
+  try {
+    const start = Date.now();
+    const response = await fetch('/favicon.ico', {
+      method: 'HEAD',
+      cache: 'no-cache'
+    });
+    const latency = Date.now() - start;
+    
+    if (response.ok) {
+      console.log('Connection OK, latency:', latency, 'ms');
+      return { status: 'online', latency };
+    }
+  } catch (error) {
+    console.log('Connection failed:', error);
+    return { status: 'offline', error };
+  }
+}</code></pre>
+      </div>
+
+      <h3>Use Cases</h3>
+      <ul>
+        <li><strong>Web Applications:</strong> Pause sync operations when offline, resume when online</li>
+        <li><strong>Progressive Web Apps:</strong> Show offline indicators and enable offline functionality</li>
+        <li><strong>Real-time Applications:</strong> Handle connection drops gracefully in chat or collaboration apps</li>
+        <li><strong>Media Streaming:</strong> Adjust quality based on connection speed and stability</li>
+        <li><strong>E-commerce:</strong> Prevent form submissions when offline to avoid data loss</li>
+      </ul>
+
+      <h3>Browser Support</h3>
+      <p>The basic online/offline events are supported in all modern browsers. The Network Information API has limited support and is mainly available in Chrome-based browsers.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+      <p class="footer-links">
+        <a href="/">Home</a> |
+        <a href="#">Privacy Policy</a> |
+        <a href="#">About</a> |
+        <a href="https://github.com/mazidul36i/dev-tools" target="_blank">GitHub</a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="./network-status.js"></script>
+</body>
+
+</html>
