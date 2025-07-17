@@ -1,5 +1,5 @@
 /* Importing global CSS styles */
-@import "/css/global.css";
+@import "../css/global.css";
 
 .container {
   max-width: var(--container-width);

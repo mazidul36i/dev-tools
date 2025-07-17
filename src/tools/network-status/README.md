@@ -80,12 +80,12 @@ For more detailed connection information, use the Network Information API (limit
 // Get connection information (if supported)
 if ('connection' in navigator) {
   const connection = navigator.connection;
-  
+
   console.log('Connection type:', connection.type);
   console.log('Effective type:', connection.effectiveType);
   console.log('Downlink:', connection.downlink, 'Mbps');
   console.log('RTT:', connection.rtt, 'ms');
-  
+
   // Listen for connection changes
   connection.addEventListener('change', () => {
     console.log('Connection changed');
@@ -108,7 +108,7 @@ async function testConnection() {
       cache: 'no-cache'
     });
     const latency = Date.now() - start;
-    
+
     if (response.ok) {
       console.log('Connection OK, latency:', latency, 'ms');
       return { status: 'online', latency };
@@ -130,7 +130,7 @@ async function performSpeedTest() {
     const duration = (Date.now() - start) / 1000;
     const sizeInBits = blob.size * 8;
     const speedMbps = (sizeInBits / duration / 1000000).toFixed(2);
-    
+
     return { success: true, speed: speedMbps };
   } catch (error) {
     return { success: false, error: error.message };
@@ -147,11 +147,11 @@ function showNotification(message, type) {
   const banner = document.getElementById('network-banner');
   const bannerText = document.getElementById('banner-text');
   const bannerIcon = document.getElementById('banner-icon');
-  
+
   bannerText.textContent = message;
   bannerIcon.textContent = type === 'online' ? '✅' : '⚠️';
   banner.className = `network-banner ${type} show`;
-  
+
   // Auto-hide online notifications
   if (type === 'online') {
     setTimeout(() => {
@@ -171,10 +171,10 @@ function playSound(type) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     // Different tones for different events
     if (type === 'online') {
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
@@ -183,10 +183,10 @@ function playSound(type) {
       oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
       oscillator.frequency.setValueAtTime(300, audioContext.currentTime + 0.1);
     }
-    
+
     gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.2);
   } catch (error) {
@@ -213,7 +213,7 @@ function loadSettings() {
   if (saved) {
     settings = { ...settings, ...JSON.parse(saved) };
   }
-  
+
   const history = localStorage.getItem('networkHistory');
   if (history) {
     connectionHistory = JSON.parse(history);
@@ -235,7 +235,7 @@ class NetworkStatusMonitor {
       sound: true,
       autoTest: true
     };
-    
+
     this.init();
   }
 
@@ -249,7 +249,7 @@ class NetworkStatusMonitor {
   setupEventListeners() {
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
-    
+
     if ('connection' in navigator) {
       navigator.connection.addEventListener('change', () => {
         this.updateConnectionInfo();
@@ -277,7 +277,7 @@ class NetworkStatusMonitor {
     // Update UI elements based on current status
     const statusIndicator = document.getElementById('status-indicator');
     const statusText = document.getElementById('status-text');
-    
+
     if (this.isOnline) {
       statusIndicator.className = 'status-indicator online';
       statusText.textContent = 'Online';
@@ -285,7 +285,7 @@ class NetworkStatusMonitor {
       statusIndicator.className = 'status-indicator offline';
       statusText.textContent = 'Offline';
     }
-    
+
     this.updateConnectionInfo();
   }
 }
@@ -352,8 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 2. **Include the CSS and JS** in your HTML:
    ```html
-   <link rel="stylesheet" href="./network-status.css">
-   <script src="./network-status.js"></script>
+   <link rel="stylesheet" href="network-status.css">
+   <script src="network-status.js"></script>
    ```
 
 3. **Add the HTML structure** for the status display and controls
