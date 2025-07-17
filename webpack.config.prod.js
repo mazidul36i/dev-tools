@@ -6,31 +6,25 @@ const path = require("node:path");
 
 module.exports = merge(common, {
   mode: 'production',
+  // entry: "src",
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      filename: 'index.html'
-    }),
-    new HtmlWebpackPlugin({
-      template: './404.html',
-      filename: '404.html',
-      inject: false
-    }),
     new CopyPlugin({
       patterns: [
         {
-          from: 'tools/**/*.{html,css,js}', to: ({context, absoluteFilename}) => {
-            return path.relative(context, absoluteFilename);
+          from: 'src/**/*.{html,css,js}', to: ({context, absoluteFilename}) => {
+            return path.relative(context, absoluteFilename.replace("/src/", "/"));
           }
         },
-        { from: 'img', to: 'img' },
-        { from: 'css', to: 'css' },
-        { from: 'js/vendor', to: 'js/vendor' },
-        { from: 'icon.svg', to: 'icon.svg' },
-        { from: 'favicon.ico', to: 'favicon.ico' },
-        { from: 'robots.txt', to: 'robots.txt' },
-        { from: 'icon.png', to: 'icon.png' },
-        { from: 'site.webmanifest', to: 'site.webmanifest' },
+        {
+          from: 'src/*.{svg,png,ico,txt,webmanifest}', to: ({context, absoluteFilename}) => {
+            return path.relative(context, absoluteFilename.replace("/src/", "/"));
+          }
+        },
+        {
+          from: 'src/img/**/*.*', to: ({context, absoluteFilename}) => {
+            return path.relative(context, absoluteFilename.replace("/src/", "/"));
+          }
+        }
       ],
     }),
   ],

@@ -8,7 +8,7 @@ module.exports = merge(common, {
     liveReload: true,
     hot: true,
     open: true,
-    static: ['./'],
+    static: ['./src/'],
     historyApiFallback: {
       rewrites: [
         // Handle specific tool routes
