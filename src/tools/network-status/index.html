@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Network Status Monitor | DevTools Hub</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="../../css/style.css">
   <link rel="stylesheet" href="./network-status.css">
   <meta name="description" content="Monitor your network connection status in real-time. Get notified when you go offline or come back online with visual indicators and connection quality metrics.">
   <meta name="keywords" content="network status, connection monitor, offline detection, online status, web development tools">
@@ -13,7 +13,7 @@
   <!-- Open Graph / Social Media Meta Tags -->
   <meta property="og:title" content="Network Status Monitor | DevTools Hub">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://devtools-hub.example.com/tools/network-status/">
+  <meta property="og:url" content="https://devtools.mazidul.com/tools/network-status/">
   <meta property="og:image" content="/img/network-status-preview.png">
   <meta property="og:image:alt" content="Network Status Monitor Tool Screenshot">
   <meta property="og:description" content="Free online tool to monitor your network connection status in real-time with visual indicators.">
@@ -29,7 +29,7 @@
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="../../icon.svg">
 
-  <link rel="manifest" href="../../site.webmanifest">
+  <link rel="manifest" href="/site.webmanifest">
   <meta name="theme-color" content="#5468ff">
 </head>
 
@@ -210,7 +210,7 @@
     <div class="card info-card">
       <h2>About Network Status Monitoring</h2>
       <p>This tool helps you monitor your network connection status in real-time using the browser's Network Information API and connection event listeners.</p>
-      
+
       <div class="feature-grid">
         <div class="feature-item">
           <h3>🌐 Real-time Monitoring</h3>
@@ -232,7 +232,7 @@
 
       <h3>Implementation Guide</h3>
       <p>Learn how to implement network status monitoring in your own applications:</p>
-      
+
       <div class="code-example">
         <h4>Basic Network Status Detection</h4>
         <pre><code>// Check current online status
@@ -257,12 +257,12 @@ window.addEventListener('offline', () => {
         <pre><code>// Get connection information (if supported)
 if ('connection' in navigator) {
   const connection = navigator.connection;
-  
+
   console.log('Connection type:', connection.type);
   console.log('Effective type:', connection.effectiveType);
   console.log('Downlink:', connection.downlink, 'Mbps');
   console.log('RTT:', connection.rtt, 'ms');
-  
+
   // Listen for connection changes
   connection.addEventListener('change', () => {
     console.log('Connection changed');
@@ -281,7 +281,7 @@ async function testConnection() {
       cache: 'no-cache'
     });
     const latency = Date.now() - start;
-    
+
     if (response.ok) {
       console.log('Connection OK, latency:', latency, 'ms');
       return { status: 'online', latency };
