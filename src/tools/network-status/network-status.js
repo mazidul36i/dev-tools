@@ -145,7 +145,7 @@ class NetworkStatusMonitor {
 
     this.addToHistory('online', 'Connection restored');
     this.updateNetworkStatus();
-    this.showNotification('✅ You are back online', 'online');
+    this.showNotification('You are back online', 'online');
     this.playSound('online');
     this.saveSettings();
   }
@@ -164,7 +164,7 @@ class NetworkStatusMonitor {
 
     this.addToHistory('offline', 'Connection lost');
     this.updateNetworkStatus();
-    this.showNotification('⚠️ You are currently offline', 'offline');
+    this.showNotification('You are currently offline', 'offline');
     this.playSound('offline');
     this.saveSettings();
   }
