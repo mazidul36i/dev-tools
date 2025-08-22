@@ -14,7 +14,8 @@ class NetworkStatusMonitor {
       totalOnlineTime: 0,
       totalOfflineTime: 0,
       longestOfflineTime: 0,
-      currentOfflineStart: null
+      currentOfflineStart: null,
+      currentOnlineStart: null
     };
     this.settings = {
       notifications: true,
@@ -23,12 +24,16 @@ class NetworkStatusMonitor {
     };
     this.autoTestInterval = null;
     this.currentTab = 'history';
-    
+
     this.init();
   }
 
   init() {
     this.loadSettings();
+    // Set currentOnlineStart if online and not already set
+    if (this.isOnline && !this.statistics.currentOnlineStart) {
+      this.statistics.currentOnlineStart = Date.now();
+    }
     this.setupEventListeners();
     this.setupNetworkListeners();
     this.updateUI();
@@ -41,12 +46,12 @@ class NetworkStatusMonitor {
     if (saved) {
       this.settings = { ...this.settings, ...JSON.parse(saved) };
     }
-    
+
     const history = localStorage.getItem('networkHistory');
     if (history) {
       this.connectionHistory = JSON.parse(history);
     }
-    
+
     const stats = localStorage.getItem('networkStats');
     if (stats) {
       this.statistics = { ...this.statistics, ...JSON.parse(stats) };
@@ -63,7 +68,7 @@ class NetworkStatusMonitor {
     // Network status listeners
     window.addEventListener('online', () => this.handleOnline());
     window.addEventListener('offline', () => this.handleOffline());
-    
+
     // UI event listeners
     document.getElementById('test-connection').addEventListener('click', () => this.testConnection());
     document.getElementById('enable-notifications').addEventListener('change', (e) => {
@@ -83,21 +88,21 @@ class NetworkStatusMonitor {
         this.stopAutoTest();
       }
     });
-    
+
     // Action buttons
     document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
     document.getElementById('export-log').addEventListener('click', () => this.exportLog());
     document.getElementById('reset-settings').addEventListener('click', () => this.resetSettings());
-    
+
     // Tab switching
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
     });
-    
+
     // History filter
     document.getElementById('history-filter').addEventListener('change', () => this.updateHistoryDisplay());
     document.getElementById('refresh-history').addEventListener('click', () => this.updateHistoryDisplay());
-    
+
     // Load initial settings
     document.getElementById('enable-notifications').checked = this.settings.notifications;
     document.getElementById('enable-sound').checked = this.settings.sound;
@@ -124,7 +129,7 @@ class NetworkStatusMonitor {
   handleOnline() {
     this.isOnline = true;
     this.statistics.totalConnections++;
-    
+
     // Calculate offline time if we were offline
     if (this.statistics.currentOfflineStart) {
       const offlineTime = Date.now() - this.statistics.currentOfflineStart;
@@ -132,7 +137,12 @@ class NetworkStatusMonitor {
       this.statistics.longestOfflineTime = Math.max(this.statistics.longestOfflineTime, offlineTime);
       this.statistics.currentOfflineStart = null;
     }
-    
+
+    // Set currentOnlineStart if not already set
+    if (!this.statistics.currentOnlineStart) {
+      this.statistics.currentOnlineStart = Date.now();
+    }
+
     this.addToHistory('online', 'Connection restored');
     this.updateNetworkStatus();
     this.showNotification('✅ You are back online', 'online');
@@ -144,7 +154,14 @@ class NetworkStatusMonitor {
     this.isOnline = false;
     this.statistics.totalDisconnections++;
     this.statistics.currentOfflineStart = Date.now();
-    
+
+    // Calculate online time if we were online
+    if (this.statistics.currentOnlineStart) {
+      const onlineTime = Date.now() - this.statistics.currentOnlineStart;
+      this.statistics.totalOnlineTime += onlineTime;
+      this.statistics.currentOnlineStart = null;
+    }
+
     this.addToHistory('offline', 'Connection lost');
     this.updateNetworkStatus();
     this.showNotification('⚠️ You are currently offline', 'offline');
@@ -158,14 +175,14 @@ class NetworkStatusMonitor {
     const bannerText = document.getElementById('banner-text');
     const statusIndicator = document.getElementById('status-indicator');
     const statusText = document.getElementById('status-text');
-    
+
     if (this.isOnline) {
       banner.className = 'network-banner online show';
       bannerIcon.textContent = '✅';
       bannerText.textContent = 'You are online';
       statusIndicator.className = 'status-indicator online';
       statusText.textContent = 'Online';
-      
+
       // Hide banner after 3 seconds if online
       setTimeout(() => {
         if (this.isOnline) {
@@ -179,14 +196,14 @@ class NetworkStatusMonitor {
       statusIndicator.className = 'status-indicator offline';
       statusText.textContent = 'Offline';
     }
-    
+
     this.updateConnectionInfo();
     this.updateLastUpdated();
   }
 
   updateConnectionInfo() {
     const connection = navigator.connection;
-    
+
     if (connection) {
       document.getElementById('connection-type').textContent = connection.type || 'Unknown';
       document.getElementById('effective-type').textContent = connection.effectiveType || 'Unknown';
@@ -212,11 +229,11 @@ class NetworkStatusMonitor {
     const pingResult = document.getElementById('ping-result');
     const speedResult = document.getElementById('speed-result');
     const dnsResult = document.getElementById('dns-result');
-    
+
     testBtn.disabled = true;
     testBtn.textContent = 'Testing...';
     progress.classList.add('active');
-    
+
     // Reset results
     pingResult.textContent = 'Testing...';
     pingResult.className = 'test-result testing';
@@ -224,34 +241,34 @@ class NetworkStatusMonitor {
     speedResult.className = 'test-result testing';
     dnsResult.textContent = 'Testing...';
     dnsResult.className = 'test-result testing';
-    
+
     try {
       // Test 1: Ping test
       progressText.textContent = 'Testing connection latency...';
       progressFill.style.width = '33%';
-      
+
       const pingTest = await this.performPingTest();
       pingResult.textContent = pingTest.success ? `${pingTest.latency}ms` : 'Failed';
       pingResult.className = `test-result ${pingTest.success ? 'success' : 'error'}`;
-      
+
       // Test 2: Speed test (simplified)
       progressText.textContent = 'Testing connection speed...';
       progressFill.style.width = '66%';
-      
+
       const speedTest = await this.performSpeedTest();
       speedResult.textContent = speedTest.success ? `${speedTest.speed} Mbps` : 'Failed';
       speedResult.className = `test-result ${speedTest.success ? 'success' : 'error'}`;
-      
+
       // Test 3: DNS resolution test
       progressText.textContent = 'Testing DNS resolution...';
       progressFill.style.width = '100%';
-      
+
       const dnsTest = await this.performDNSTest();
       dnsResult.textContent = dnsTest.success ? `${dnsTest.time}ms` : 'Failed';
       dnsResult.className = `test-result ${dnsTest.success ? 'success' : 'error'}`;
-      
+
       progressText.textContent = 'Test completed';
-      
+
     } catch (error) {
       console.error('Connection test failed:', error);
       pingResult.textContent = 'Error';
@@ -296,7 +313,7 @@ class NetworkStatusMonitor {
       const duration = (Date.now() - start) / 1000;
       const sizeInBits = blob.size * 8;
       const speedMbps = (sizeInBits / duration / 1000000).toFixed(2);
-      
+
       return { success: true, speed: speedMbps };
     } catch (error) {
       return { success: false, error: error.message };
@@ -336,14 +353,14 @@ class NetworkStatusMonitor {
       timestamp: Date.now(),
       time: new Date().toLocaleString()
     };
-    
+
     this.connectionHistory.unshift(event);
-    
+
     // Keep only last 100 events
     if (this.connectionHistory.length > 100) {
       this.connectionHistory = this.connectionHistory.slice(0, 100);
     }
-    
+
     this.updateHistoryDisplay();
     this.updateStatistics();
   }
@@ -351,7 +368,7 @@ class NetworkStatusMonitor {
   updateHistoryDisplay() {
     const historyContainer = document.getElementById('connection-history');
     const filter = document.getElementById('history-filter').value;
-    
+
     let filteredHistory = this.connectionHistory;
     if (filter !== 'all') {
       filteredHistory = this.connectionHistory.filter(event => {
@@ -361,46 +378,53 @@ class NetworkStatusMonitor {
         return event.type === filter;
       });
     }
-    
+
     if (filteredHistory.length === 0) {
       historyContainer.innerHTML = '<div class="history-empty"><p>No events match the current filter.</p></div>';
       return;
     }
-    
+
     const historyHTML = filteredHistory.map(event => `
       <div class="history-item ${event.type}">
         <div class="history-event">${event.message}</div>
         <div class="history-time">${event.time}</div>
       </div>
     `).join('');
-    
+
     historyContainer.innerHTML = historyHTML;
   }
 
   updateStatistics() {
     const now = Date.now();
     const sessionTime = now - this.statistics.sessionStartTime;
-    
-    // Calculate uptime percentage
-    let totalTime = this.statistics.totalOnlineTime + this.statistics.totalOfflineTime;
-    if (this.statistics.currentOfflineStart) {
-      totalTime += now - this.statistics.currentOfflineStart;
-    } else {
-      // Currently online, add current session time
-      totalTime += sessionTime;
+
+    // Calculate total online time including current session if online
+    let totalOnlineTime = this.statistics.totalOnlineTime;
+    if (this.isOnline && this.statistics.currentOnlineStart) {
+      totalOnlineTime += now - this.statistics.currentOnlineStart;
     }
-    
-    const uptimePercentage = totalTime > 0 ? ((this.statistics.totalOnlineTime / totalTime) * 100).toFixed(1) : 100;
-    
+
+    // Calculate total time (online + offline)
+    let totalTime = this.statistics.totalOnlineTime + this.statistics.totalOfflineTime;
+    if (this.isOnline && this.statistics.currentOnlineStart) {
+      totalTime += now - this.statistics.currentOnlineStart;
+    } else if (this.statistics.currentOfflineStart) {
+      totalTime += now - this.statistics.currentOfflineStart;
+    }
+
+    const uptimePercentage = totalTime > 0 ? ((totalOnlineTime / totalTime) * 100).toFixed(1) : 100;
+    console.log(totalTime);
+    console.log(this.statistics);
+
     document.getElementById('uptime-percentage').textContent = `${uptimePercentage}%`;
     document.getElementById('total-disconnections').textContent = this.statistics.totalDisconnections;
-    
+
     // Average connection time
-    const avgConnectionTime = this.statistics.totalConnections > 0 
-      ? (this.statistics.totalOnlineTime / this.statistics.totalConnections / 1000).toFixed(0)
+    const avgConnectionTime = this.statistics.totalConnections > 0
+      ? (totalOnlineTime / this.statistics.totalConnections / 1000).toFixed(0)
       : 0;
     document.getElementById('avg-connection-time').textContent = `${avgConnectionTime}s`;
-    
+
     // Longest offline time
     const longestOffline = (this.statistics.longestOfflineTime / 1000).toFixed(0);
     document.getElementById('longest-offline').textContent = `${longestOffline}s`;
@@ -408,15 +432,15 @@ class NetworkStatusMonitor {
 
   showNotification(message, type) {
     if (!this.settings.notifications) return;
-    
+
     const banner = document.getElementById('network-banner');
     const bannerText = document.getElementById('banner-text');
     const bannerIcon = document.getElementById('banner-icon');
-    
+
     bannerText.textContent = message;
     bannerIcon.textContent = type === 'online' ? '✅' : '⚠️';
     banner.className = `network-banner ${type} show`;
-    
+
     // Auto-hide online notifications
     if (type === 'online') {
       setTimeout(() => {
@@ -427,16 +451,16 @@ class NetworkStatusMonitor {
 
   playSound(type) {
     if (!this.settings.sound) return;
-    
+
     // Create audio context for sound generation
     try {
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       // Different tones for different events
       if (type === 'online') {
         oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
@@ -445,10 +469,10 @@ class NetworkStatusMonitor {
         oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
         oscillator.frequency.setValueAtTime(300, audioContext.currentTime + 0.1);
       }
-      
+
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.2);
     } catch (error) {
@@ -458,7 +482,7 @@ class NetworkStatusMonitor {
 
   startAutoTest() {
     if (!this.settings.autoTest) return;
-    
+
     this.stopAutoTest();
     this.autoTestInterval = setInterval(() => {
       this.testConnection();
@@ -478,15 +502,15 @@ class NetworkStatusMonitor {
       btn.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
+
     // Update tab content
     document.querySelectorAll('.tab-content').forEach(content => {
       content.classList.remove('active');
     });
     document.getElementById(`${tabName}-tab`).classList.add('active');
-    
+
     this.currentTab = tabName;
-    
+
     if (tabName === 'statistics') {
       this.updateStatistics();
     }
@@ -506,7 +530,7 @@ class NetworkStatusMonitor {
       statistics: this.statistics,
       exportTime: new Date().toISOString()
     };
-    
+
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

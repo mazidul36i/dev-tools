@@ -78,7 +78,7 @@ main.container {
 
 .status-header {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -93,16 +93,16 @@ main.container {
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 0.95rem;
 }
 
 .indicator-dot {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  position: relative;
+  margin-right: 10px;
+  background: #4caf50;
+  box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  animation: pulse-dot 1.2s infinite cubic-bezier(0.66, 0, 0, 1);
 }
 
 .status-indicator.online .indicator-dot {
@@ -113,6 +113,7 @@ main.container {
 .status-indicator.offline .indicator-dot {
   background: #f44336;
   box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.2);
+  animation: pulse-dot-offline 1.2s infinite cubic-bezier(0.66, 0, 0, 1);
 }
 
 .status-indicator.checking .indicator-dot {
@@ -121,9 +122,28 @@ main.container {
   animation: checking-pulse 1.5s infinite;
 }
 
-@keyframes checking-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+@keyframes pulse-dot-offline {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+  }
 }
 
 .status-indicator.online {
@@ -585,28 +605,28 @@ input:checked + .slider:before {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .controls-section {
     grid-template-columns: 1fr;
     gap: 20px;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .feature-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .status-card {
     padding: 20px;
   }
-  
+
   .card {
     padding: 20px;
   }
-  
+
   main.container {
     padding-top: 50px;
   }
@@ -616,21 +636,21 @@ input:checked + .slider:before {
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .history-controls {
     flex-direction: column;
     gap: 10px;
     align-items: stretch;
   }
-  
+
   .action-buttons {
     gap: 8px;
   }
-  
+
   .banner-content {
     font-size: 0.85rem;
   }
-  
+
   .network-banner {
     padding: 10px 15px;
   }
