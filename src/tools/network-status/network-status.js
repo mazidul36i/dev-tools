@@ -413,8 +413,6 @@ class NetworkStatusMonitor {
     }
 
     const uptimePercentage = totalTime > 0 ? ((totalOnlineTime / totalTime) * 100).toFixed(1) : 100;
-    console.log(totalTime);
-    console.log(this.statistics);
 
     document.getElementById('uptime-percentage').textContent = `${uptimePercentage}%`;
     document.getElementById('total-disconnections').textContent = this.statistics.totalDisconnections;
