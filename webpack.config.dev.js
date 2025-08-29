@@ -16,6 +16,7 @@ module.exports = merge(common, {
         { from: /^\/tools\/json-formatter/, to: '/tools/json-formatter/index.html' },
         { from: /^\/tools\/color-picker/, to: '/tools/color-picker/index.html' },
         { from: /^\/tools\/encoder-decoder/, to: '/tools/encoder-decoder/index.html' },
+        { from: /^\/tools\/image-to-text/, to: '/tools/image-to-text/index.html' },
 
         // Handle all other routes - serve 404.html
         { from: /./, to: '/404.html' }
