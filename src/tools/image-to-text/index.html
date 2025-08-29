@@ -1,0 +1,146 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Image to Text Converter | DevTools Hub</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="./image-to-text.css">
+  <meta name="description"
+        content="Convert images to text using OCR technology. Extract text from images, screenshots, and documents easily.">
+  <meta name="keywords" content="OCR, image to text, text extraction, image reader, screenshot to text">
+
+  <!-- Open Graph / Social Media Meta Tags -->
+  <meta property="og:title" content="Image to Text Converter | DevTools Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devtools.mazidul.com/tools/image-to-text/">
+  <meta property="og:description" content="Free online tool to extract text from images using OCR technology.">
+  <meta property="og:site_name" content="DevTools Hub">
+
+  <!-- Twitter Card data -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Image to Text Converter | DevTools Hub">
+  <meta name="twitter:description" content="Free online tool to extract text from images using OCR technology.">
+
+  <link rel="icon" href="/icon.svg" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#5468ff">
+</head>
+
+<body>
+<header class="site-header">
+  <div class="container">
+    <h1>Image to Text Converter</h1>
+    <p class="tagline">Extract text from images using advanced OCR technology</p>
+    <div class="back-link">
+      <a href="/">← Back to DevTools Hub</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <div class="card">
+    <div class="upload-section">
+      <div id="drop-zone" class="drop-zone">
+        <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <p class="upload-text">Drop image here, click to upload, or paste (Ctrl+V)</p>
+        <p class="upload-hint">Supports PNG, JPG, JPEG, GIF, and WebP formats</p>
+        <input type="file" id="file-input" accept="image/*" hidden>
+      </div>
+
+      <div id="preview-section" class="preview-section" style="display: none;">
+        <h3>Image Preview</h3>
+        <img id="preview" alt="Image Preview" class="image-preview">
+      </div>
+
+      <div class="progress-section">
+        <progress id="progress" value="0" max="1" style="display: none;"></progress>
+        <p id="status" class="status-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card result-card" id="result-section" style="display: none;">
+    <h2>Extracted Text</h2>
+    <div class="result-group">
+      <textarea id="output" class="result-textarea" placeholder="Extracted text will appear here..."
+                readonly></textarea>
+    </div>
+    <div class="controls">
+      <button id="copy-btn" class="btn primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        Copy Text
+      </button>
+      <button id="download-btn" class="btn secondary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download as .txt
+      </button>
+      <button id="clear-btn" class="btn secondary">Clear</button>
+    </div>
+  </div>
+
+  <div class="card info-card">
+    <h2>About OCR Technology</h2>
+    <p>This tool uses Optical Character Recognition (OCR) technology to extract text from images. Simply upload an
+      image, paste a screenshot, or drag and drop a file to convert it to editable text.</p>
+
+    <div class="features">
+      <h3>Key Features:</h3>
+      <ul>
+        <li><strong>Multiple Input Methods:</strong> Upload files, drag & drop, or paste screenshots directly</li>
+        <li><strong>Fast Processing:</strong> Quick text extraction using Tesseract.js OCR engine</li>
+        <li><strong>Privacy Focused:</strong> All processing happens in your browser - no data is sent to any server
+        </li>
+        <li><strong>Export Options:</strong> Copy extracted text or download as a .txt file</li>
+      </ul>
+    </div>
+
+    <div class="tips">
+      <h3>💡 Tips for Best Results:</h3>
+      <ul>
+        <li>Use high-quality images with clear, readable text</li>
+        <li>Ensure good contrast between text and background</li>
+        <li>Avoid blurry or distorted images</li>
+        <li>For screenshots, use Ctrl+V to paste directly</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>&copy; 2025 DevTools Hub. All tools are free to use.</p>
+    <p class="footer-links">
+      <a href="/">Home</a> |
+      <a href="#">Privacy Policy</a> |
+      <a href="#">About</a> |
+      <a href="https://github.com/mazidul36i/dev-tools" target="_blank">GitHub</a>
+    </p>
+  </div>
+</footer>
+
+<!-- Toast notification -->
+<div id="toast" class="toast"></div>
+
+<!-- Tesseract.js -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="./image-to-text.js"></script>
+</body>
+
+</html>
