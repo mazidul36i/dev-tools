@@ -75,14 +75,16 @@ function handleFile(file) {
         status.textContent = `Processing: ${(m.progress * 100).toFixed(1)}%`;
       }
     }
-  }).then(({data: {text}}) => {
-    output.value = text.trim();
+  }).then(({ data: { text } }) => {
+    // Process the text to merge lines that belong to the same paragraph
+    const processedText = processParagraphs(text);
+    output.value = processedText;
     status.textContent = "✅ Text extraction complete!";
     resultSection.style.display = "block";
     progress.style.display = "none";
-
+    
     // Scroll to results
-    resultSection.scrollIntoView({behavior: 'smooth', block: 'center'});
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }).catch(err => {
     console.error(err);
     status.textContent = "❌ Error reading image";
@@ -134,6 +136,63 @@ clearBtn.addEventListener("click", () => {
   progress.style.display = "none";
   progress.value = 0;
 });
+
+// Process text to merge lines that belong to the same paragraph
+function processParagraphs(text) {
+  if (!text) return '';
+  
+  const lines = text.split('\n');
+  const processedLines = [];
+  let currentParagraph = '';
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
+    
+    // Skip empty lines
+    if (line === '') {
+      // If we have a current paragraph, add it to processed lines
+      if (currentParagraph) {
+        processedLines.push(currentParagraph);
+        currentParagraph = '';
+        // Add empty line to preserve paragraph breaks
+        processedLines.push('');
+      }
+      continue;
+    }
+    
+    // Check if line appears to end a sentence/paragraph
+    const endsWithPunctuation = /[.!?:;]$/.test(line);
+    const nextLineStartsNewSentence = nextLine && /^[A-Z]/.test(nextLine);
+    const isLikelyHeader = line.length < 50 && /^[A-Z\d]/.test(line) && !endsWithPunctuation;
+    const nextLineIsEmpty = nextLine === '';
+    
+    // Decide if this line should be merged with the next
+    if (isLikelyHeader || (endsWithPunctuation && (nextLineStartsNewSentence || nextLineIsEmpty))) {
+      // This line ends a paragraph or is a header
+      if (currentParagraph) {
+        processedLines.push(currentParagraph + ' ' + line);
+        currentParagraph = '';
+      } else {
+        processedLines.push(line);
+      }
+    } else {
+      // This line continues the paragraph
+      currentParagraph = currentParagraph ? currentParagraph + ' ' + line : line;
+    }
+  }
+  
+  // Add any remaining paragraph
+  if (currentParagraph) {
+    processedLines.push(currentParagraph);
+  }
+  
+  // Clean up multiple consecutive empty lines
+  return processedLines
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
 
 // Show toast notification
 function showToast(message, type = "success") {
