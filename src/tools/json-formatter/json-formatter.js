@@ -789,4 +789,331 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Initialize Intersection Observer for tree view
+  const treeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const node = entry.target;
+
+        // Find the first visible node
+        const visibleNodes = Array.from(document.querySelectorAll('.tree-node'))
+          .filter(n => {
+            const rect = n.getBoundingClientRect();
+            return rect.top >= 0 && rect.bottom <= window.innerHeight;
+          });
+
+        const isFirstVisible = visibleNodes[0] === node;
+
+        // Update parent context for first visible node
+        if (isFirstVisible) {
+          updateTreeViewPath(node, 'top');
+        }
+
+        node.classList.add('in-view');
+      } else {
+        entry.target.classList.remove('in-view');
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '-20px 0px'
+  });
+
+  // Add scroll event listeners
+  formattedResult.addEventListener('scroll', () => {
+    updateTextViewPath();
+  });
+
+  jsonTreeView.addEventListener('scroll', () => {
+    const visibleNodes = Array.from(jsonTreeView.querySelectorAll('.tree-node'))
+      .filter(node => {
+        const rect = node.getBoundingClientRect();
+        const containerRect = jsonTreeView.getBoundingClientRect();
+        return rect.top >= containerRect.top && rect.bottom <= containerRect.bottom;
+      });
+
+    if (visibleNodes.length > 0) {
+      updateTreeViewPath(visibleNodes[0], 'top');
+    }
+  });
+
+  // Update tree view path function
+  function updateTreeViewPath(node, position = 'top') {
+    if (!node) {
+      resetPath(document.querySelector(`#tree-view-path-${position}`));
+      return;
+    }
+
+    // Get all parent nodes but exclude the current node if it's a leaf node
+    const path = getNodePath(node);
+
+    // Remove the last item if it's a leaf node (has no nested objects/arrays)
+    if (path.length > 0 && !hasNestedStructureByNode(node)) {
+      path.pop();
+    }
+
+    const pathContainer = document.querySelector(`#tree-view-path-${position}`);
+    if (pathContainer) {
+      updatePathDisplay(pathContainer, path);
+      pathContainer.classList.add('active');
+      document.querySelector(`#text-view-path-${position}`)?.classList.remove('active');
+    }
+  }
+
+  // Update text view path function
+  function updateTextViewPath() {
+    if (!formattedResult.value) {
+      resetPath(document.querySelector('#text-view-path-top'));
+      return;
+    }
+
+    const lines = formattedResult.value.split('\n');
+    const lineHeight = formattedResult.scrollHeight / lines.length;
+    const visibleTop = Math.floor(formattedResult.scrollTop / lineHeight);
+
+    // Build the context for the current line
+    const context = getTextContext(lines, visibleTop);
+    if (!context) return;
+
+    // Get the path without the leaf node
+    const path = ['root'].concat(context.parentPath);
+
+    const topContainer = document.querySelector('#text-view-path-top');
+    updatePathDisplay(topContainer, path);
+    topContainer.classList.add('active');
+    document.querySelector('#tree-view-path-top')?.classList.remove('active');
+  }
+
+  function getTextContext(lines, currentLineNumber) {
+    const stack = [];
+    const parentPath = [];
+    let currentIndent = 0;
+
+    // Process lines up to the current line
+    for (let i = 0; i <= currentLineNumber && i < lines.length; i++) {
+      const line = lines[i].trimEnd();
+      if (!line) continue;
+
+      const indent = line.search(/\S/);
+      if (indent === -1) continue;
+
+      // Pop stack items when indentation decreases
+      if (indent < currentIndent) {
+        while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+          stack.pop();
+          parentPath.pop();
+        }
+      }
+
+      const trimmedLine = line.trim();
+
+      // Skip closing brackets/braces
+      if (trimmedLine === '}' || trimmedLine === ']' || trimmedLine === '},' || trimmedLine === '],') {
+        continue;
+      }
+
+      // Handle array indices
+      if (trimmedLine.match(/^\d+:/)) {
+        const indexMatch = trimmedLine.match(/^(\d+):/);
+        if (indexMatch) {
+          const key = `[${indexMatch[1]}]`;
+          const remainingLine = trimmedLine.substring(indexMatch[0].length).trim();
+          // Only add to path if it's not a leaf node
+          if (hasNestedStructure(remainingLine)) {
+            stack.push({ key, indent });
+            parentPath.push(key);
+          }
+        }
+      }
+      // Handle object keys
+      else {
+        const keyMatch = trimmedLine.match(/"([^"]+)":/);
+        if (keyMatch) {
+          const key = keyMatch[1];
+          const remainingLine = trimmedLine.substring(keyMatch[0].length).trim();
+          // Only add to path if it's not a leaf node
+          if (hasNestedStructure(remainingLine)) {
+            stack.push({ key, indent });
+            parentPath.push(key);
+          }
+        }
+      }
+
+      currentIndent = indent;
+    }
+
+    return { parentPath };
+  }
+
+  // Helper function to check if a node has nested objects or arrays
+  function hasNestedStructureByNode(node) {
+    // Check if the node has any child nodes that are objects or arrays
+    const container = node.querySelector('.tree-children');
+    if (!container) return false;
+
+    // Check if any child has object/array brackets
+    return container.querySelector('.tree-bracket') !== null;
+  }
+
+  function hasNestedStructure(line) {
+    if (!line) return false;
+    line = line.replace(/,$/, ''); // Remove trailing comma
+
+    // If line starts with { or [ and doesn't end with the same character, it's a nested structure
+    if ((line.startsWith('{') && !line.endsWith('}')) ||
+        (line.startsWith('[') && !line.endsWith(']'))) {
+      return true;
+    }
+
+    // If line is just { } or [ ], it's an empty object/array
+    if (line === '{}' || line === '[]') {
+      return false;
+    }
+
+    // If line starts and ends with {} or [], it might be a complete object/array
+    if ((line.startsWith('{') && line.endsWith('}')) ||
+        (line.startsWith('[') && line.endsWith(']'))) {
+      return true;
+    }
+
+    // Otherwise it's a leaf node (string, number, boolean, or null)
+    return false;
+  }
+
+  // Node path helpers
+  function getNodePath(node) {
+    const path = ['root'];
+    let current = node;
+    const parentStack = [];
+
+    while (current && !current.classList.contains('json-tree')) {
+      const container = current.closest('.tree-children');
+      const keyEl = current.querySelector(':scope > div > .tree-key');
+      const bracket = current.querySelector(':scope > div > .tree-bracket');
+
+      if (keyEl) {
+        const text = keyEl.textContent.replace(/['"]/g, '');
+        const isArrayItem = !isNaN(text) && bracket?.textContent === '[';
+
+        // Add array index or key to the stack
+        if (isArrayItem) {
+          // Don't add array indices of parent arrays yet
+          if (!container || container.parentElement === current) {
+            parentStack.unshift(`[${text}]`);
+          }
+        } else {
+          // For object keys
+          if (!bracket || bracket.textContent === '{') {
+            parentStack.unshift(text);
+          }
+        }
+      }
+
+      // Handle parent arrays
+      if (container) {
+        const parentNode = container.closest('.tree-node');
+        const parentKey = parentNode?.querySelector(':scope > div > .tree-key');
+        const parentBracket = parentNode?.querySelector(':scope > div > .tree-bracket');
+
+        if (parentKey && parentBracket && parentBracket.textContent === '[') {
+          const text = parentKey.textContent.replace(/['"]/g, '');
+          // Only add if it's the immediate parent array
+          if (parentNode === current.parentElement.closest('.tree-node')) {
+            parentStack.unshift(text);
+          }
+        }
+      }
+
+      current = current.parentElement.closest('.tree-node');
+    }
+
+    return [...path, ...parentStack];
+  }
+
+  function getTextPath(lines, lineNumber) {
+    const path = ['root'];
+    const stack = [];
+    let currentIndent = 0;
+
+    for (let i = 0; i <= lineNumber && i < lines.length; i++) {
+      const line = lines[i];
+      const indent = line.search(/\S/);
+      if (indent === -1) continue;
+
+      if (indent < currentIndent) {
+        while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+          stack.pop();
+        }
+      }
+
+      const trimmedLine = line.trim();
+      if (trimmedLine.length === 0) continue;
+
+      // Handle array indices
+      if (trimmedLine.match(/^\d+:/)) {
+        const indexMatch = trimmedLine.match(/^(\d+):/);
+        if (indexMatch) {
+          stack.push({ key: `[${indexMatch[1]}]`, indent, isArray: true });
+        }
+      } else {
+        // Handle object keys
+        const keyMatch = trimmedLine.match(/"([^"]+)":/);
+        if (keyMatch) {
+          stack.push({ key: keyMatch[1], indent, isArray: false });
+        }
+      }
+
+      currentIndent = indent;
+    }
+
+    return [...path, ...stack.map(item => item.key)];
+  }
+
+  // Path display utilities
+  function updatePathDisplay(container, path) {
+    if (!container || !path) return;
+
+    container.innerHTML = '';
+
+    // Add label
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'path-label';
+    labelSpan.textContent = 'Parent:';
+    container.appendChild(labelSpan);
+
+    // Add path elements
+    path.forEach((segment, index) => {
+      if (index > 0) {
+        // Add separator
+        const separator = document.createElement('span');
+        separator.className = 'path-separator';
+        separator.textContent = ' → ';
+        container.appendChild(separator);
+      }
+
+      const valueSpan = document.createElement('span');
+      valueSpan.className = 'path-value';
+      valueSpan.textContent = segment;
+      container.appendChild(valueSpan);
+    });
+
+    container.classList.add('active');
+  }
+
+  function resetPath(container) {
+    if (!container) return;
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'path-label';
+    labelSpan.textContent = 'Parent:';
+
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'path-value';
+    valueSpan.textContent = 'root';
+
+    container.innerHTML = '';
+    container.appendChild(labelSpan);
+    container.appendChild(valueSpan);
+  }
 });

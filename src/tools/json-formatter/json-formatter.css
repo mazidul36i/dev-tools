@@ -332,6 +332,21 @@
   padding: 2px 0;
 }
 
+.tree-node::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+}
+
+.tree-node.in-view::before {
+  background: var(--primary-color);
+  opacity: 0.2;
+}
+
 .tree-key {
   color: var(--primary-color);
   font-weight: 600;
@@ -597,6 +612,57 @@ pre code {
 /* Error Toast */
 .toast.error {
   background-color: var(--error-color);
+}
+
+/* Parent Path Display */
+.parent-path-display {
+  position: sticky;
+  background: #f8fafc;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.parent-path-display {
+  top: 0;
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.path-container {
+  display: none;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.path-container.active {
+  display: block;
+}
+
+.path-label {
+  color: #64748b;
+  margin-right: 8px;
+  font-style: italic;
+}
+
+.path-value {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.path-separator {
+  color: #94a3b8;
+  margin: 0 4px;
+  opacity: 0.7;
+}
+
+/* Adjust textarea and tree view to work with sticky headers */
+#formatted-result,
+.json-tree {
+  border-radius: 0;
+  position: relative;
+  z-index: 1;
 }
 
 /* Responsive Styles */
