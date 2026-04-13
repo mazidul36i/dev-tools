@@ -3,6 +3,11 @@
 
 /* Network Status Tool Specific Styles */
 
+/* Main Content Adjustments */
+main.container {
+  padding-top: 60px; /* Account for fixed banner */
+}
+
 /* Network Banner */
 .network-banner {
   position: fixed;
@@ -17,55 +22,61 @@
   transform: translateY(-100%);
   transition: all 0.3s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+
+  .banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    .banner-icon {
+      font-size: 1.2rem;
+      animation: pulse 2s infinite;
+    }
+  }
+
+  &.show {
+    transform: translateY(0);
+  }
+
+  &.online {
+    background: linear-gradient(135deg, #00c853, #2e7d32);
+    color: white;
+  }
+
+  &.offline {
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: white;
+  }
+
+  &.checking {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+  }
 }
 
-.network-banner.show {
-  transform: translateY(0);
-}
-
-.network-banner.online {
-  background: linear-gradient(135deg, #00c853, #2e7d32);
-  color: white;
-}
-
-.network-banner.offline {
-  background: linear-gradient(135deg, #f44336, #c62828);
-  color: white;
-}
-
-.network-banner.checking {
-  background: linear-gradient(135deg, #ff9800, #f57c00);
-  color: white;
-}
-
-.banner-content {
+/* Main Tool content */
+.tool-content {
+  padding: 30px;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.banner-icon {
-  font-size: 1.2rem;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-/* Main Content Adjustments */
-main.container {
-  padding-top: 60px; /* Account for fixed banner */
-}
-
-/* Status Dashboard */
-.status-dashboard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  flex-direction: column;
   gap: 30px;
-  margin-bottom: 30px;
+
+  /* Status Dashboard */
+
+  .status-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+
+  /* Controls Section */
+
+  .controls-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
 }
 
 .status-card {
@@ -260,14 +271,6 @@ main.container {
   color: #666;
   text-align: center;
   display: block;
-}
-
-/* Controls Section */
-.controls-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 30px;
 }
 
 .control-group h3 {
@@ -542,59 +545,13 @@ input:checked + .slider:before {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
-/* Button Styles */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-}
-
-.btn.primary {
-  background: var(--primary-color);
-  color: white;
-}
-
-.btn.primary:hover {
-  background: var(--primary-hover);
-}
-
-.btn.secondary {
-  background: #f8f9fa;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.btn.secondary:hover {
-  background: #e9ecef;
-}
-
+/* Network Status Tool Specific Button Styles */
 .btn.small {
   padding: 6px 12px;
   font-size: 0.85rem;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Card Styles */
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 30px;
-  margin-bottom: 30px;
-  box-shadow: var(--card-shadow);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
+/* Tool specific card styles */
 .info-card {
   background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
 }
