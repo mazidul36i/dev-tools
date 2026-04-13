@@ -50,6 +50,7 @@
         <button class="tab-btn active" data-tab="format">Format JSON</button>
         <button class="tab-btn" data-tab="minify">Minify JSON</button>
         <button class="tab-btn" data-tab="convert">JSON Stringify/Parse</button>
+        <button class="tab-btn" data-tab="dto">Java DTO to JSON</button>
       </div>
 
       <div class="tab-content active" id="format-tab">
@@ -150,6 +151,32 @@
           <textarea id="converted-result" readonly></textarea>
         </div>
       </div>
+
+      <div class="tab-content" id="dto-tab">
+        <div class="input-group">
+          <label for="dto-input">Enter Java DTO / Logger output:</label>
+          <textarea id="dto-input" placeholder='FlowStepScenarioMappingModel(uuid=afe73ddd-d897-4932-8b96-80d2f4bb2f80, flowId=Master_Flow_MOCR_v3, stepId=_2174648B, dataSetId=552817, tenantId=954252, systemId=null, status=null, statusType=STATIC)'></textarea>
+        </div>
+        <div class="dto-options">
+          <label>
+            <input type="checkbox" id="dto-strip-classname" checked>
+            Strip class name
+          </label>
+          <label>
+            <input type="checkbox" id="dto-auto-detect-types" checked>
+            Auto-detect types (numbers, booleans, null)
+          </label>
+        </div>
+        <div class="controls">
+          <button id="dto-convert-btn" class="btn primary">Convert to JSON</button>
+          <button id="copy-dto-result" class="btn secondary">Copy Result</button>
+          <button id="clear-dto" class="btn secondary">Clear</button>
+        </div>
+        <div class="result-group">
+          <label for="dto-result">JSON Output:</label>
+          <textarea id="dto-result" readonly></textarea>
+        </div>
+      </div>
     </div>
 
     <div class="card info-card">
@@ -161,6 +188,7 @@
         <li><strong>Validate JSON</strong> - Check if your JSON is valid and correctly formatted</li>
         <li><strong>Minify JSON</strong> - Remove whitespace and make JSON compact for transmission</li>
         <li><strong>JSON Stringify/Parse</strong> - Convert between normal JSON and stringified JSON format</li>
+        <li><strong>Java DTO to JSON</strong> - Convert Java logger DTO output (e.g. Lombok toString) into valid JSON</li>
       </ul>
 
       <div class="json-examples">
