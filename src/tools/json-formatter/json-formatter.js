@@ -137,6 +137,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const normalToStringBtn = document.getElementById('normal-to-string-btn');
   const stringToNormalBtn = document.getElementById('string-to-normal-btn');
 
+  // Java DTO tab elements
+  const dtoInput = document.getElementById('dto-input');
+  const dtoConvertBtn = document.getElementById('dto-convert-btn');
+  const dtoResult = document.getElementById('dto-result');
+  const copyDtoResultBtn = document.getElementById('copy-dto-result');
+  const clearDtoBtn = document.getElementById('clear-dto');
+  const dtoStripClassname = document.getElementById('dto-strip-classname');
+  const dtoAutoDetectTypes = document.getElementById('dto-auto-detect-types');
+
   // Convert mode
   let convertMode = 'normalToString'; // Default mode
 
@@ -144,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   copyFormattedBtn.addEventListener('click', () => copyToClipboard(formattedResult));
   copyMinifiedBtn.addEventListener('click', () => copyToClipboard(minifiedResult));
   copyConvertedBtn.addEventListener('click', () => copyToClipboard(convertedResult));
+  copyDtoResultBtn.addEventListener('click', () => copyToClipboard(dtoResult));
 
   // Clear functionality
   clearFormatBtn.addEventListener('click', () => {
@@ -164,6 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
     jsonConvertInput.value = '';
     convertedResult.value = '';
     jsonConvertInput.focus();
+  });
+
+  clearDtoBtn.addEventListener('click', () => {
+    dtoInput.value = '';
+    dtoResult.value = '';
+    dtoInput.focus();
   });
 
   // Convert toggle functionality
@@ -469,6 +485,215 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
       throw new Error('Invalid JSON: ' + error.message);
     }
+  }
+
+  // =============================================
+  // Java DTO to JSON Conversion
+  // =============================================
+
+  dtoConvertBtn.addEventListener('click', () => {
+    const input = dtoInput.value.trim();
+    if (!input) {
+      showToast('Please enter a Java DTO string to convert');
+      return;
+    }
+
+    try {
+      const autoDetect = dtoAutoDetectTypes.checked;
+      const stripClass = dtoStripClassname.checked;
+      const jsonObj = parseDtoString(input, autoDetect, stripClass);
+      dtoResult.value = JSON.stringify(jsonObj, null, 2);
+      showToast('DTO converted to JSON successfully!');
+    } catch (error) {
+      showToast('Error: ' + error.message, true);
+    }
+  });
+
+  /**
+   * Parses a Java DTO toString() output into a JavaScript object.
+   * Handles formats like: ClassName(key1=val1, key2=val2, nested=Nested(a=1))
+   */
+  function parseDtoString(input, autoDetect = true, stripClass = true) {
+    input = input.trim();
+
+    // Check if input matches the DTO pattern: ClassName(...)
+    const dtoMatch = input.match(/^([A-Za-z_$][\w.$]*)?\((.+)\)$/s);
+    if (!dtoMatch) {
+      throw new Error('Invalid DTO format. Expected: ClassName(key=value, ...) or (key=value, ...)');
+    }
+
+    const className = dtoMatch[1] || null;
+    const content = dtoMatch[2];
+    const parsed = parseDtoContent(content, autoDetect);
+
+    if (!stripClass && className) {
+      return { [className]: parsed };
+    }
+
+    return parsed;
+  }
+
+  /**
+   * Parses the inner content of a DTO string (the part inside parentheses).
+   */
+  function parseDtoContent(content, autoDetect) {
+    const result = {};
+    let i = 0;
+    const len = content.length;
+
+    while (i < len) {
+      // Skip whitespace
+      while (i < len && (content[i] === ' ' || content[i] === '\n' || content[i] === '\r' || content[i] === '\t')) i++;
+      if (i >= len) break;
+
+      // Read the key (everything up to '=')
+      let keyStart = i;
+      while (i < len && content[i] !== '=') i++;
+      if (i >= len) break;
+
+      const key = content.substring(keyStart, i).trim();
+      i++; // skip '='
+
+      // Read the value
+      const { value, nextIndex } = readDtoValue(content, i, autoDetect);
+      result[key] = value;
+      i = nextIndex;
+
+      // Skip comma and whitespace after value
+      while (i < len && (content[i] === ',' || content[i] === ' ' || content[i] === '\n' || content[i] === '\r' || content[i] === '\t')) i++;
+    }
+
+    return result;
+  }
+
+  /**
+   * Reads a single value from the DTO content string starting at position `start`.
+   * Returns the parsed value and the next index to continue from.
+   */
+  function readDtoValue(content, start, autoDetect) {
+    let i = start;
+    const len = content.length;
+
+    // Skip leading whitespace
+    while (i < len && content[i] === ' ') i++;
+
+    if (i >= len) {
+      return { value: null, nextIndex: i };
+    }
+
+    // Check for a nested DTO: look ahead for ClassName(
+    // Pattern: sequence of word/dot chars followed by '('
+    const remaining = content.substring(i);
+    const nestedDtoMatch = remaining.match(/^([A-Za-z_$][\w.$]*)\(/);
+    if (nestedDtoMatch) {
+      // Find the matching closing parenthesis
+      const classNameLen = nestedDtoMatch[1].length;
+      let parenStart = i + classNameLen; // position of '('
+      let depth = 0;
+      let j = parenStart;
+
+      while (j < len) {
+        if (content[j] === '(') depth++;
+        else if (content[j] === ')') {
+          depth--;
+          if (depth === 0) break;
+        }
+        j++;
+      }
+
+      if (depth !== 0) {
+        throw new Error('Unmatched parentheses in nested DTO');
+      }
+
+      const nestedContent = content.substring(parenStart + 1, j);
+      const nestedObj = parseDtoContent(nestedContent, autoDetect);
+      return { value: nestedObj, nextIndex: j + 1 };
+    }
+
+    // Check for array/list: [...]
+    if (content[i] === '[') {
+      let depth = 0;
+      let j = i;
+      while (j < len) {
+        if (content[j] === '[') depth++;
+        else if (content[j] === ']') {
+          depth--;
+          if (depth === 0) break;
+        }
+        j++;
+      }
+
+      const arrContent = content.substring(i + 1, j).trim();
+      let arrValues;
+      if (arrContent === '') {
+        arrValues = [];
+      } else {
+        arrValues = splitTopLevel(arrContent).map(v => coerceValue(v.trim(), autoDetect));
+      }
+      return { value: arrValues, nextIndex: j + 1 };
+    }
+
+    // Plain value: read until next comma at the top level, or end
+    let valueStr = '';
+    let depth = 0;
+    while (i < len) {
+      const ch = content[i];
+      if (ch === '(' || ch === '[') depth++;
+      else if (ch === ')' || ch === ']') depth--;
+
+      if (depth === 0 && ch === ',') break;
+      if (depth < 0) break; // we've gone past our scope
+
+      valueStr += ch;
+      i++;
+    }
+
+    return { value: coerceValue(valueStr.trim(), autoDetect), nextIndex: i };
+  }
+
+  /**
+   * Splits a string by commas at the top level (not inside parentheses or brackets).
+   */
+  function splitTopLevel(str) {
+    const parts = [];
+    let current = '';
+    let depth = 0;
+
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (ch === '(' || ch === '[') depth++;
+      else if (ch === ')' || ch === ']') depth--;
+
+      if (depth === 0 && ch === ',') {
+        parts.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+
+    if (current.trim()) {
+      parts.push(current);
+    }
+
+    return parts;
+  }
+
+  /**
+   * Coerces a string value to the appropriate JSON type.
+   */
+  function coerceValue(val, autoDetect) {
+    if (!autoDetect) return val;
+
+    if (val === 'null') return null;
+    if (val === 'true') return true;
+    if (val === 'false') return false;
+
+    // Check for integer or float
+    if (/^-?\d+$/.test(val)) return parseInt(val, 10);
+    if (/^-?\d+\.\d+$/.test(val)) return parseFloat(val);
+
+    return val;
   }
 
   // Utility Functions
