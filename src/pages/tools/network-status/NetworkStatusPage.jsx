@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Wifi, WifiOff, Activity, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-react';
+import { Wifi, WifiOff, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import Tabs from '@components/ui/Tabs';
 import useLocalStorage from '@hooks/useLocalStorage';
+import { SecondaryButton } from '@components/ui/Button';
 import { downloadFile } from '@lib/download-utils';
 
 const tabList = [
@@ -41,6 +42,8 @@ export default function NetworkStatusPage() {
   const autoTestRef = useRef(null);
   const offlineStartRef = useRef(null);
   const onlineStartRef = useRef(isOnline ? Date.now() : null);
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
   // Connection Info
   const [connInfo, setConnInfo] = useState({});
@@ -63,7 +66,7 @@ export default function NetworkStatusPage() {
   }, [setHistory]);
 
   const playSound = useCallback((type) => {
-    if (!settings.sound) return;
+    if (!settingsRef.current.sound) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
@@ -75,7 +78,7 @@ export default function NetworkStatusPage() {
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
     } catch {}
-  }, [settings.sound]);
+  }, []);
 
   // Online/offline handlers
   useEffect(() => {
@@ -94,7 +97,7 @@ export default function NetworkStatusPage() {
       onlineStartRef.current = Date.now();
       addToHistory('online', 'Connection restored');
       playSound('online');
-      if (settings.notifications) toast.success('You are back online');
+      if (settingsRef.current.notifications) toast.success('You are back online');
     };
     const handleOffline = () => {
       setIsOnline(false);
@@ -110,7 +113,7 @@ export default function NetworkStatusPage() {
       offlineStartRef.current = Date.now();
       addToHistory('offline', 'Connection lost');
       playSound('offline');
-      if (settings.notifications) toast.error('You are currently offline');
+      if (settingsRef.current.notifications) toast.error('You are currently offline');
     };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -121,18 +124,13 @@ export default function NetworkStatusPage() {
       window.removeEventListener('offline', handleOffline);
       if (navigator.connection) navigator.connection.removeEventListener('change', updateConnInfo);
     };
-  }, [addToHistory, playSound, setStats, settings.notifications, updateConnInfo]);
+  }, [addToHistory, playSound, setStats, updateConnInfo]);
 
-  // Auto test
-  useEffect(() => {
-    if (settings.autoTest) {
-      autoTestRef.current = setInterval(() => runTest(), 30000);
-    }
-    return () => { if (autoTestRef.current) clearInterval(autoTestRef.current); };
-  }, [settings.autoTest, runTest]);
+  const testingRef = useRef(false);
 
   const runTest = useCallback(async () => {
-    if (testing) return;
+    if (testingRef.current) return;
+    testingRef.current = true;
     setTesting(true);
     setTestProgress(0);
     setPingResult('Testing...'); setSpeedResult('Testing...'); setDnsResult('Testing...');
@@ -169,9 +167,17 @@ export default function NetworkStatusPage() {
         } catch { setDnsResult('Failed'); }
       }
     } finally {
-      setTimeout(() => { setTesting(false); setTestProgress(0); }, 1000);
+      setTimeout(() => { setTesting(false); testingRef.current = false; setTestProgress(0); }, 1000);
     }
-  }, [testing]);
+  }, []);
+
+  // Auto test
+  useEffect(() => {
+    if (settings.autoTest) {
+      autoTestRef.current = setInterval(() => runTest(), 30000);
+    }
+    return () => { if (autoTestRef.current) clearInterval(autoTestRef.current); };
+  }, [settings.autoTest, runTest]);
 
   const filteredHistory = filter === 'all' ? history : history.filter((e) => {
     if (filter === 'errors') return e.type === 'error' || e.message.includes('failed');
@@ -258,7 +264,7 @@ export default function NetworkStatusPage() {
               <div className="space-y-2.5 text-sm">
                 {[['Ping Test', pingResult], ['Speed Test', speedResult], ['DNS Resolution', dnsResult]].map(([label, val]) => (
                   <div key={label} className="flex justify-between"><span className="text-slate-500">{label}:</span>
-                    <span className={`font-medium ${val === 'Failed' ? 'text-red-500' : val.includes('Testing') ? 'text-amber-500' : 'text-green-600'}`}>{val}</span>
+                    <span className={`font-medium ${val === 'Failed' ? 'text-red-500' : String(val).includes('Testing') ? 'text-amber-500' : 'text-green-600'}`}>{val}</span>
                   </div>
                 ))}
               </div>
@@ -286,9 +292,9 @@ export default function NetworkStatusPage() {
             <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
               <h3 className="font-semibold text-slate-700 mb-3">Actions</h3>
               <div className="flex flex-wrap gap-2">
-                <button onClick={() => { if (confirm('Clear history?')) { setHistory([]); toast.success('Cleared'); } }} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition"><Trash2 size={14} /> Clear History</button>
-                <button onClick={handleExport} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition"><Download size={14} /> Export Log</button>
-                <button onClick={handleReset} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition"><RotateCcw size={14} /> Reset</button>
+                <SecondaryButton onClick={() => { if (confirm('Clear history?')) { setHistory([]); toast.success('Cleared'); } }}><Trash2 size={14} /> Clear History</SecondaryButton>
+                <SecondaryButton onClick={handleExport}><Download size={14} /> Export Log</SecondaryButton>
+                <SecondaryButton onClick={handleReset}><RotateCcw size={14} /> Reset</SecondaryButton>
               </div>
             </div>
           </div>
@@ -308,7 +314,7 @@ export default function NetworkStatusPage() {
                   <option value="offline">Offline Events</option>
                   <option value="errors">Connection Errors</option>
                 </select>
-                <button onClick={updateConnInfo} className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-primary/10 text-primary border border-primary/20 rounded-lg hover:bg-primary/20 transition"><RefreshCw size={14} /> Refresh</button>
+                <SecondaryButton onClick={updateConnInfo}><RefreshCw size={14} /> Refresh</SecondaryButton>
               </div>
               {filteredHistory.length === 0 ? (
                 <p className="text-sm text-slate-400 italic py-8 text-center">No events recorded yet.</p>

@@ -5,6 +5,8 @@ import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import Tabs from '@components/ui/Tabs';
 import CopyButton from '@components/ui/CopyButton';
+import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
 
 const tabs = [
   { id: 'encode', label: 'Encode URL' },
@@ -50,28 +52,24 @@ export default function UrlParserPage() {
           {activeTab === 'encode' && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter URL to encode:</label>
-                <textarea
+                <label htmlFor="url-encode-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter URL to encode:</label>
+                <TextAreaInput
+                  id="url-encode-input"
                   value={encodeInput}
                   onChange={(e) => setEncodeInput(e.target.value)}
                   placeholder="https://example.com/path?param=value with spaces"
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleEncode} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm">Encode URL</button>
+                <PrimaryButton onClick={handleEncode}>Encode URL</PrimaryButton>
                 <CopyButton text={encodedResult} label="Copy Result" />
-                <button onClick={() => { setEncodeInput(''); setEncodedResult(''); }} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition">
+                <SecondaryButton onClick={() => { setEncodeInput(''); setEncodedResult(''); }}>
                   <Eraser size={15} /> Clear
-                </button>
+                </SecondaryButton>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">Encoded URL:</label>
-                <textarea
-                  value={encodedResult}
-                  readOnly
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y bg-slate-50 cursor-default"
-                />
+                <TextAreaOutput value={encodedResult} />
               </div>
             </div>
           )}
@@ -79,28 +77,24 @@ export default function UrlParserPage() {
           {activeTab === 'decode' && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter encoded URL to decode:</label>
-                <textarea
+                <label htmlFor="url-decode-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter encoded URL to decode:</label>
+                <TextAreaInput
+                  id="url-decode-input"
                   value={decodeInput}
                   onChange={(e) => setDecodeInput(e.target.value)}
                   placeholder="https%3A%2F%2Fexample.com%2Fpath%3Fparam%3Dvalue%20with%20spaces"
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleDecode} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm">Decode URL</button>
+                <PrimaryButton onClick={handleDecode}>Decode URL</PrimaryButton>
                 <CopyButton text={decodedResult} label="Copy Result" />
-                <button onClick={() => { setDecodeInput(''); setDecodedResult(''); }} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition">
+                <SecondaryButton onClick={() => { setDecodeInput(''); setDecodedResult(''); }}>
                   <Eraser size={15} /> Clear
-                </button>
+                </SecondaryButton>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">Decoded URL:</label>
-                <textarea
-                  value={decodedResult}
-                  readOnly
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y bg-slate-50 cursor-default"
-                />
+                <TextAreaOutput value={decodedResult} />
               </div>
             </div>
           )}

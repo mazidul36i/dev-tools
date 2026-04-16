@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import CopyButton from '@components/ui/CopyButton';
+import { SecondaryButton } from '@components/ui/Button';
+import { TextAreaOutput } from '@components/ui/TextArea';
 import { downloadFile } from '@lib/download-utils';
 
 function processParagraphs(text) {
@@ -155,19 +157,15 @@ export default function ImageToTextPage() {
             <Card>
               <div className="p-6">
                 <h2 className="text-xl font-bold text-slate-800 mb-4">Extracted Text</h2>
-                <textarea
-                  value={output}
-                  readOnly
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[200px] resize-y bg-slate-50"
-                />
+                <TextAreaOutput value={output} className="min-h-50" />
                 <div className="flex flex-wrap gap-3 mt-4">
                   <CopyButton text={output} label="Copy Text" />
-                  <button onClick={handleDownload} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition">
+                  <SecondaryButton onClick={handleDownload}>
                     <Download size={15} /> Download as .txt
-                  </button>
-                  <button onClick={handleClear} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition">
+                  </SecondaryButton>
+                  <SecondaryButton onClick={handleClear}>
                     <Eraser size={15} /> Clear
-                  </button>
+                  </SecondaryButton>
                 </div>
               </div>
             </Card>

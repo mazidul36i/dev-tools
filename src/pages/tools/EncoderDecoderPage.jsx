@@ -4,6 +4,8 @@ import { ArrowUpDown, Clipboard, Download, Eraser } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import CopyButton from '@components/ui/CopyButton';
+import { PrimaryButton, SecondaryButton, SmallButton } from '@components/ui/Button';
+import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
 import * as enc from '@lib/encoder-utils';
 import { downloadFile } from '@lib/download-utils';
 
@@ -95,40 +97,38 @@ export default function EncoderDecoderPage() {
 
           {/* Input */}
           <div>
-            <label className="block text-sm font-semibold text-slate-600 mb-2">Input:</label>
-            <textarea
+            <label htmlFor="encoder-input" className="block text-sm font-semibold text-slate-600 mb-2">Input:</label>
+            <TextAreaInput
+              id="encoder-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Enter text to encode or decode..."
-              className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[150px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
             />
             <div className="flex gap-2 mt-2">
-              <button onClick={() => setInput('')} className="text-xs px-3 py-1.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium inline-flex items-center gap-1"><Eraser size={12} /> Clear</button>
-              <button onClick={handlePaste} className="text-xs px-3 py-1.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium inline-flex items-center gap-1"><Clipboard size={12} /> Paste</button>
+              <SmallButton onClick={() => setInput('')}><Eraser size={12} /> Clear</SmallButton>
+              <SmallButton onClick={handlePaste}><Clipboard size={12} /> Paste</SmallButton>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
-            <button onClick={handleEncode} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm">Encode</button>
-            <button onClick={handleDecode} className="px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm">Decode</button>
-            <button onClick={handleSwap} className="px-4 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-lg font-semibold hover:bg-primary/20 transition inline-flex items-center gap-1.5" title="Swap input and output">
-              <ArrowUpDown size={15} /> Swap
-            </button>
-          </div>
+                <PrimaryButton onClick={handleEncode}>Encode</PrimaryButton>
+                <PrimaryButton onClick={handleDecode}>Decode</PrimaryButton>
+                <SecondaryButton onClick={handleSwap} title="Swap input and output">
+                  <ArrowUpDown size={15} /> Swap
+                </SecondaryButton>
+              </div>
 
           {/* Output */}
           <div>
             <label className="block text-sm font-semibold text-slate-600 mb-2">Output:</label>
-            <textarea
+            <TextAreaOutput
               value={output}
-              readOnly
               placeholder="Result will appear here..."
-              className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[150px] resize-y bg-slate-50 cursor-default"
             />
             <div className="flex gap-2 mt-2">
-              <CopyButton text={output} label="Copy" className="!text-xs !px-3 !py-1.5" />
-              <button onClick={handleDownload} className="text-xs px-3 py-1.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium inline-flex items-center gap-1"><Download size={12} /> Download</button>
+              <CopyButton text={output} label="Copy" size="sm" />
+              <SmallButton onClick={handleDownload}><Download size={12} /> Download</SmallButton>
             </div>
           </div>
 

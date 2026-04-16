@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-function JsonTreeNode({ nodeKey, value, depth = 0 }) {
+const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0 }) {
   const [collapsed, setCollapsed] = useState(depth > 2);
   const isObject = value !== null && typeof value === 'object';
   const isArray = Array.isArray(value);
@@ -76,9 +76,9 @@ function JsonTreeNode({ nodeKey, value, depth = 0 }) {
       </AnimatePresence>
     </div>
   );
-}
+});
 
-function ValueSpan({ value }) {
+const ValueSpan = memo(function ValueSpan({ value }) {
   if (typeof value === 'string')
     return <span className="text-green-600">"{value}"</span>;
   if (typeof value === 'number')
@@ -88,13 +88,13 @@ function ValueSpan({ value }) {
   if (value === null)
     return <span className="text-slate-400 italic">null</span>;
   return <span>{String(value)}</span>;
-}
+});
 
 export default function JsonTreeView({ data }) {
   if (data === undefined || data === null) return null;
 
   return (
-    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-sm min-h-[180px] max-h-[600px] overflow-auto">
+    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-sm min-h-45 max-h-150 overflow-auto">
       <JsonTreeNode nodeKey={null} value={data} depth={0} />
     </div>
   );

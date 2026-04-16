@@ -4,6 +4,7 @@ import { Shuffle, RotateCcw, Plus, Trash2, Download } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import CopyButton from '@components/ui/CopyButton';
+import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
 import useLocalStorage from '@hooks/useLocalStorage';
 import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor } from '@lib/color-utils';
 
@@ -17,6 +18,10 @@ export default function ColorPickerPage() {
 
   const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
   const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+
+  // Use a ref for hsl.h to avoid re-registering document listeners on every color change
+  const hslHueRef = useRef(hsl.h);
+  hslHueRef.current = hsl.h;
 
   const updateFromRgb = useCallback((newRgb) => {
     setRgb({
@@ -42,8 +47,8 @@ export default function ColorPickerPage() {
     let y = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
     const s = Math.round(x * 100);
     const l = Math.round(y * 100);
-    updateFromRgb(hslToRgb(hsl.h, s, l));
-  }, [hsl.h, updateFromRgb]);
+    updateFromRgb(hslToRgb(hslHueRef.current, s, l));
+  }, [updateFromRgb]);
 
   const onPointerDown = (e) => { isDragging.current = true; handleGradientInteraction(e); };
   useEffect(() => {
@@ -105,10 +110,10 @@ export default function ColorPickerPage() {
           {/* Color Inputs */}
           <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-600 mb-2">HEX Color:</label>
+              <label htmlFor="hex-input" className="block text-sm font-semibold text-slate-600 mb-2">HEX Color:</label>
               <div className="flex gap-2">
-                <input type="text" value={hex} onChange={(e) => handleHexInput(e.target.value)} maxLength={9} className="flex-1 p-2.5 border border-slate-200 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
-                <CopyButton text={hex} label="Copy" className="!text-xs !px-3 !py-1.5" />
+                <input id="hex-input" type="text" value={hex} onChange={(e) => handleHexInput(e.target.value)} maxLength={9} className="flex-1 p-2.5 border border-slate-200 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <CopyButton text={hex} label="Copy" size="sm" />
               </div>
             </div>
             <div>
@@ -116,11 +121,11 @@ export default function ColorPickerPage() {
               <div className="flex gap-1.5 items-center">
                 {['r', 'g', 'b'].map((c) => (
                   <div key={c} className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">{c}:</span>
-                    <input type="number" min={0} max={255} value={rgb[c]} onChange={(e) => updateFromRgb({ ...rgb, [c]: Number(e.target.value) || 0 })} className="w-16 p-2 border border-slate-200 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                    <label htmlFor={`rgb-${c}`} className="text-xs font-semibold text-slate-400 uppercase">{c}:</label>
+                    <input id={`rgb-${c}`} type="number" min={0} max={255} value={rgb[c]} onChange={(e) => updateFromRgb({ ...rgb, [c]: Number(e.target.value) || 0 })} className="w-16 p-2 border border-slate-200 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20" />
                   </div>
                 ))}
-                <CopyButton text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`} label="Copy" className="!text-xs !px-2 !py-1.5" />
+                <CopyButton text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`} label="Copy" size="sm" />
               </div>
             </div>
             <div>
@@ -128,14 +133,14 @@ export default function ColorPickerPage() {
               <div className="flex gap-1.5 items-center">
                 {[['h', hsl.h, 360], ['s', hsl.s, 100], ['l', hsl.l, 100]].map(([k, v, max]) => (
                   <div key={k} className="flex items-center gap-1">
-                    <span className="text-xs font-semibold text-slate-400 uppercase">{k}:</span>
-                    <input type="number" min={0} max={max} value={v}
+                    <label htmlFor={`hsl-${k}`} className="text-xs font-semibold text-slate-400 uppercase">{k}:</label>
+                    <input id={`hsl-${k}`} type="number" min={0} max={max} value={v}
                       onChange={(e) => updateFromRgb(hslToRgb(k === 'h' ? Number(e.target.value) : hsl.h, k === 's' ? Number(e.target.value) : hsl.s, k === 'l' ? Number(e.target.value) : hsl.l))}
                       className="w-16 p-2 border border-slate-200 rounded text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20" />
                     {k !== 'h' && <span className="text-xs text-slate-400">%</span>}
                   </div>
                 ))}
-                <CopyButton text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`} label="Copy" className="!text-xs !px-2 !py-1.5" />
+                <CopyButton text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`} label="Copy" size="sm" />
               </div>
             </div>
           </div>
@@ -148,7 +153,10 @@ export default function ColorPickerPage() {
                 onMouseDown={onPointerDown}
                 onTouchStart={onPointerDown}
                 className="relative w-full h-56 rounded-lg cursor-crosshair border border-slate-200 overflow-hidden select-none"
+                role="slider"
+                tabIndex={0}
                 aria-label="Color gradient picker — click or drag to select a color"
+                aria-valuetext={`Saturation ${hsl.s}%, Lightness ${hsl.l}%`}
                 style={{
                   background: `linear-gradient(to top, black, transparent 50%, white), linear-gradient(to right, white, hsl(${hsl.h}, 100%, 50%))`,
                 }}
@@ -166,13 +174,13 @@ export default function ColorPickerPage() {
                 style={{ background: 'linear-gradient(to right, #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)' }}
               />
               <div className="flex flex-wrap gap-2">
-                <button onClick={handleRandom} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-hover transition shadow-sm"><Shuffle size={15} /> Random</button>
-                <button onClick={() => updateFromRgb({ r: 255, g: 255, b: 255 })} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-semibold hover:bg-primary/20 transition"><RotateCcw size={15} /> Reset</button>
-                <button onClick={addToPalette} className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-hover transition shadow-sm"><Plus size={15} /> Save to Palette</button>
+                <PrimaryButton onClick={handleRandom}><Shuffle size={15} /> Random</PrimaryButton>
+                <SecondaryButton onClick={() => updateFromRgb({ r: 255, g: 255, b: 255 })}><RotateCcw size={15} /> Reset</SecondaryButton>
+                <PrimaryButton onClick={addToPalette}><Plus size={15} /> Save to Palette</PrimaryButton>
               </div>
             </div>
             <div className="flex flex-col items-center gap-3">
-              <div className="w-full h-36 rounded-xl shadow-md border border-slate-200" style={{ backgroundColor: hex }} />
+              <div className="w-full h-36 rounded-xl shadow-md border border-slate-200" style={{ backgroundColor: hex }} aria-label={`Color preview: ${hex}`} />
               <div className="text-center space-y-1 text-sm font-mono">
                 <div className="font-semibold text-slate-700">{hex}</div>
                 <div className="text-slate-500">rgb({rgb.r}, {rgb.g}, {rgb.b})</div>
@@ -184,20 +192,20 @@ export default function ColorPickerPage() {
           {/* Palette */}
           <div className="border-t border-slate-200 pt-5">
             <div className="flex flex-wrap gap-2 mb-4">
-              <button onClick={generatePalette} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-hover transition shadow-sm">Generate Palette</button>
-              <button onClick={() => { setShowExport(!showExport); }} className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-semibold hover:bg-primary/20 transition">
-                <Download size={14} className="inline mr-1" /> Export as Code
-              </button>
-              <button onClick={() => { setPalette([]); toast.success('Palette cleared'); }} className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg text-sm font-semibold hover:bg-primary/20 transition">
-                <Trash2 size={14} className="inline mr-1" /> Clear
-              </button>
+              <PrimaryButton onClick={generatePalette}>Generate Palette</PrimaryButton>
+              <SecondaryButton onClick={() => setShowExport(!showExport)}>
+                <Download size={14} /> Export as Code
+              </SecondaryButton>
+              <SecondaryButton onClick={() => { setPalette([]); toast.success('Palette cleared'); }}>
+                <Trash2 size={14} /> Clear
+              </SecondaryButton>
             </div>
             {palette.length === 0 ? (
               <p className="text-sm text-slate-400 italic">Your palette is empty. Pick colors and save them here.</p>
             ) : (
               <div className="flex flex-wrap gap-3">
                 {palette.map((c, i) => (
-                  <div key={c} className="group text-center cursor-pointer" onClick={() => { try { updateFromRgb(hexToRgb(c)); } catch {} }} onDoubleClick={() => { setPalette(palette.filter((_, j) => j !== i)); toast.success('Removed'); }}>
+                  <div key={`${c}-${i}`} className="group text-center cursor-pointer" onClick={() => { try { updateFromRgb(hexToRgb(c)); } catch {} }} onDoubleClick={() => { setPalette(palette.filter((_, j) => j !== i)); toast.success('Removed'); }}>
                     <div className="w-14 h-14 rounded-lg shadow-sm border border-slate-200 group-hover:scale-110 transition-transform" style={{ backgroundColor: c }} title="Click to use, double-click to remove" />
                     <div className="text-xs font-mono text-slate-500 mt-1">{c}</div>
                   </div>
@@ -211,7 +219,7 @@ export default function ColorPickerPage() {
                     <button key={f} onClick={() => setExportFormat(f)} className={`px-3 py-1.5 text-xs font-medium rounded transition ${exportFormat === f ? 'bg-primary text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}>{f.toUpperCase()}</button>
                   ))}
                 </div>
-                <textarea value={getExportCode()} readOnly className="w-full p-3 border border-slate-200 rounded-lg font-mono text-xs min-h-[100px] bg-white" />
+                <textarea value={getExportCode()} readOnly className="w-full p-3 border border-slate-200 rounded-lg font-mono text-xs min-h-25 bg-white" />
                 <CopyButton text={getExportCode()} label="Copy Code" />
               </div>
             )}

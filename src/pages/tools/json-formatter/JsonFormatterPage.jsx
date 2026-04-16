@@ -5,6 +5,8 @@ import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import Tabs from '@components/ui/Tabs';
 import CopyButton from '@components/ui/CopyButton';
+import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
 import JsonTreeView from './JsonTreeView';
 import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
 
@@ -75,9 +77,6 @@ export default function JsonFormatterPage() {
     } catch (e) { toast.error('Error: ' + e.message); }
   };
 
-  const btnPrimary = 'px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm';
-  const btnSecondary = 'inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition';
-
   return (
     <ToolLayout
       title="JSON Formatter Tool"
@@ -91,25 +90,25 @@ export default function JsonFormatterPage() {
           {activeTab === 'format' && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to format:</label>
-                <textarea
+                <label htmlFor="format-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to format:</label>
+                <TextAreaInput
+                  id="format-input"
                   value={formatInput}
                   onChange={(e) => setFormatInput(e.target.value)}
                   placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[160px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleFormat} className={btnPrimary}>Format JSON</button>
+                <PrimaryButton onClick={handleFormat}>Format JSON</PrimaryButton>
                 <CopyButton text={formatResult} label="Copy Result" />
-                <button onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); }} className={btnSecondary}><Eraser size={15} /> Clear</button>
+                <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); }}><Eraser size={15} /> Clear</SecondaryButton>
               </div>
 
               {/* Options row */}
               <div className="flex flex-wrap items-center gap-4 bg-slate-50 rounded-lg border border-slate-200 p-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-slate-600">Indent:</label>
-                  <select value={indent} onChange={(e) => setIndent(e.target.value)} className="border border-slate-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                  <label htmlFor="indent-select" className="text-sm font-semibold text-slate-600">Indent:</label>
+                  <select id="indent-select" value={indent} onChange={(e) => setIndent(e.target.value)} className="border border-slate-200 rounded px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
                     <option value="2">2 spaces</option>
                     <option value="4">4 spaces</option>
                     <option value="tab">Tab</option>
@@ -128,11 +127,7 @@ export default function JsonFormatterPage() {
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">Formatted JSON:</label>
                 {view === 'text' ? (
-                  <textarea
-                    value={formatResult}
-                    readOnly
-                    className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[200px] resize-y bg-slate-50 cursor-default"
-                  />
+                  <TextAreaOutput value={formatResult} className="min-h-50" />
                 ) : (
                   <JsonTreeView data={parsedJson} />
                 )}
@@ -144,22 +139,22 @@ export default function JsonFormatterPage() {
           {activeTab === 'minify' && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to minify:</label>
-                <textarea
+                <label htmlFor="minify-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to minify:</label>
+                <TextAreaInput
+                  id="minify-input"
                   value={minifyInput}
                   onChange={(e) => setMinifyInput(e.target.value)}
                   placeholder='Paste formatted JSON here...'
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[160px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleMinify} className={btnPrimary}>Minify JSON</button>
+                <PrimaryButton onClick={handleMinify}>Minify JSON</PrimaryButton>
                 <CopyButton text={minifyResult} label="Copy Result" />
-                <button onClick={() => { setMinifyInput(''); setMinifyResult(''); }} className={btnSecondary}><Eraser size={15} /> Clear</button>
+                <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">Minified JSON:</label>
-                <textarea value={minifyResult} readOnly className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y bg-slate-50 cursor-default" />
+                <TextAreaOutput value={minifyResult} />
               </div>
             </div>
           )}
@@ -175,22 +170,22 @@ export default function JsonFormatterPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to convert:</label>
-                <textarea
+                <label htmlFor="convert-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter JSON to convert:</label>
+                <TextAreaInput
+                  id="convert-input"
                   value={convertInput}
                   onChange={(e) => setConvertInput(e.target.value)}
                   placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'}
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[160px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleConvert} className={btnPrimary}>Convert JSON</button>
+                <PrimaryButton onClick={handleConvert}>Convert JSON</PrimaryButton>
                 <CopyButton text={convertResult} label="Copy Result" />
-                <button onClick={() => { setConvertInput(''); setConvertResult(''); }} className={btnSecondary}><Eraser size={15} /> Clear</button>
+                <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">Converted JSON:</label>
-                <textarea value={convertResult} readOnly className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y bg-slate-50 cursor-default" />
+                <TextAreaOutput value={convertResult} />
               </div>
             </div>
           )}
@@ -199,12 +194,12 @@ export default function JsonFormatterPage() {
           {activeTab === 'dto' && (
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">Enter Java DTO / Logger output:</label>
-                <textarea
+                <label htmlFor="dto-input" className="block text-sm font-semibold text-slate-600 mb-2">Enter Java DTO / Logger output:</label>
+                <TextAreaInput
+                  id="dto-input"
                   value={dtoInput}
                   onChange={(e) => setDtoInput(e.target.value)}
                   placeholder="ClassName(uuid=abc, flowId=123, status=null)"
-                  className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[160px] resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                 />
               </div>
               <div className="flex flex-wrap gap-5 bg-slate-50 border border-slate-200 rounded-lg p-3">
@@ -216,13 +211,13 @@ export default function JsonFormatterPage() {
                 </label>
               </div>
               <div className="flex flex-wrap gap-3">
-                <button onClick={handleDto} className={btnPrimary}>Convert to JSON</button>
+                <PrimaryButton onClick={handleDto}>Convert to JSON</PrimaryButton>
                 <CopyButton text={dtoResult} label="Copy Result" />
-                <button onClick={() => { setDtoInput(''); setDtoResult(''); }} className={btnSecondary}><Eraser size={15} /> Clear</button>
+                <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-600 mb-2">JSON Output:</label>
-                <textarea value={dtoResult} readOnly className="w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-[140px] resize-y bg-slate-50 cursor-default" />
+                <TextAreaOutput value={dtoResult} />
               </div>
             </div>
           )}

@@ -55,7 +55,7 @@ export function decodeHex(text) {
   if (hexString.length % 2 !== 0) throw new Error('Invalid hex string: length must be even');
   let result = '';
   for (let i = 0; i < hexString.length; i += 2) {
-    const hexChar = hexString.substr(i, 2);
+    const hexChar = hexString.substring(i, i + 2);
     if (!/^[0-9a-f]{2}$/i.test(hexChar)) throw new Error('Invalid hex string');
     result += String.fromCharCode(parseInt(hexChar, 16));
   }
