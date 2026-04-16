@@ -1,21 +1,23 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Eraser } from 'lucide-react';
+import { Eraser, ChevronDown, FileJson2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
-import Tabs from '@components/ui/Tabs';
 import CopyButton from '@components/ui/CopyButton';
 import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
-import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
 import JsonTreeView from './JsonTreeView';
 import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
 
 const tabs = [
-  { id: 'format', label: 'Format JSON' },
-  { id: 'minify', label: 'Minify JSON' },
-  { id: 'convert', label: 'JSON Stringify/Parse' },
-  { id: 'dto', label: 'Java DTO to JSON' },
+  { id: 'format', label: 'Format' },
+  { id: 'minify', label: 'Minify' },
+  { id: 'convert', label: 'Stringify / Parse' },
+  { id: 'dto', label: 'DTO → JSON' },
 ];
+
+const inputClass = "w-full h-full min-h-64 lg:min-h-[28rem] p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-900 dark:text-gray-100 resize-y placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all";
+const outputClass = "w-full h-full min-h-64 lg:min-h-[28rem] p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-y cursor-default";
 
 export default function JsonFormatterPage() {
   const [activeTab, setActiveTab] = useState('format');
@@ -33,6 +35,7 @@ export default function JsonFormatterPage() {
   const [dtoResult, setDtoResult] = useState('');
   const [stripClass, setStripClass] = useState(true);
   const [autoDetect, setAutoDetect] = useState(true);
+  const [showInfo, setShowInfo] = useState(false);
 
   const handleFormat = () => {
     if (!formatInput.trim()) { toast.error('Please enter JSON to format'); return; }
@@ -71,170 +74,202 @@ export default function JsonFormatterPage() {
 
   return (
     <ToolLayout
-      title="JSON Formatter Tool"
-      tagline="Easily format, validate and beautify JSON data"
+      title="JSON Formatter"
+      tagline="Format, validate, minify and convert JSON data"
       metaDescription="Format, validate and prettify JSON data. Easily format minified JSON and validate syntax."
     >
-      <Card>
-        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="p-6">
+      <Card hover={false}>
+        {/* Tab bar */}
+        <div className="flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`relative px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200 whitespace-nowrap
+                ${activeTab === tab.id
+                  ? 'text-gray-900 dark:text-white bg-white/50 dark:bg-gray-800/50'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-4">
           {/* FORMAT TAB */}
           {activeTab === 'format' && (
-            <div className="space-y-5">
-              <div>
-                <label htmlFor="format-input" className="block text-sm font-medium text-text-secondary mb-2">Enter JSON to format:</label>
-                <TextAreaInput
-                  id="format-input"
-                  value={formatInput}
-                  onChange={(e) => setFormatInput(e.target.value)}
-                  placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
-                />
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <PrimaryButton onClick={handleFormat}>Format JSON</PrimaryButton>
-                <CopyButton text={formatResult} label="Copy Result" />
-                <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); }}><Eraser size={15} /> Clear</SecondaryButton>
-              </div>
-
-              {/* Options */}
-              <div className="flex flex-wrap items-center gap-4 bg-surface-alt rounded-lg border border-border p-3">
-                <div className="flex items-center gap-2">
-                  <label htmlFor="indent-select" className="text-sm font-medium text-text-secondary">Indent:</label>
-                  <select id="indent-select" value={indent} onChange={(e) => setIndent(e.target.value)} className="border border-border rounded-lg px-3 py-1.5 text-sm bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary/20">
-                    <option value="2">2 spaces</option>
-                    <option value="4">4 spaces</option>
-                    <option value="tab">Tab</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2 ml-auto">
-                  <label className="text-sm font-medium text-text-secondary">View:</label>
-                  <div className="flex rounded-lg overflow-hidden border border-border">
-                    <button onClick={() => setView('text')} className={`px-4 py-1.5 text-sm font-medium transition-all duration-200 ${view === 'text' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:bg-surface-hover'}`}>Text</button>
-                    <button onClick={() => setView('tree')} className={`px-4 py-1.5 text-sm font-medium transition-all duration-200 ${view === 'tree' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:bg-surface-hover'}`}>Tree</button>
-                  </div>
+            <div className="space-y-3">
+              {/* Compact toolbar */}
+              <div className="flex flex-wrap items-center gap-2">
+                <PrimaryButton onClick={handleFormat}>Format</PrimaryButton>
+                <CopyButton text={formatResult} label="Copy" />
+                <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); }}><Eraser size={14} /></SecondaryButton>
+                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
+                <select value={indent} onChange={(e) => setIndent(e.target.value)} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
+                  <option value="2">2 spaces</option>
+                  <option value="4">4 spaces</option>
+                  <option value="tab">Tab</option>
+                </select>
+                <div className="flex rounded-lg overflow-hidden border border-white/60 dark:border-gray-700/60 ml-auto">
+                  <button onClick={() => setView('text')} className={`px-3 py-1.5 text-xs font-medium transition-all ${view === 'text' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Text</button>
+                  <button onClick={() => setView('tree')} className={`px-3 py-1.5 text-xs font-medium transition-all ${view === 'tree' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Tree</button>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Formatted JSON:</label>
-                {view === 'text' ? (
-                  <TextAreaOutput value={formatResult} className="min-h-50" />
-                ) : (
-                  <JsonTreeView data={parsedJson} />
-                )}
+              {/* Side-by-side panels */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                  <textarea
+                    value={formatInput}
+                    onChange={(e) => setFormatInput(e.target.value)}
+                    placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                  {view === 'text' ? (
+                    <textarea value={formatResult} readOnly className={outputClass} />
+                  ) : (
+                    <div className="min-h-64 lg:min-h-[28rem] overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
+                      <JsonTreeView data={parsedJson} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* MINIFY TAB */}
           {activeTab === 'minify' && (
-            <div className="space-y-5">
-              <div>
-                <label htmlFor="minify-input" className="block text-sm font-medium text-text-secondary mb-2">Enter JSON to minify:</label>
-                <TextAreaInput id="minify-input" value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder='Paste formatted JSON here...' />
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <PrimaryButton onClick={handleMinify}>Minify</PrimaryButton>
+                <CopyButton text={minifyResult} label="Copy" />
+                <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); }}><Eraser size={14} /></SecondaryButton>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <PrimaryButton onClick={handleMinify}>Minify JSON</PrimaryButton>
-                <CopyButton text={minifyResult} label="Copy Result" />
-                <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Minified JSON:</label>
-                <TextAreaOutput value={minifyResult} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                  <textarea value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder="Paste formatted JSON here..." className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                  <textarea value={minifyResult} readOnly className={outputClass} />
+                </div>
               </div>
             </div>
           )}
 
           {/* CONVERT TAB */}
           {activeTab === 'convert' && (
-            <div className="space-y-5">
-              <div className="flex items-center gap-3 bg-surface-alt border border-border rounded-lg p-3">
-                <label className="text-sm font-medium text-text-secondary">Conversion:</label>
-                <div className="flex rounded-lg overflow-hidden border border-border">
-                  <button onClick={() => setConvertMode('normalToString')} className={`px-4 py-1.5 text-sm font-medium transition-all duration-200 ${convertMode === 'normalToString' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:bg-surface-hover'}`}>Normal → Stringified</button>
-                  <button onClick={() => setConvertMode('stringToNormal')} className={`px-4 py-1.5 text-sm font-medium transition-all duration-200 ${convertMode === 'stringToNormal' ? 'bg-primary text-white' : 'bg-surface text-text-secondary hover:bg-surface-hover'}`}>Stringified → Normal</button>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <PrimaryButton onClick={handleConvert}>Convert</PrimaryButton>
+                <CopyButton text={convertResult} label="Copy" />
+                <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={14} /></SecondaryButton>
+                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
+                <div className="flex rounded-lg overflow-hidden border border-white/60 dark:border-gray-700/60">
+                  <button onClick={() => setConvertMode('normalToString')} className={`px-3 py-1.5 text-xs font-medium transition-all ${convertMode === 'normalToString' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Normal → Stringified</button>
+                  <button onClick={() => setConvertMode('stringToNormal')} className={`px-3 py-1.5 text-xs font-medium transition-all ${convertMode === 'stringToNormal' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Stringified → Normal</button>
                 </div>
               </div>
-              <div>
-                <label htmlFor="convert-input" className="block text-sm font-medium text-text-secondary mb-2">Enter JSON to convert:</label>
-                <TextAreaInput id="convert-input" value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} />
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <PrimaryButton onClick={handleConvert}>Convert JSON</PrimaryButton>
-                <CopyButton text={convertResult} label="Copy Result" />
-                <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Converted JSON:</label>
-                <TextAreaOutput value={convertResult} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                  <textarea value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                  <textarea value={convertResult} readOnly className={outputClass} />
+                </div>
               </div>
             </div>
           )}
 
           {/* DTO TAB */}
           {activeTab === 'dto' && (
-            <div className="space-y-5">
-              <div>
-                <label htmlFor="dto-input" className="block text-sm font-medium text-text-secondary mb-2">Enter Java DTO / Logger output:</label>
-                <TextAreaInput id="dto-input" value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" />
-              </div>
-              <div className="flex flex-wrap gap-5 bg-surface-alt border border-border rounded-lg p-3">
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                  <input type="checkbox" checked={stripClass} onChange={(e) => setStripClass(e.target.checked)} className="accent-primary w-4 h-4" /> Strip class name
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <PrimaryButton onClick={handleDto}>Convert</PrimaryButton>
+                <CopyButton text={dtoResult} label="Copy" />
+                <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={14} /></SecondaryButton>
+                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
+                  <input type="checkbox" checked={stripClass} onChange={(e) => setStripClass(e.target.checked)} className="accent-gray-900 dark:accent-white w-3.5 h-3.5" /> Strip class
                 </label>
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                  <input type="checkbox" checked={autoDetect} onChange={(e) => setAutoDetect(e.target.checked)} className="accent-primary w-4 h-4" /> Auto-detect types
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
+                  <input type="checkbox" checked={autoDetect} onChange={(e) => setAutoDetect(e.target.checked)} className="accent-gray-900 dark:accent-white w-3.5 h-3.5" /> Auto-detect types
                 </label>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <PrimaryButton onClick={handleDto}>Convert to JSON</PrimaryButton>
-                <CopyButton text={dtoResult} label="Copy Result" />
-                <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={15} /> Clear</SecondaryButton>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">JSON Output:</label>
-                <TextAreaOutput value={dtoResult} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                  <textarea value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                  <textarea value={dtoResult} readOnly className={outputClass} />
+                </div>
               </div>
             </div>
           )}
         </div>
       </Card>
 
-      {/* Info Card */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About JSON Formatting</h2>
-          <p className="text-text-muted leading-relaxed mb-4">
-            JSON (JavaScript Object Notation) is a lightweight data interchange format that is easy for humans to read and write and easy for machines to parse and generate.
-          </p>
-          <p className="text-text-muted mb-4">This tool helps you:</p>
-          <ul className="space-y-2 text-sm text-text-muted mb-6">
-            <li className="flex gap-2"><span className="text-success font-bold">✓</span> <strong className="text-text-secondary">Format JSON</strong> — Convert minified JSON into readable, indented format</li>
-            <li className="flex gap-2"><span className="text-success font-bold">✓</span> <strong className="text-text-secondary">Validate JSON</strong> — Check if your JSON is valid</li>
-            <li className="flex gap-2"><span className="text-success font-bold">✓</span> <strong className="text-text-secondary">Minify JSON</strong> — Remove whitespace for compact transmission</li>
-            <li className="flex gap-2"><span className="text-success font-bold">✓</span> <strong className="text-text-secondary">Stringify/Parse</strong> — Convert between normal and stringified JSON</li>
-            <li className="flex gap-2"><span className="text-success font-bold">✓</span> <strong className="text-text-secondary">Java DTO to JSON</strong> — Convert Lombok toString output into valid JSON</li>
-          </ul>
-          <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h4 className="font-medium text-text-secondary mb-3">Formatted JSON</h4>
-              <pre className="bg-surface rounded p-3 text-xs font-mono text-text-muted overflow-auto border border-border">{`{
-  "name": "John Doe",
-  "age": 30,
-  "isActive": true,
-  "hobbies": [
-    "reading",
-    "coding"
-  ]
+      {/* Collapsible info — minimal footprint */}
+      <button
+        onClick={() => setShowInfo(!showInfo)}
+        className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors mb-2 ml-1"
+      >
+        <FileJson2 size={14} />
+        About this tool
+        <ChevronDown size={14} className={`transition-transform duration-200 ${showInfo ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {showInfo && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <Card hover={false}>
+              <div className="p-5">
+                <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div>
+                    <p className="mb-3 leading-relaxed">
+                      JSON (JavaScript Object Notation) is a lightweight data interchange format. This tool supports formatting, minifying, stringify/parse conversion, and Java DTO to JSON conversion.
+                    </p>
+                    <ul className="space-y-1.5">
+                      {['Format & beautify JSON', 'Validate syntax', 'Minify for compact transfer', 'Stringify ↔ Parse conversion', 'Java DTO / Lombok → JSON'].map((item) => (
+                        <li key={item} className="flex items-center gap-2">
+                          <span className="text-green-500 text-xs">✓</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-white/30 dark:bg-gray-900/30 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                      <h4 className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Formatted</h4>
+                      <pre className="text-[10px] font-mono text-gray-500 dark:text-gray-400 leading-relaxed">{`{
+  "name": "John",
+  "age": 30
 }`}</pre>
-            </div>
-            <div className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h4 className="font-medium text-text-secondary mb-3">Minified JSON</h4>
-              <pre className="bg-surface rounded p-3 text-xs font-mono text-text-muted overflow-auto break-all border border-border">{`{"name":"John Doe","age":30,"isActive":true,"hobbies":["reading","coding"]}`}</pre>
-            </div>
-          </div>
-        </div>
-      </Card>
+                    </div>
+                    <div className="bg-white/30 dark:bg-gray-900/30 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                      <h4 className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Minified</h4>
+                      <pre className="text-[10px] font-mono text-gray-500 dark:text-gray-400 break-all leading-relaxed">{`{"name":"John","age":30}`}</pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </ToolLayout>
   );
 }

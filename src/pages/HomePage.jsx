@@ -62,7 +62,7 @@ export default function HomePage() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="font-bold text-lg text-gray-900 dark:text-white">
-            DevTools Hub
+            DevTools
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             {['PACKAGES', 'TOOLS', 'BLOG', 'ABOUT'].map((item) => (
@@ -102,7 +102,7 @@ export default function HomePage() {
                 transition={{ duration: 0.6 }}
               >
                 <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95] text-gray-900 dark:text-white">
-                  DEVTOOLS HUB
+                  DEVTOOLS
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg mt-6 max-w-md leading-relaxed">
                   Your essential toolkit for web development tasks, combining modern aesthetics with professional utility.
@@ -208,7 +208,7 @@ export default function HomePage() {
       <footer className="relative z-10 border-t border-white/40 dark:border-gray-800 py-6">
         <div className="max-w-7xl mx-auto px-6 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} DevTools Hub. All tools are free to use.
+            &copy; {new Date().getFullYear()} DevTools. All tools are free to use.
           </p>
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <a href="#" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">Privacy Policy</a>
