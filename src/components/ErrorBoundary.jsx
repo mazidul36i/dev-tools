@@ -18,15 +18,15 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen px-5 text-center">
-          <h1 className="text-5xl font-bold text-primary mb-4">Oops!</h1>
-          <p className="text-xl text-slate-500 mb-2">Something went wrong.</p>
-          <p className="text-sm text-slate-400 mb-8 max-w-md">{this.state.error?.message}</p>
+          <h1 className="text-5xl font-bold text-text mb-4">Oops!</h1>
+          <p className="text-xl text-text-secondary mb-2">Something went wrong.</p>
+          <p className="text-sm text-text-muted mb-8 max-w-md">{this.state.error?.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/';
             }}
-            className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-colors"
+            className="px-5 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-all duration-200 active:scale-[0.97]"
           >
             Back to Home
           </button>
@@ -37,4 +37,3 @@ export default class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-

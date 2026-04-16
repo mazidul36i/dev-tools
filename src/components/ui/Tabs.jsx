@@ -2,25 +2,26 @@ import { motion } from 'framer-motion';
 
 export default function Tabs({ tabs, activeTab, onTabChange }) {
   return (
-    <div className="flex border-b border-slate-200 bg-slate-50">
+    <div className="flex p-1.5 bg-surface-alt/80 border-b border-border">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
-          className={`relative flex-1 py-4 px-4 text-sm md:text-base font-semibold cursor-pointer transition-colors
-            ${activeTab === tab.id ? 'text-primary bg-white' : 'text-slate-500 hover:text-primary hover:bg-primary/5'}`}
+          className={`relative flex-1 py-2.5 px-4 text-sm font-medium cursor-pointer transition-all duration-200 rounded-lg
+            ${activeTab === tab.id
+              ? 'text-text'
+              : 'text-text-muted hover:text-text-secondary'}`}
         >
-          {tab.label}
           {activeTab === tab.id && (
             <motion.div
               layoutId="tab-indicator"
-              className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-primary rounded-t"
+              className="absolute inset-0 bg-surface rounded-lg shadow-soft border border-border"
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />
           )}
+          <span className="relative z-10">{tab.label}</span>
         </button>
       ))}
     </div>
   );
 }
-

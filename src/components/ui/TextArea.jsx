@@ -5,7 +5,10 @@ export function TextAreaInput({ id, value, onChange, placeholder, className = ''
       value={value}
       onChange={onChange}
       placeholder={placeholder}
-      className={`w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-40 resize-y focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition ${className}`}
+      className={`w-full p-3.5 bg-surface border border-border rounded-lg font-mono text-sm text-text min-h-40 resize-y
+        placeholder:text-text-muted
+        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50
+        transition-all duration-200 ${className}`}
       {...props}
     />
   );
@@ -16,9 +19,9 @@ export function TextAreaOutput({ value, className = '', ...props }) {
     <textarea
       value={value}
       readOnly
-      className={`w-full p-3.5 border border-slate-200 rounded-lg font-mono text-sm min-h-35 resize-y bg-slate-50 cursor-default ${className}`}
+      className={`w-full p-3.5 bg-surface-alt border border-border rounded-lg font-mono text-sm text-text-secondary min-h-35 resize-y cursor-default
+        ${className}`}
       {...props}
     />
   );
 }
-

@@ -1,33 +1,39 @@
-export function PrimaryButton({ children, className = '', ...props }) {
+const variants = {
+  primary: 'bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 shadow-soft hover:shadow-card',
+  secondary: 'bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30',
+  ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
+  danger: 'bg-error/10 text-error border border-error/20 hover:bg-error/20',
+};
+
+const sizes = {
+  sm: 'text-xs px-3 py-1.5 gap-1',
+  md: 'text-sm px-4 py-2 gap-1.5',
+  lg: 'text-sm px-5 py-2.5 gap-2',
+};
+
+export default function Button({ children, variant = 'primary', size = 'md', className = '', ...props }) {
   return (
     <button
-      className={`px-5 py-2.5 bg-primary text-white rounded-lg font-semibold hover:bg-primary-hover transition-all hover:-translate-y-0.5 shadow-sm ${className}`}
+      className={`inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200
+        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1
+        disabled:opacity-50 disabled:pointer-events-none
+        ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {children}
     </button>
   );
+}
+
+// Convenience exports for backward compatibility
+export function PrimaryButton({ children, className = '', ...props }) {
+  return <Button variant="primary" size="lg" className={className} {...props}>{children}</Button>;
 }
 
 export function SecondaryButton({ children, className = '', ...props }) {
-  return (
-    <button
-      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+  return <Button variant="secondary" size="md" className={className} {...props}>{children}</Button>;
 }
 
 export function SmallButton({ children, className = '', ...props }) {
-  return (
-    <button
-      className={`text-xs px-3 py-1.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 font-medium inline-flex items-center gap-1 ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+  return <Button variant="ghost" size="sm" className={className} {...props}>{children}</Button>;
 }
-

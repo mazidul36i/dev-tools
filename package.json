@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "DevTools Hub - A collection of useful web development tools",
+  "description": "DevTools - A collection of useful web development tools",
   "author": "Mazidul Islam",
   "scripts": {
     "dev": "vite",

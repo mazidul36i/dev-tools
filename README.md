@@ -1,4 +1,4 @@
-# DevTools Hub
+# DevTools
 
 A collection of free, browser-based web developer utilities built with **React + Vite**.
 

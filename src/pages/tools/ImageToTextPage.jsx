@@ -50,12 +50,10 @@ export default function ImageToTextPage() {
       toast.error('Please select a valid image file');
       return;
     }
-    // Preview
     const reader = new FileReader();
     reader.onload = () => setPreview(reader.result);
     reader.readAsDataURL(file);
 
-    // OCR
     setProcessing(true);
     setStatus('Initializing OCR...');
     setProgress(0);
@@ -81,7 +79,6 @@ export default function ImageToTextPage() {
     }
   }, []);
 
-  // Paste handler
   useEffect(() => {
     const onPaste = (e) => {
       const items = e.clipboardData.items;
@@ -119,21 +116,21 @@ export default function ImageToTextPage() {
             onClick={() => fileInputRef.current?.click()}
             role="button"
             aria-label="Upload an image for text extraction"
-            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all
-              ${dragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-slate-300 bg-slate-50 hover:border-primary hover:bg-primary/5'}`}
+            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-300
+              ${dragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-border bg-surface-alt hover:border-primary/40 hover:bg-primary/5'}`}
           >
-            <Upload className={`w-12 h-12 mx-auto mb-4 transition-colors ${dragging ? 'text-primary' : 'text-slate-400'}`} />
-            <p className="text-base font-semibold text-slate-600">Drop image here, click to upload, or paste (Ctrl+V)</p>
-            <p className="text-sm text-slate-400 mt-2">Supports PNG, JPG, JPEG, GIF, and WebP formats</p>
+            <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors ${dragging ? 'text-primary' : 'text-text-muted'}`} />
+            <p className="text-sm font-medium text-text-secondary">Drop image here, click to upload, or paste (Ctrl+V)</p>
+            <p className="text-xs text-text-muted mt-1.5">Supports PNG, JPG, JPEG, GIF, and WebP</p>
             <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
           </div>
 
           {/* Preview */}
           <AnimatePresence>
             {preview && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-6 bg-slate-50 rounded-lg p-5 text-center">
-                <h3 className="text-lg font-semibold text-slate-700 mb-3">Image Preview</h3>
-                <img src={preview} alt="Preview" className="max-w-full max-h-96 rounded-lg shadow-md mx-auto" />
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-6 bg-surface-alt rounded-lg p-5 text-center">
+                <h3 className="text-sm font-medium text-text-secondary mb-3">Image Preview</h3>
+                <img src={preview} alt="Preview" className="max-w-full max-h-96 rounded-lg shadow-card mx-auto" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -141,12 +138,12 @@ export default function ImageToTextPage() {
           {/* Progress */}
           {processing && (
             <div className="mt-5">
-              <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
                 <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${progress * 100}%` }} transition={{ duration: 0.3 }} />
               </div>
             </div>
           )}
-          {status && <p className="text-center text-slate-600 font-medium mt-3">{status}</p>}
+          {status && <p className="text-center text-text-secondary text-sm font-medium mt-3">{status}</p>}
         </div>
       </Card>
 
@@ -156,16 +153,12 @@ export default function ImageToTextPage() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
             <Card>
               <div className="p-6">
-                <h2 className="text-xl font-bold text-slate-800 mb-4">Extracted Text</h2>
+                <h2 className="text-lg font-semibold text-text mb-4">Extracted Text</h2>
                 <TextAreaOutput value={output} className="min-h-50" />
                 <div className="flex flex-wrap gap-3 mt-4">
                   <CopyButton text={output} label="Copy Text" />
-                  <SecondaryButton onClick={handleDownload}>
-                    <Download size={15} /> Download as .txt
-                  </SecondaryButton>
-                  <SecondaryButton onClick={handleClear}>
-                    <Eraser size={15} /> Clear
-                  </SecondaryButton>
+                  <SecondaryButton onClick={handleDownload}><Download size={15} /> Download as .txt</SecondaryButton>
+                  <SecondaryButton onClick={handleClear}><Eraser size={15} /> Clear</SecondaryButton>
                 </div>
               </div>
             </Card>
@@ -174,25 +167,25 @@ export default function ImageToTextPage() {
       </AnimatePresence>
 
       {/* Info */}
-      <Card hover={false} className="bg-slate-50 border-slate-200">
+      <Card hover={false}>
         <div className="p-7">
-          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-3 mb-5">About OCR Technology</h2>
-          <p className="text-slate-500 leading-relaxed mb-5">
+          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About OCR Technology</h2>
+          <p className="text-text-muted leading-relaxed mb-5">
             This tool uses Optical Character Recognition (OCR) technology to extract text from images. Simply upload an image, paste a screenshot, or drag and drop a file.
           </p>
           <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-              <h3 className="font-semibold text-slate-700 mb-3">Key Features</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
-                <li className="flex gap-2"><span className="text-green-500 font-bold">✓</span> Multiple input methods: upload, drag & drop, or paste</li>
-                <li className="flex gap-2"><span className="text-green-500 font-bold">✓</span> Fast processing with Tesseract.js OCR engine</li>
-                <li className="flex gap-2"><span className="text-green-500 font-bold">✓</span> Privacy focused — all processing in your browser</li>
-                <li className="flex gap-2"><span className="text-green-500 font-bold">✓</span> Copy text or download as .txt file</li>
+            <div className="bg-surface-alt rounded-lg p-5 border border-border">
+              <h3 className="font-medium text-text-secondary mb-3">Key Features</h3>
+              <ul className="space-y-2 text-sm text-text-muted">
+                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Multiple input methods: upload, drag & drop, or paste</li>
+                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Fast processing with Tesseract.js OCR engine</li>
+                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Privacy focused — all processing in your browser</li>
+                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Copy text or download as .txt file</li>
               </ul>
             </div>
-            <div className="bg-white rounded-lg p-5 shadow-sm border border-slate-100">
-              <h3 className="font-semibold text-slate-700 mb-3">💡 Tips for Best Results</h3>
-              <ul className="space-y-2 text-sm text-slate-500">
+            <div className="bg-surface-alt rounded-lg p-5 border border-border">
+              <h3 className="font-medium text-text-secondary mb-3">💡 Tips for Best Results</h3>
+              <ul className="space-y-2 text-sm text-text-muted">
                 <li>• Use high-quality images with clear text</li>
                 <li>• Ensure good contrast between text and background</li>
                 <li>• Avoid blurry or distorted images</li>
@@ -205,4 +198,3 @@ export default function ImageToTextPage() {
     </ToolLayout>
   );
 }
-

@@ -18,17 +18,11 @@ export default function NetworkStatusPage() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [history, setHistory] = useLocalStorage('networkHistory', []);
   const [stats, setStats] = useLocalStorage('networkStats', {
-    totalConnections: 0,
-    totalDisconnections: 0,
-    sessionStartTime: Date.now(),
-    totalOnlineTime: 0,
-    totalOfflineTime: 0,
-    longestOfflineTime: 0,
+    totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(),
+    totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0,
   });
   const [settings, setSettings] = useLocalStorage('networkMonitorSettings', {
-    notifications: true,
-    sound: true,
-    autoTest: true,
+    notifications: true, sound: true, autoTest: true,
   });
 
   const [activeTab, setActiveTab] = useState('history');
@@ -45,16 +39,13 @@ export default function NetworkStatusPage() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  // Connection Info
   const [connInfo, setConnInfo] = useState({});
   const updateConnInfo = useCallback(() => {
     const conn = navigator.connection;
     if (conn) {
       setConnInfo({
-        type: conn.type || 'Unknown',
-        effectiveType: conn.effectiveType || 'Unknown',
-        downlink: conn.downlink ? `${conn.downlink} Mbps` : 'Unknown',
-        rtt: conn.rtt ? `${conn.rtt} ms` : 'Unknown',
+        type: conn.type || 'Unknown', effectiveType: conn.effectiveType || 'Unknown',
+        downlink: conn.downlink ? `${conn.downlink} Mbps` : 'Unknown', rtt: conn.rtt ? `${conn.rtt} ms` : 'Unknown',
       });
     } else {
       setConnInfo({ type: 'N/A', effectiveType: 'N/A', downlink: 'N/A', rtt: 'N/A' });
@@ -80,18 +71,12 @@ export default function NetworkStatusPage() {
     } catch {}
   }, []);
 
-  // Online/offline handlers
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
       if (offlineStartRef.current) {
         const offlineTime = Date.now() - offlineStartRef.current;
-        setStats((prev) => ({
-          ...prev,
-          totalConnections: prev.totalConnections + 1,
-          totalOfflineTime: prev.totalOfflineTime + offlineTime,
-          longestOfflineTime: Math.max(prev.longestOfflineTime, offlineTime),
-        }));
+        setStats((prev) => ({ ...prev, totalConnections: prev.totalConnections + 1, totalOfflineTime: prev.totalOfflineTime + offlineTime, longestOfflineTime: Math.max(prev.longestOfflineTime, offlineTime) }));
         offlineStartRef.current = null;
       }
       onlineStartRef.current = Date.now();
@@ -103,11 +88,7 @@ export default function NetworkStatusPage() {
       setIsOnline(false);
       if (onlineStartRef.current) {
         const onlineTime = Date.now() - onlineStartRef.current;
-        setStats((prev) => ({
-          ...prev,
-          totalDisconnections: prev.totalDisconnections + 1,
-          totalOnlineTime: prev.totalOnlineTime + onlineTime,
-        }));
+        setStats((prev) => ({ ...prev, totalDisconnections: prev.totalDisconnections + 1, totalOnlineTime: prev.totalOnlineTime + onlineTime }));
         onlineStartRef.current = null;
       }
       offlineStartRef.current = Date.now();
@@ -131,51 +112,22 @@ export default function NetworkStatusPage() {
   const runTest = useCallback(async () => {
     if (testingRef.current) return;
     testingRef.current = true;
-    setTesting(true);
-    setTestProgress(0);
+    setTesting(true); setTestProgress(0);
     setPingResult('Testing...'); setSpeedResult('Testing...'); setDnsResult('Testing...');
     try {
-      // Ping
       setTestProgress(33);
-      try {
-        const start = Date.now();
-        await fetch('/favicon.ico', { method: 'HEAD', cache: 'no-cache', mode: 'no-cors' });
-        setPingResult(`${Date.now() - start}ms`);
-      } catch { setPingResult('Failed'); }
-
-      // Speed
+      try { const start = Date.now(); await fetch('/favicon.ico', { method: 'HEAD', cache: 'no-cache', mode: 'no-cors' }); setPingResult(`${Date.now() - start}ms`); } catch { setPingResult('Failed'); }
       setTestProgress(66);
-      try {
-        const start = Date.now();
-        const res = await fetch('/icon.png', { cache: 'no-cache' });
-        const blob = await res.blob();
-        const dur = (Date.now() - start) / 1000;
-        setSpeedResult(`${((blob.size * 8) / dur / 1000000).toFixed(2)} Mbps`);
-      } catch { setSpeedResult('Failed'); }
-
-      // DNS
+      try { const start = Date.now(); const res = await fetch('/icon.png', { cache: 'no-cache' }); const blob = await res.blob(); const dur = (Date.now() - start) / 1000; setSpeedResult(`${((blob.size * 8) / dur / 1000000).toFixed(2)} Mbps`); } catch { setSpeedResult('Failed'); }
       setTestProgress(100);
-      try {
-        const start = Date.now();
-        await fetch('https://dns.google/resolve?name=google.com&type=A', { cache: 'no-cache' });
-        setDnsResult(`${Date.now() - start}ms`);
-      } catch {
-        try {
-          const start = Date.now();
-          await fetch('https://www.google.com', { method: 'HEAD', cache: 'no-cache', mode: 'no-cors' });
-          setDnsResult(`${Date.now() - start}ms`);
-        } catch { setDnsResult('Failed'); }
+      try { const start = Date.now(); await fetch('https://dns.google/resolve?name=google.com&type=A', { cache: 'no-cache' }); setDnsResult(`${Date.now() - start}ms`); } catch {
+        try { const start = Date.now(); await fetch('https://www.google.com', { method: 'HEAD', cache: 'no-cache', mode: 'no-cors' }); setDnsResult(`${Date.now() - start}ms`); } catch { setDnsResult('Failed'); }
       }
-    } finally {
-      setTimeout(() => { setTesting(false); testingRef.current = false; setTestProgress(0); }, 1000);
-    }
+    } finally { setTimeout(() => { setTesting(false); testingRef.current = false; setTestProgress(0); }, 1000); }
   }, []);
 
-  // Auto test
   useEffect(() => {
-    if (settings.autoTest) {
-      autoTestRef.current = setInterval(() => runTest(), 30000);
-    }
+    if (settings.autoTest) { autoTestRef.current = setInterval(() => runTest(), 30000); }
     return () => { if (autoTestRef.current) clearInterval(autoTestRef.current); };
   }, [settings.autoTest, runTest]);
 
@@ -184,10 +136,8 @@ export default function NetworkStatusPage() {
     return e.type === filter;
   });
 
-  // Computed stats
   const uptimePercent = (() => {
-    let totalOn = stats.totalOnlineTime;
-    let totalOff = stats.totalOfflineTime;
+    let totalOn = stats.totalOnlineTime; let totalOff = stats.totalOfflineTime;
     if (isOnline && onlineStartRef.current) totalOn += Date.now() - onlineStartRef.current;
     if (!isOnline && offlineStartRef.current) totalOff += Date.now() - offlineStartRef.current;
     const total = totalOn + totalOff;
@@ -195,26 +145,19 @@ export default function NetworkStatusPage() {
   })();
 
   const avgConnTime = stats.totalConnections > 0
-    ? ((stats.totalOnlineTime + (isOnline && onlineStartRef.current ? Date.now() - onlineStartRef.current : 0)) / stats.totalConnections / 1000).toFixed(0)
-    : '0';
+    ? ((stats.totalOnlineTime + (isOnline && onlineStartRef.current ? Date.now() - onlineStartRef.current : 0)) / stats.totalConnections / 1000).toFixed(0) : '0';
 
   const updateSetting = (key, val) => setSettings((prev) => ({ ...prev, [key]: val }));
 
   const handleExport = () => {
     const data = { history, statistics: stats, exportTime: new Date().toISOString() };
-    downloadFile(
-      JSON.stringify(data, null, 2),
-      `network-log-${new Date().toISOString().split('T')[0]}.json`,
-      'application/json'
-    );
+    downloadFile(JSON.stringify(data, null, 2), `network-log-${new Date().toISOString().split('T')[0]}.json`, 'application/json');
   };
 
   const handleReset = () => {
     if (confirm('Reset all settings and clear data?')) {
-      setHistory([]);
-      setStats({ totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(), totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0 });
-      setSettings({ notifications: true, sound: true, autoTest: true });
-      toast.success('Settings reset');
+      setHistory([]); setStats({ totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(), totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0 });
+      setSettings({ notifications: true, sound: true, autoTest: true }); toast.success('Settings reset');
     }
   };
 
@@ -224,12 +167,12 @@ export default function NetworkStatusPage() {
       tagline="Monitor your network connection status in real-time"
       metaDescription="Monitor your network connection status in real-time with visual indicators and connection quality metrics."
     >
-      {/* Banner */}
+      {/* Offline Banner */}
       <AnimatePresence>
         {!isOnline && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="mb-6 bg-red-500 text-white rounded-xl p-4 flex items-center gap-3 shadow-lg">
-            <WifiOff size={20} /><span className="font-semibold">You are offline</span>
+            className="mb-6 bg-error text-white rounded-xl p-4 flex items-center gap-3 shadow-card">
+            <WifiOff size={20} /><span className="font-medium">You are offline</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -238,38 +181,38 @@ export default function NetworkStatusPage() {
         <div className="p-6 space-y-6">
           <div className="grid md:grid-cols-2 gap-5">
             {/* Current Status */}
-            <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
+            <div className="bg-surface-alt rounded-lg border border-border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-700">Current Status</h3>
-                <div className={`flex items-center gap-2 text-sm font-semibold ${isOnline ? 'text-green-600' : 'text-red-500'}`}>
-                  <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                <h3 className="font-medium text-text-secondary">Current Status</h3>
+                <div className={`flex items-center gap-2 text-sm font-medium ${isOnline ? 'text-success' : 'text-error'}`}>
+                  <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-success animate-pulse' : 'bg-error'}`} />
                   {isOnline ? 'Online' : 'Offline'}
                 </div>
               </div>
               <div className="space-y-2.5 text-sm">
                 {Object.entries({ 'Connection Type': connInfo.type, 'Effective Type': connInfo.effectiveType, Downlink: connInfo.downlink, RTT: connInfo.rtt, 'Last Updated': new Date().toLocaleTimeString() }).map(([k, v]) => (
-                  <div key={k} className="flex justify-between"><span className="text-slate-500">{k}:</span><span className="font-medium text-slate-700">{v}</span></div>
+                  <div key={k} className="flex justify-between"><span className="text-text-muted">{k}:</span><span className="font-medium text-text-secondary">{v}</span></div>
                 ))}
               </div>
             </div>
 
             {/* Connection Test */}
-            <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
+            <div className="bg-surface-alt rounded-lg border border-border p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-700">Connection Test</h3>
-                <button onClick={runTest} disabled={testing} className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-hover transition disabled:opacity-50">
+                <h3 className="font-medium text-text-secondary">Connection Test</h3>
+                <button onClick={runTest} disabled={testing} className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover transition-all duration-200 disabled:opacity-50">
                   {testing ? 'Testing...' : 'Test Now'}
                 </button>
               </div>
               <div className="space-y-2.5 text-sm">
                 {[['Ping Test', pingResult], ['Speed Test', speedResult], ['DNS Resolution', dnsResult]].map(([label, val]) => (
-                  <div key={label} className="flex justify-between"><span className="text-slate-500">{label}:</span>
-                    <span className={`font-medium ${val === 'Failed' ? 'text-red-500' : String(val).includes('Testing') ? 'text-amber-500' : 'text-green-600'}`}>{val}</span>
+                  <div key={label} className="flex justify-between"><span className="text-text-muted">{label}:</span>
+                    <span className={`font-medium ${val === 'Failed' ? 'text-error' : String(val).includes('Testing') ? 'text-warning' : 'text-success'}`}>{val}</span>
                   </div>
                 ))}
               </div>
               {testing && (
-                <div className="mt-3 w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div className="mt-3 w-full bg-border rounded-full h-1.5 overflow-hidden">
                   <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${testProgress}%` }} />
                 </div>
               )}
@@ -278,19 +221,19 @@ export default function NetworkStatusPage() {
 
           {/* Settings */}
           <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
-              <h3 className="font-semibold text-slate-700 mb-3">Notification Settings</h3>
+            <div className="bg-surface-alt rounded-lg border border-border p-5">
+              <h3 className="font-medium text-text-secondary mb-3">Notification Settings</h3>
               <div className="space-y-3">
                 {[['notifications', 'Enable status notifications'], ['sound', 'Enable sound alerts'], ['autoTest', 'Auto-test every 30s']].map(([key, label]) => (
                   <label key={key} className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" checked={settings[key]} onChange={(e) => updateSetting(key, e.target.checked)} className="w-4 h-4 accent-primary" />
-                    <span className="text-sm text-slate-600">{label}</span>
+                    <span className="text-sm text-text-secondary">{label}</span>
                   </label>
                 ))}
               </div>
             </div>
-            <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
-              <h3 className="font-semibold text-slate-700 mb-3">Actions</h3>
+            <div className="bg-surface-alt rounded-lg border border-border p-5">
+              <h3 className="font-medium text-text-secondary mb-3">Actions</h3>
               <div className="flex flex-wrap gap-2">
                 <SecondaryButton onClick={() => { if (confirm('Clear history?')) { setHistory([]); toast.success('Cleared'); } }}><Trash2 size={14} /> Clear History</SecondaryButton>
                 <SecondaryButton onClick={handleExport}><Download size={14} /> Export Log</SecondaryButton>
@@ -308,7 +251,7 @@ export default function NetworkStatusPage() {
           {activeTab === 'history' && (
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+                <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary/20">
                   <option value="all">All Events</option>
                   <option value="online">Online Events</option>
                   <option value="offline">Offline Events</option>
@@ -317,16 +260,16 @@ export default function NetworkStatusPage() {
                 <SecondaryButton onClick={updateConnInfo}><RefreshCw size={14} /> Refresh</SecondaryButton>
               </div>
               {filteredHistory.length === 0 ? (
-                <p className="text-sm text-slate-400 italic py-8 text-center">No events recorded yet.</p>
+                <p className="text-sm text-text-muted italic py-8 text-center">No events recorded yet.</p>
               ) : (
                 <div className="space-y-2 max-h-80 overflow-y-auto">
                   {filteredHistory.map((e, i) => (
-                    <div key={i} className={`flex items-center justify-between p-3 rounded-lg text-sm ${e.type === 'online' ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}>
+                    <div key={i} className={`flex items-center justify-between p-3 rounded-lg text-sm border ${e.type === 'online' ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20'}`}>
                       <div className="flex items-center gap-2">
-                        {e.type === 'online' ? <Wifi size={14} className="text-green-500" /> : <WifiOff size={14} className="text-red-500" />}
-                        <span className={e.type === 'online' ? 'text-green-700' : 'text-red-700'}>{e.message}</span>
+                        {e.type === 'online' ? <Wifi size={14} className="text-success" /> : <WifiOff size={14} className="text-error" />}
+                        <span className={e.type === 'online' ? 'text-success' : 'text-error'}>{e.message}</span>
                       </div>
-                      <span className="text-xs text-slate-400">{e.time}</span>
+                      <span className="text-xs text-text-muted">{e.time}</span>
                     </div>
                   ))}
                 </div>
@@ -343,15 +286,15 @@ export default function NetworkStatusPage() {
                   [avgConnTime + 's', 'Avg Connection Time'],
                   [(stats.longestOfflineTime / 1000).toFixed(0) + 's', 'Longest Offline'],
                 ].map(([val, label]) => (
-                  <div key={label} className="bg-slate-50 rounded-lg border border-slate-200 p-4 text-center">
+                  <div key={label} className="bg-surface-alt rounded-lg border border-border p-4 text-center">
                     <div className="text-2xl font-bold text-primary">{val}</div>
-                    <div className="text-xs text-slate-500 mt-1">{label}</div>
+                    <div className="text-xs text-text-muted mt-1">{label}</div>
                   </div>
                 ))}
               </div>
-              <div className="bg-slate-50 rounded-lg border border-slate-200 p-5">
-                <h3 className="font-semibold text-slate-700 mb-2">Connection Timeline</h3>
-                <p className="text-sm text-slate-400 italic">Data will be visualized as events are recorded.</p>
+              <div className="bg-surface-alt rounded-lg border border-border p-5">
+                <h3 className="font-medium text-text-secondary mb-2">Connection Timeline</h3>
+                <p className="text-sm text-text-muted italic">Data will be visualized as events are recorded.</p>
               </div>
             </div>
           )}
@@ -359,10 +302,10 @@ export default function NetworkStatusPage() {
       </Card>
 
       {/* Info */}
-      <Card hover={false} className="bg-slate-50 border-slate-200">
+      <Card hover={false}>
         <div className="p-7">
-          <h2 className="text-xl font-bold text-slate-800 border-b border-slate-200 pb-3 mb-5">About Network Monitoring</h2>
-          <p className="text-slate-500 leading-relaxed mb-5">
+          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About Network Monitoring</h2>
+          <p className="text-text-muted leading-relaxed mb-5">
             This tool monitors your network connection using the browser's Network Information API and online/offline event listeners.
           </p>
           <div className="grid md:grid-cols-2 gap-4">
@@ -372,9 +315,9 @@ export default function NetworkStatusPage() {
               ['🔔 Smart Notifications', 'Get notified on status changes with visual and audio alerts.'],
               ['📈 Historical Data', 'Track history and view statistics about uptime and quality.'],
             ].map(([title, desc]) => (
-              <div key={title} className="bg-white rounded-lg p-4 shadow-sm border border-slate-100">
-                <h3 className="font-semibold text-slate-700 mb-1">{title}</h3>
-                <p className="text-sm text-slate-500">{desc}</p>
+              <div key={title} className="bg-surface-alt rounded-lg p-4 border border-border">
+                <h3 className="font-medium text-text-secondary mb-1">{title}</h3>
+                <p className="text-sm text-text-muted">{desc}</p>
               </div>
             ))}
           </div>
@@ -383,4 +326,3 @@ export default function NetworkStatusPage() {
     </ToolLayout>
   );
 }
-

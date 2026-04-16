@@ -1,6 +1,7 @@
 import { Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CopyButton({ text, label = 'Copy', size = 'default', className = '' }) {
   const [copied, setCopied] = useState(false);
@@ -22,15 +23,27 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
 
   const sizeClasses = size === 'sm'
     ? 'text-xs px-3 py-1.5'
-    : 'text-sm px-4 py-2.5';
+    : 'text-sm px-4 py-2';
 
   return (
     <button
       onClick={handleCopy}
-      className={`inline-flex items-center gap-1.5 rounded-lg font-semibold transition-all
-        bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:-translate-y-0.5 ${sizeClasses} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-lg font-medium transition-all duration-200
+        bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30
+        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30
+        ${sizeClasses} ${className}`}
     >
-      {copied ? <Check size={size === 'sm' ? 13 : 15} /> : <Copy size={size === 'sm' ? 13 : 15} />}
+      <AnimatePresence mode="wait" initial={false}>
+        {copied ? (
+          <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="inline-flex">
+            <Check size={size === 'sm' ? 13 : 15} className="text-success" />
+          </motion.span>
+        ) : (
+          <motion.span key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="inline-flex">
+            <Copy size={size === 'sm' ? 13 : 15} />
+          </motion.span>
+        )}
+      </AnimatePresence>
       {copied ? 'Copied!' : label}
     </button>
   );
