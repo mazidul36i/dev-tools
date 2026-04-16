@@ -16,8 +16,8 @@ const tabs = [
   { id: 'dto', label: 'DTO → JSON' },
 ];
 
-const inputClass = "w-full h-full min-h-64 lg:min-h-[28rem] p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-900 dark:text-gray-100 resize-y placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all";
-const outputClass = "w-full h-full min-h-64 lg:min-h-[28rem] p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-y cursor-default";
+const inputClass = "w-full h-full p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-900 dark:text-gray-100 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all";
+const outputClass = "w-full h-full p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-none cursor-default";
 
 export default function JsonFormatterPage() {
   const [activeTab, setActiveTab] = useState('format');
@@ -78,9 +78,9 @@ export default function JsonFormatterPage() {
       tagline="Format, validate, minify and convert JSON data"
       metaDescription="Format, validate and prettify JSON data. Easily format minified JSON and validate syntax."
     >
-      <Card hover={false}>
+      <Card hover={false} className="h-[calc(100vh-210px)] min-h-152 flex flex-col">
         {/* Tab bar */}
-        <div className="flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto">
+        <div className="shrink-0 flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -95,12 +95,12 @@ export default function JsonFormatterPage() {
           ))}
         </div>
 
-        <div className="p-4">
+        <div className="p-4 flex-1 min-h-0">
           {/* FORMAT TAB */}
           {activeTab === 'format' && (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3 h-full">
               {/* Compact toolbar */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="shrink-0 flex flex-wrap items-center gap-2">
                 <PrimaryButton onClick={handleFormat}>Format</PrimaryButton>
                 <CopyButton text={formatResult} label="Copy" />
                 <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); }}><Eraser size={14} /></SecondaryButton>
@@ -116,9 +116,9 @@ export default function JsonFormatterPage() {
                 </div>
               </div>
               {/* Side-by-side panels */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
                   <textarea
                     value={formatInput}
                     onChange={(e) => setFormatInput(e.target.value)}
@@ -126,12 +126,12 @@ export default function JsonFormatterPage() {
                     className={inputClass}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
                   {view === 'text' ? (
                     <textarea value={formatResult} readOnly className={outputClass} />
                   ) : (
-                    <div className="min-h-64 lg:min-h-[28rem] overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
+                    <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
                       <JsonTreeView data={parsedJson} />
                     </div>
                   )}
@@ -142,19 +142,19 @@ export default function JsonFormatterPage() {
 
           {/* MINIFY TAB */}
           {activeTab === 'minify' && (
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-3 h-full">
+              <div className="shrink-0 flex flex-wrap items-center gap-2">
                 <PrimaryButton onClick={handleMinify}>Minify</PrimaryButton>
                 <CopyButton text={minifyResult} label="Copy" />
                 <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); }}><Eraser size={14} /></SecondaryButton>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
                   <textarea value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder="Paste formatted JSON here..." className={inputClass} />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
                   <textarea value={minifyResult} readOnly className={outputClass} />
                 </div>
               </div>
@@ -163,8 +163,8 @@ export default function JsonFormatterPage() {
 
           {/* CONVERT TAB */}
           {activeTab === 'convert' && (
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-3 h-full">
+              <div className="shrink-0 flex flex-wrap items-center gap-2">
                 <PrimaryButton onClick={handleConvert}>Convert</PrimaryButton>
                 <CopyButton text={convertResult} label="Copy" />
                 <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={14} /></SecondaryButton>
@@ -174,13 +174,13 @@ export default function JsonFormatterPage() {
                   <button onClick={() => setConvertMode('stringToNormal')} className={`px-3 py-1.5 text-xs font-medium transition-all ${convertMode === 'stringToNormal' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Stringified → Normal</button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
                   <textarea value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} className={inputClass} />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
                   <textarea value={convertResult} readOnly className={outputClass} />
                 </div>
               </div>
@@ -189,8 +189,8 @@ export default function JsonFormatterPage() {
 
           {/* DTO TAB */}
           {activeTab === 'dto' && (
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col gap-3 h-full">
+              <div className="shrink-0 flex flex-wrap items-center gap-2">
                 <PrimaryButton onClick={handleDto}>Convert</PrimaryButton>
                 <CopyButton text={dtoResult} label="Copy" />
                 <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={14} /></SecondaryButton>
@@ -202,13 +202,13 @@ export default function JsonFormatterPage() {
                   <input type="checkbox" checked={autoDetect} onChange={(e) => setAutoDetect(e.target.checked)} className="accent-gray-900 dark:accent-white w-3.5 h-3.5" /> Auto-detect types
                 </label>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
                   <textarea value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" className={inputClass} />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                <div className="flex flex-col min-h-0">
+                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
                   <textarea value={dtoResult} readOnly className={outputClass} />
                 </div>
               </div>

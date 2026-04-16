@@ -40,7 +40,7 @@ export default function ToolLayout({ title, tagline, metaDescription, children }
         transition={{ duration: 0.3 }}
         className="fixed top-2 left-3 right-3 md:left-5 md:right-5 z-50 bg-white/60 dark:bg-gray-900/80 backdrop-blur-2xl rounded-xl border border-white/40 dark:border-gray-700/60 shadow-sm"
       >
-        <div className="max-w-[96rem] mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-384 mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/"
@@ -78,7 +78,7 @@ export default function ToolLayout({ title, tagline, metaDescription, children }
         transition={{ duration: 0.35, delay: 0.05 }}
         className="flex-1 relative z-10 pt-20 pb-2 overflow-y-auto"
       >
-        <div className="max-w-[96rem] mx-auto px-3 md:px-5">
+        <div className="max-w-384 mx-auto px-3 md:px-5 h-full">
           <div className="mb-2">
             <h1 className="text-xl md:text-2xl font-black tracking-tight text-gray-900 dark:text-white">{title}</h1>
             {tagline && <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-xs md:text-sm">{tagline}</p>}
@@ -89,7 +89,7 @@ export default function ToolLayout({ title, tagline, metaDescription, children }
 
       {/* Footer pinned at bottom */}
       <footer className="relative z-10 shrink-0 border-t border-white/40 dark:border-gray-800 py-2">
-        <div className="max-w-[96rem] mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="max-w-384 mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-500 dark:text-gray-400">
             &copy; {new Date().getFullYear()} DevTools
           </p>
