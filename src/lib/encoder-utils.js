@@ -1,6 +1,7 @@
 // Base64
 export function encodeBase64(text, urlSafe = false, noPadding = false) {
-  let encoded = btoa(unescape(encodeURIComponent(text)));
+  const bytes = new TextEncoder().encode(text);
+  let encoded = btoa(String.fromCharCode(...bytes));
   if (urlSafe) encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_');
   if (noPadding) encoded = encoded.replace(/=+$/, '');
   return encoded;
@@ -12,7 +13,8 @@ export function decodeBase64(text, urlSafe = false, noPadding = false) {
   if (noPadding && prepared.length % 4 !== 0) {
     prepared += '='.repeat(4 - (prepared.length % 4));
   }
-  return decodeURIComponent(escape(atob(prepared)));
+  const bytes = Uint8Array.from(atob(prepared), (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 // URL
@@ -59,4 +61,3 @@ export function decodeHex(text) {
   }
   return result;
 }
-
