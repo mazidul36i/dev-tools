@@ -1,15 +1,15 @@
 import {Routes, Route} from 'react-router-dom';
 import {lazy, Suspense} from 'react';
-import Spinner from './components/ui/Spinner';
+import Spinner from '@components/ui/Spinner';
 
-const HomePage = lazy(() => import('./pages/HomePage'));
-const JsonFormatterPage = lazy(() => import('./pages/tools/json-formatter/JsonFormatterPage'));
-const ImageToTextPage = lazy(() => import('./pages/tools/ImageToTextPage'));
-const EncoderDecoderPage = lazy(() => import('./pages/tools/EncoderDecoderPage'));
-const UrlParserPage = lazy(() => import('./pages/tools/UrlParserPage'));
-const ColorPickerPage = lazy(() => import('./pages/tools/color-picker/ColorPickerPage'));
-const NetworkStatusPage = lazy(() => import('./pages/tools/network-status/NetworkStatusPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const HomePage = lazy(() => import('@pages/HomePage'));
+const JsonFormatterPage = lazy(() => import('@pages/tools/json-formatter/JsonFormatterPage'));
+const ImageToTextPage = lazy(() => import('@pages/tools/ImageToTextPage'));
+const EncoderDecoderPage = lazy(() => import('@pages/tools/EncoderDecoderPage'));
+const UrlParserPage = lazy(() => import('@pages/tools/UrlParserPage'));
+const ColorPickerPage = lazy(() => import('@pages/tools/color-picker/ColorPickerPage'));
+const NetworkStatusPage = lazy(() => import('@pages/tools/network-status/NetworkStatusPage'));
+const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 export default function App() {
   return (
@@ -27,4 +27,3 @@ export default function App() {
     </Suspense>
   );
 }
-

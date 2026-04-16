@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import Header from '../components/layout/Header';
-import Footer from '../components/layout/Footer';
+import Header from '@components/layout/Header';
+import Footer from '@components/layout/Footer';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi,
 } from 'lucide-react';

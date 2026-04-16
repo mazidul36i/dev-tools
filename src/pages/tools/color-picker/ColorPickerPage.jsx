@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Shuffle, RotateCcw, Plus, Trash2, Download } from 'lucide-react';
-import ToolLayout from '../../../components/layout/ToolLayout';
-import Card from '../../../components/ui/Card';
-import CopyButton from '../../../components/ui/CopyButton';
-import useLocalStorage from '../../../hooks/useLocalStorage';
-import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor } from '../../../lib/color-utils';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import CopyButton from '@components/ui/CopyButton';
+import useLocalStorage from '@hooks/useLocalStorage';
+import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor } from '@lib/color-utils';
 
 export default function ColorPickerPage() {
   const [rgb, setRgb] = useState({ r: 255, g: 255, b: 255 });
@@ -148,6 +148,7 @@ export default function ColorPickerPage() {
                 onMouseDown={onPointerDown}
                 onTouchStart={onPointerDown}
                 className="relative w-full h-56 rounded-lg cursor-crosshair border border-slate-200 overflow-hidden select-none"
+                aria-label="Color gradient picker — click or drag to select a color"
                 style={{
                   background: `linear-gradient(to top, black, transparent 50%, white), linear-gradient(to right, white, hsl(${hsl.h}, 100%, 50%))`,
                 }}
@@ -159,6 +160,7 @@ export default function ColorPickerPage() {
               </div>
               <input
                 type="range" min={0} max={360} value={hsl.h}
+                aria-label="Hue slider"
                 onChange={(e) => updateFromRgb(hslToRgb(Number(e.target.value), hsl.s, hsl.l))}
                 className="w-full h-3 rounded-full appearance-none cursor-pointer"
                 style={{ background: 'linear-gradient(to right, #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)' }}
@@ -195,7 +197,7 @@ export default function ColorPickerPage() {
             ) : (
               <div className="flex flex-wrap gap-3">
                 {palette.map((c, i) => (
-                  <div key={i} className="group text-center cursor-pointer" onClick={() => { try { updateFromRgb(hexToRgb(c)); } catch {} }} onDoubleClick={() => { setPalette(palette.filter((_, j) => j !== i)); toast.success('Removed'); }}>
+                  <div key={c} className="group text-center cursor-pointer" onClick={() => { try { updateFromRgb(hexToRgb(c)); } catch {} }} onDoubleClick={() => { setPalette(palette.filter((_, j) => j !== i)); toast.success('Removed'); }}>
                     <div className="w-14 h-14 rounded-lg shadow-sm border border-slate-200 group-hover:scale-110 transition-transform" style={{ backgroundColor: c }} title="Click to use, double-click to remove" />
                     <div className="text-xs font-mono text-slate-500 mt-1">{c}</div>
                   </div>

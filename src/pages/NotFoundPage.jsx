@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Home } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Footer from '../components/layout/Footer';
+import Footer from '@components/layout/Footer';
 
 export default function NotFoundPage() {
   return (

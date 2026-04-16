@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Upload, Copy, Download, Eraser } from 'lucide-react';
+import { Upload, Download, Eraser } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ToolLayout from '../../components/layout/ToolLayout';
-import Card from '../../components/ui/Card';
-import CopyButton from '../../components/ui/CopyButton';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import CopyButton from '@components/ui/CopyButton';
+import { downloadFile } from '@lib/download-utils';
 
 function processParagraphs(text) {
   if (!text) return '';
@@ -92,13 +93,7 @@ export default function ImageToTextPage() {
 
   const handleDownload = () => {
     if (!output) { toast.error('No text to download'); return; }
-    const blob = new Blob([output], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'extracted-text.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast.success('Downloaded!');
+    downloadFile(output, 'extracted-text.txt');
   };
 
   const handleClear = () => {
@@ -120,6 +115,8 @@ export default function ImageToTextPage() {
             onDragLeave={() => setDragging(false)}
             onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); }}
             onClick={() => fileInputRef.current?.click()}
+            role="button"
+            aria-label="Upload an image for text extraction"
             className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all
               ${dragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-slate-300 bg-slate-50 hover:border-primary hover:bg-primary/5'}`}
           >

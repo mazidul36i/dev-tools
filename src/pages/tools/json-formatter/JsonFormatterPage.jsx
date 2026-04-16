@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Eraser } from 'lucide-react';
-import ToolLayout from '../../../components/layout/ToolLayout';
-import Card from '../../../components/ui/Card';
-import Tabs from '../../../components/ui/Tabs';
-import CopyButton from '../../../components/ui/CopyButton';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import Tabs from '@components/ui/Tabs';
+import CopyButton from '@components/ui/CopyButton';
 import JsonTreeView from './JsonTreeView';
-import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '../../../lib/json-utils';
+import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
 
 const tabs = [
   { id: 'format', label: 'Format JSON' },

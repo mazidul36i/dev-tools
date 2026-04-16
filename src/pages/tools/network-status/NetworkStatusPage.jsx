@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Wifi, WifiOff, Activity, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ToolLayout from '../../../components/layout/ToolLayout';
-import Card from '../../../components/ui/Card';
-import Tabs from '../../../components/ui/Tabs';
-import useLocalStorage from '../../../hooks/useLocalStorage';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import Tabs from '@components/ui/Tabs';
+import useLocalStorage from '@hooks/useLocalStorage';
+import { downloadFile } from '@lib/download-utils';
 
 const tabList = [
   { id: 'history', label: 'Connection History' },
@@ -128,9 +129,9 @@ export default function NetworkStatusPage() {
       autoTestRef.current = setInterval(() => runTest(), 30000);
     }
     return () => { if (autoTestRef.current) clearInterval(autoTestRef.current); };
-  }, [settings.autoTest]);
+  }, [settings.autoTest, runTest]);
 
-  const runTest = async () => {
+  const runTest = useCallback(async () => {
     if (testing) return;
     setTesting(true);
     setTestProgress(0);
@@ -170,7 +171,7 @@ export default function NetworkStatusPage() {
     } finally {
       setTimeout(() => { setTesting(false); setTestProgress(0); }, 1000);
     }
-  };
+  }, [testing]);
 
   const filteredHistory = filter === 'all' ? history : history.filter((e) => {
     if (filter === 'errors') return e.type === 'error' || e.message.includes('failed');
@@ -195,13 +196,11 @@ export default function NetworkStatusPage() {
 
   const handleExport = () => {
     const data = { history, statistics: stats, exportTime: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `network-log-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast.success('Log exported!');
+    downloadFile(
+      JSON.stringify(data, null, 2),
+      `network-log-${new Date().toISOString().split('T')[0]}.json`,
+      'application/json'
+    );
   };
 
   const handleReset = () => {

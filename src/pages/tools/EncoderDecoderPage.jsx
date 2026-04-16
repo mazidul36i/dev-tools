@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { ArrowUpDown, Clipboard, Download, Eraser } from 'lucide-react';
-import ToolLayout from '../../components/layout/ToolLayout';
-import Card from '../../components/ui/Card';
-import CopyButton from '../../components/ui/CopyButton';
-import * as enc from '../../lib/encoder-utils';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import CopyButton from '@components/ui/CopyButton';
+import * as enc from '@lib/encoder-utils';
+import { downloadFile } from '@lib/download-utils';
 
 const modes = [
   { id: 'base64', label: 'Base64' },
@@ -64,13 +65,7 @@ export default function EncoderDecoderPage() {
   const handleDownload = () => {
     if (!output) { toast.error('No content to download'); return; }
     const ext = { base64: '.b64', html: '.html', hex: '.hex', url: '.txt' }[mode] || '.txt';
-    const blob = new Blob([output], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `encoded${ext}`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    toast.success('Downloaded!');
+    downloadFile(output, `encoded${ext}`);
   };
 
   return (

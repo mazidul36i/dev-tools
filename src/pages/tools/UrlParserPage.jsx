@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Eraser } from 'lucide-react';
-import ToolLayout from '../../components/layout/ToolLayout';
-import Card from '../../components/ui/Card';
-import Tabs from '../../components/ui/Tabs';
-import CopyButton from '../../components/ui/CopyButton';
+import ToolLayout from '@components/layout/ToolLayout';
+import Card from '@components/ui/Card';
+import Tabs from '@components/ui/Tabs';
+import CopyButton from '@components/ui/CopyButton';
 
 const tabs = [
   { id: 'encode', label: 'Encode URL' },
