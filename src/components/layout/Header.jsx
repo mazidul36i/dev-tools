@@ -5,7 +5,7 @@ import { useTheme } from '@hooks/useTheme';
 
 const themeIcons = { light: Sun, dark: Moon, system: Monitor };
 
-export default function Header({ title, tagline, backLink = false }) {
+export default function Header({ title, backLink = false }) {
   const { theme, toggleTheme } = useTheme();
   const ThemeIcon = themeIcons[theme];
 
@@ -29,7 +29,7 @@ export default function Header({ title, tagline, backLink = false }) {
             </Link>
           )}
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-linear-to-br from-primary to-accent flex items-center justify-center">
               <span className="text-white font-bold text-xs">D</span>
             </div>
             <span className="font-semibold text-text text-sm">DevTools</span>

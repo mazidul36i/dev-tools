@@ -43,7 +43,7 @@
   }
 
   body {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), sans-serif;
     background-color: var(--color-surface-alt);
     color: var(--color-text);
   }
