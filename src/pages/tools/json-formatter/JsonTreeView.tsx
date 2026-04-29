@@ -104,7 +104,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 		return (
 			<div
 				className={`flex items-baseline py-0.5 group/node ${nodeMatches ? 'bg-amber-100/50 dark:bg-amber-900/20 rounded' : ''}`}
-				style={{ paddingLeft: depth * 20 }}
+				style={{ paddingLeft: 20 }}
 			>
 				{nodeKey !== null && (
 					<>
@@ -128,7 +128,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 	const keyMatches = search && nodeKey !== null && matchesSearch(String(nodeKey), search);
 
 	return (
-		<div style={{ paddingLeft: depth * 20 }}>
+		<div style={{ paddingLeft: 20 }}>
 			<div
 				className={`flex items-center py-0.5 cursor-pointer select-none group/node ${keyMatches ? 'bg-amber-100/50 dark:bg-amber-900/20 rounded' : ''}`}
 				onClick={toggle}
@@ -178,7 +178,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 								<JsonTreeNode key={k} nodeKey={isArray ? Number(k) : k} value={v} depth={depth + 1} path={childPath} />
 							);
 						})}
-						<div style={{ paddingLeft: (depth + 1) * 20 }}>
+						<div style={{ paddingLeft: 20 }}>
 							<span className="text-text-muted py-0.5">{bracket[1]}</span>
 						</div>
 					</motion.div>
