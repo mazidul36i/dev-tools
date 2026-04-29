@@ -137,7 +137,7 @@ export default function JsonFormatterPage() {
   const [formatInput, setFormatInput] = useState('');
   const [formatResult, setFormatResult] = useState('');
   const [parsedJson, setParsedJson] = useState(null);
-  const [indent, setIndent] = useState('2');
+  const [indent, setIndent] = useState(2);
   const [view, setView] = useState('text');
   const [minifyInput, setMinifyInput] = useState('');
   const [minifyResult, setMinifyResult] = useState('');
@@ -243,7 +243,7 @@ export default function JsonFormatterPage() {
                 <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
                 <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); setFormatSearch(''); }}><Eraser size={14} /></SecondaryButton>
                 <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
-                <select value={indent} onChange={(e) => setIndent(e.target.value)} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
+                <select value={indent} onChange={(e) => setIndent(parseInt(e.target.value))} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
                   <option value="2">2 spaces</option>
                   <option value="4">4 spaces</option>
                   <option value="tab">Tab</option>

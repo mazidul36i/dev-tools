@@ -78,7 +78,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 
 	const copyPath = useCallback((e) => {
 		e.stopPropagation();
-		navigator.clipboard.writeText(currentPath);
+		navigator.clipboard.writeText(currentPath).then(() => {});
 		toast.success(`Copied: ${currentPath}`);
 	}, [currentPath]);
 
@@ -98,7 +98,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 				<ValueSpan value={value} />
 				<button
 					onClick={copyPath}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:!opacity-100 transition-opacity"
+					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
 					title={currentPath}
 				>
 					<Copy size={11} />
@@ -141,7 +141,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 				{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
 				<button
 					onClick={copyPath}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:!opacity-100 transition-opacity"
+					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
 					title={currentPath}
 				>
 					<Copy size={11} />

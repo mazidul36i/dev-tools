@@ -24,7 +24,7 @@ export default function NotFoundPage() {
           <p className="text-lg text-text-muted mb-8">This page doesn't exist</p>
           <Link
             to="/"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-white px-5 py-2.5 rounded-lg font-medium
+            className="inline-flex items-center gap-2 bg-linear-to-r from-primary to-accent text-white px-5 py-2.5 rounded-lg font-medium
               hover:opacity-90 transition-all duration-200 active:scale-[0.97]"
           >
             <Home size={16} />

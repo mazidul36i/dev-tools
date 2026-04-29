@@ -37,7 +37,7 @@ export default function HighlightedOutput({ text, search, activeIndex, className
   return (
     <pre
       ref={containerRef}
-      className={`whitespace-pre-wrap break-words overflow-auto ${className}`}
+      className={`whitespace-pre-wrap wrap-break-word overflow-auto ${className}`}
     >
       {parts.map((p, i) =>
         p.highlight ? (

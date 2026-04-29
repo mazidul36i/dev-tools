@@ -83,7 +83,7 @@ export default function ImageToTextPage() {
     const onPaste = (e) => {
       const items = e.clipboardData.items;
       for (const item of items) {
-        if (item.type.startsWith('image/')) { handleFile(item.getAsFile()); break; }
+        if (item.type.startsWith('image/')) { handleFile(item.getAsFile()).then(() => {}); break; }
       }
     };
     window.addEventListener('paste', onPaste);
@@ -112,7 +112,7 @@ export default function ImageToTextPage() {
           <div
             onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
             onDragLeave={() => setDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); }}
+            onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]).then(() => {}); }}
             onClick={() => fileInputRef.current?.click()}
             role="button"
             aria-label="Upload an image for text extraction"
