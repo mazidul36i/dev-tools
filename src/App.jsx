@@ -17,6 +17,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage/>}/>
         <Route path="/tools/json-formatter" element={<JsonFormatterPage/>}/>
+        <Route path="/tools/json-formatter/:tab" element={<JsonFormatterPage/>}/>
         <Route path="/tools/image-to-text" element={<ImageToTextPage/>}/>
         <Route path="/tools/encoder-decoder" element={<EncoderDecoderPage/>}/>
         <Route path="/tools/url-parser" element={<UrlParserPage/>}/>
