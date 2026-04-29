@@ -1,4 +1,14 @@
-export function TextAreaInput({ id, value, onChange, placeholder, className = '', ...props }) {
+import { type TextareaHTMLAttributes } from 'react';
+
+interface TextAreaInputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  id?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+export function TextAreaInput({ id, value, onChange, placeholder, className = '', ...props }: TextAreaInputProps) {
   return (
     <textarea
       id={id}
@@ -14,7 +24,12 @@ export function TextAreaInput({ id, value, onChange, placeholder, className = ''
   );
 }
 
-export function TextAreaOutput({ value, className = '', ...props }) {
+interface TextAreaOutputProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  value: string;
+  className?: string;
+}
+
+export function TextAreaOutput({ value, className = '', ...props }: TextAreaOutputProps) {
   return (
     <textarea
       value={value}

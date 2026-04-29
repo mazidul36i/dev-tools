@@ -1,6 +1,13 @@
 import { motion } from 'framer-motion';
+import { type ReactNode } from 'react';
 
-export default function Card({ children, className = '', hover = true }) {
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+  hover?: boolean;
+}
+
+export default function Card({ children, className = '', hover = true }: CardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}

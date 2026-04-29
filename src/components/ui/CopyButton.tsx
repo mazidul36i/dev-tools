@@ -3,7 +3,14 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function CopyButton({ text, label = 'Copy', size = 'default', className = '' }) {
+interface CopyButtonProps {
+  text: string;
+  label?: string;
+  size?: 'default' | 'sm';
+  className?: string;
+}
+
+export default function CopyButton({ text, label = 'Copy', size = 'default', className = '' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {

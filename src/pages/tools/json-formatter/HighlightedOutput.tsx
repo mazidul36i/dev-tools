@@ -1,19 +1,32 @@
 import { useRef, useEffect, useMemo } from 'react';
 
+interface TextPart {
+  text: string;
+  highlight: boolean;
+  matchIndex?: number;
+}
+
+interface HighlightedOutputProps {
+  text: string;
+  search: string;
+  activeIndex: number;
+  className?: string;
+}
+
 /**
  * Renders text output with search matches highlighted.
  * Active match has a distinct background and auto-scrolls into view.
  */
-export default function HighlightedOutput({ text, search, activeIndex, className = '' }) {
-  const containerRef = useRef(null);
+export default function HighlightedOutput({ text, search, activeIndex, className = '' }: HighlightedOutputProps) {
+  const containerRef = useRef<HTMLPreElement>(null);
 
-  const parts = useMemo(() => {
+  const parts = useMemo<TextPart[]>(() => {
     if (!search || !text) return [{ text: text ?? '', highlight: false }];
     const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escaped})`, 'gi');
-    const segments = [];
+    const segments: TextPart[] = [];
     let last = 0;
-    let match;
+    let match: RegExpExecArray | null;
     let i = 0;
     while ((match = regex.exec(text)) !== null) {
       if (match[0].length === 0) { regex.lastIndex++; continue; }
@@ -57,4 +70,3 @@ export default function HighlightedOutput({ text, search, activeIndex, className
     </pre>
   );
 }
-

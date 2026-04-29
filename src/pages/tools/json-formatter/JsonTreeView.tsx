@@ -4,29 +4,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 // Context to broadcast expand/collapse signals + search query
-const TreeControlContext = createContext({ signal: null, search: '' });
+interface TreeControlContextValue {
+  signal: string | null;
+  search: string;
+}
+
+const TreeControlContext = createContext<TreeControlContextValue>({ signal: null, search: '' });
 
 // Check if a string matches the search (case-insensitive)
-function matchesSearch(text, search) {
-	if (!search || !text) return false;
-	return String(text).toLowerCase().includes(search.toLowerCase());
+function matchesSearch(text: string, search: string): boolean {
+  if (!search || !text) return false;
+  return String(text).toLowerCase().includes(search.toLowerCase());
 }
 
 // Recursively check if a node or any descendant matches the search
-function subtreeMatches(value, nodeKey, search) {
-	if (!search) return false;
-	if (nodeKey !== null && matchesSearch(String(nodeKey), search)) return true;
-	if (value === null || typeof value !== 'object') {
-		return matchesSearch(String(value), search);
-	}
-	for (const [k, v] of Object.entries(value)) {
-		if (subtreeMatches(v, k, search)) return true;
-	}
-	return false;
+function subtreeMatches(value: unknown, nodeKey: string | number | null, search: string): boolean {
+  if (!search) return false;
+  if (nodeKey !== null && matchesSearch(String(nodeKey), search)) return true;
+  if (value === null || typeof value !== 'object') {
+    return matchesSearch(String(value), search);
+  }
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (subtreeMatches(v, k, search)) return true;
+  }
+  return false;
 }
 
 // Highlight matching portions in a string
-function HighlightText({ text, className = '' }) {
+interface HighlightTextProps {
+  text: string | number;
+  className?: string;
+}
+
+function HighlightText({ text, className = '' }: HighlightTextProps) {
 	const { search } = useContext(TreeControlContext);
 	const str = String(text);
 	if (!search) return <span className={className}>{str}</span>;
@@ -50,12 +60,19 @@ function HighlightText({ text, className = '' }) {
 	);
 }
 
-const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, path = '$' }) {
+interface JsonTreeNodeProps {
+  nodeKey: string | number | null;
+  value: unknown;
+  depth?: number;
+  path?: string;
+}
+
+const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, path = '$' }: JsonTreeNodeProps) {
 	const [collapsed, setCollapsed] = useState(depth > 2);
 	const { signal, search } = useContext(TreeControlContext);
 	const isObject = value !== null && typeof value === 'object';
 	const isArray = Array.isArray(value);
-	const entries = isObject ? Object.entries(value) : [];
+	const entries = isObject ? Object.entries(value as Record<string, unknown>) : [];
 
 	// Respond to expand/collapse all signals
 	useEffect(() => {
@@ -76,7 +93,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 
 	const currentPath = path;
 
-	const copyPath = useCallback((e) => {
+	const copyPath = useCallback((e: React.MouseEvent) => {
 		e.stopPropagation();
 		navigator.clipboard.writeText(currentPath).then(() => {});
 		toast.success(`Copied: ${currentPath}`);
@@ -171,7 +188,11 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 	);
 });
 
-const ValueSpan = memo(function ValueSpan({ value }) {
+interface ValueSpanProps {
+  value: unknown;
+}
+
+const ValueSpan = memo(function ValueSpan({ value }: ValueSpanProps) {
 	if (typeof value === 'string') return <HighlightText text={`"${value}"`} className="text-success" />;
 	if (typeof value === 'number') return <HighlightText text={String(value)} className="text-accent" />;
 	if (typeof value === 'boolean') return <HighlightText text={String(value)} className="text-warning" />;
@@ -179,8 +200,15 @@ const ValueSpan = memo(function ValueSpan({ value }) {
 	return <span>{String(value)}</span>;
 });
 
-export default function JsonTreeView({ data, collapseSignal, search = '', activeMatchIndex = -1 }) {
-	const containerRef = useRef(null);
+interface JsonTreeViewProps {
+  data: unknown;
+  collapseSignal: string | null;
+  search?: string;
+  activeMatchIndex?: number;
+}
+
+export default function JsonTreeView({ data, collapseSignal, search = '', activeMatchIndex = -1 }: JsonTreeViewProps) {
+	const containerRef = useRef<HTMLDivElement>(null);
 	if (data === undefined || data === null) return null;
 
 	const ctx = useMemo(() => ({ signal: collapseSignal, search }), [collapseSignal, search]);
@@ -194,12 +222,12 @@ export default function JsonTreeView({ data, collapseSignal, search = '', active
 			if (!marks) return;
 			// Remove active styling from all marks
 			marks.forEach(m => {
-				m.style.backgroundColor = '';
-				m.style.outline = '';
+				(m as HTMLElement).style.backgroundColor = '';
+				(m as HTMLElement).style.outline = '';
 			});
 			// Add active styling to the target match
 			if (activeMatchIndex >= 0 && activeMatchIndex < marks.length) {
-				const el = marks[activeMatchIndex];
+				const el = marks[activeMatchIndex] as HTMLElement;
 				el.style.backgroundColor = '#fbbf24'; // amber-400
 				el.style.outline = '2px solid #f59e0b'; // amber-500
 				el.style.borderRadius = '2px';

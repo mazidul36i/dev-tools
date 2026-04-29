@@ -1,4 +1,16 @@
-export function hexToRgb(hex) {
+export interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface HSL {
+  h: number;
+  s: number;
+  l: number;
+}
+
+export function hexToRgb(hex: string): RGB {
   hex = hex.replace(/^#/, '');
   let r, g, b;
   if (hex.length === 3) {
@@ -14,17 +26,17 @@ export function hexToRgb(hex) {
   return { r, g, b };
 }
 
-export function rgbToHex(r, g, b) {
+export function rgbToHex(r: number, g: number, b: number): string {
   r = Math.max(0, Math.min(255, Math.round(r)));
   g = Math.max(0, Math.min(255, Math.round(g)));
   b = Math.max(0, Math.min(255, Math.round(b)));
   return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
 }
 
-export function rgbToHsl(r, g, b) {
+export function rgbToHsl(r: number, g: number, b: number): HSL {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
+  let h: number = 0, s: number, l = (max + min) / 2;
   if (max === min) { h = s = 0; }
   else {
     const d = max - min;
@@ -36,15 +48,15 @@ export function rgbToHsl(r, g, b) {
     }
     h /= 6;
   }
-  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  return { h: Math.round(h * 360), s: Math.round(s! * 100), l: Math.round(l * 100) };
 }
 
-export function hslToRgb(h, s, l) {
+export function hslToRgb(h: number, s: number, l: number): RGB {
   h /= 360; s /= 100; l /= 100;
-  let r, g, b;
+  let r: number, g: number, b: number;
   if (s === 0) { r = g = b = l; }
   else {
-    const hue2rgb = (p, q, t) => {
+    const hue2rgb = (p: number, q: number, t: number): number => {
       if (t < 0) t += 1; if (t > 1) t -= 1;
       if (t < 1/6) return p + (q - p) * 6 * t;
       if (t < 1/2) return q;
@@ -57,13 +69,12 @@ export function hslToRgb(h, s, l) {
     g = hue2rgb(p, q, h);
     b = hue2rgb(p, q, h - 1/3);
   }
-  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  return { r: Math.round(r! * 255), g: Math.round(g! * 255), b: Math.round(b! * 255) };
 }
 
-export function generateRandomColor() {
+export function generateRandomColor(): RGB {
   const h = Math.floor(Math.random() * 360);
   const s = Math.floor(Math.random() * 40) + 60;
   const l = Math.floor(Math.random() * 40) + 30;
   return hslToRgb(h, s, l);
 }
-

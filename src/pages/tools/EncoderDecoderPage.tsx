@@ -38,7 +38,7 @@ export default function EncoderDecoderPage() {
       }
       setOutput(result);
       toast.success('Encoded!');
-    } catch (e) { toast.error('Encode error: ' + e.message); }
+    } catch (e) { toast.error('Encode error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleDecode = () => {
@@ -53,7 +53,7 @@ export default function EncoderDecoderPage() {
       }
       setOutput(result);
       toast.success('Decoded!');
-    } catch (e) { toast.error('Decode error: ' + e.message); }
+    } catch (e) { toast.error('Decode error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleSwap = () => { setInput(output); setOutput(input); };
@@ -62,7 +62,7 @@ export default function EncoderDecoderPage() {
   };
   const handleDownload = () => {
     if (!output) { toast.error('No content to download'); return; }
-    const ext = { base64: '.b64', html: '.html', hex: '.hex', url: '.txt' }[mode] || '.txt';
+    const ext = ({ base64: '.b64', html: '.html', hex: '.hex', url: '.txt' } as Record<string, string>)[mode] || '.txt';
     downloadFile(output, `encoded${ext}`);
   };
 

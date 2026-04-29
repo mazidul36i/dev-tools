@@ -6,14 +6,14 @@ import Card from '@components/ui/Card';
 import CopyButton from '@components/ui/CopyButton';
 import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
 import useLocalStorage from '@hooks/useLocalStorage';
-import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor } from '@lib/color-utils';
+import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor, type RGB } from '@lib/color-utils';
 
 export default function ColorPickerPage() {
-  const [rgb, setRgb] = useState({ r: 255, g: 255, b: 255 });
-  const [palette, setPalette] = useLocalStorage('colorPalette', []);
-  const [exportFormat, setExportFormat] = useState('css');
+  const [rgb, setRgb] = useState<RGB>({ r: 255, g: 255, b: 255 });
+  const [palette, setPalette] = useLocalStorage<string[]>('colorPalette', []);
+  const [exportFormat, setExportFormat] = useState<'css' | 'scss' | 'json'>('css');
   const [showExport, setShowExport] = useState(false);
-  const gradientRef = useRef(null);
+  const gradientRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
 
   const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
@@ -22,7 +22,7 @@ export default function ColorPickerPage() {
   const hslHueRef = useRef(hsl.h);
   hslHueRef.current = hsl.h;
 
-  const updateFromRgb = useCallback((newRgb) => {
+  const updateFromRgb = useCallback((newRgb: RGB) => {
     setRgb({
       r: Math.max(0, Math.min(255, Math.round(newRgb.r))),
       g: Math.max(0, Math.min(255, Math.round(newRgb.g))),
@@ -30,24 +30,24 @@ export default function ColorPickerPage() {
     });
   }, []);
 
-  const handleHexInput = (val) => {
+  const handleHexInput = (val: string) => {
     let h = val.startsWith('#') ? val : '#' + val;
     if (h.length >= 4) { try { updateFromRgb(hexToRgb(h)); } catch {} }
   };
 
-  const handleGradientInteraction = useCallback((e) => {
+  const handleGradientInteraction = useCallback((e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     const rect = gradientRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
     let x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     let y = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
     updateFromRgb(hslToRgb(hslHueRef.current, Math.round(x * 100), Math.round(y * 100)));
   }, [updateFromRgb]);
 
-  const onPointerDown = (e) => { isDragging.current = true; handleGradientInteraction(e); };
+  const onPointerDown = (e: React.MouseEvent | React.TouchEvent) => { isDragging.current = true; handleGradientInteraction(e); };
   useEffect(() => {
-    const onMove = (e) => { if (isDragging.current) handleGradientInteraction(e); };
+    const onMove = (e: MouseEvent | TouchEvent) => { if (isDragging.current) handleGradientInteraction(e); };
     const onUp = () => { isDragging.current = false; };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
@@ -77,7 +77,7 @@ export default function ColorPickerPage() {
     toast.success('Palette generated!');
   };
 
-  const getExportCode = () => {
+  const getExportCode = (): string => {
     if (palette.length === 0) return '';
     switch (exportFormat) {
       case 'css': return ':root {\n' + palette.map((h, i) => `  --color-${i + 1}: ${h};`).join('\n') + '\n}';
@@ -107,7 +107,7 @@ export default function ColorPickerPage() {
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">RGB Color:</label>
               <div className="flex gap-1.5 items-center">
-                {['r', 'g', 'b'].map((c) => (
+                {(['r', 'g', 'b'] as const).map((c) => (
                   <div key={c} className="flex items-center gap-1">
                     <label htmlFor={`rgb-${c}`} className="text-xs font-medium text-text-muted uppercase">{c}:</label>
                     <input id={`rgb-${c}`} type="number" min={0} max={255} value={rgb[c]} onChange={(e) => updateFromRgb({ ...rgb, [c]: Number(e.target.value) || 0 })} className="w-16 p-2 bg-surface border border-border rounded-lg text-sm text-center text-text focus:outline-none focus:ring-2 focus:ring-primary/20" />
@@ -193,7 +193,7 @@ export default function ColorPickerPage() {
             {showExport && palette.length > 0 && (
               <div className="mt-4 bg-surface-alt border border-border rounded-lg p-4 space-y-3">
                 <div className="flex gap-2">
-                  {['css', 'scss', 'json'].map((f) => (
+                  {(['css', 'scss', 'json'] as const).map((f) => (
                     <button key={f} onClick={() => setExportFormat(f)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${exportFormat === f ? 'bg-primary text-white' : 'bg-surface text-text-secondary border border-border hover:bg-surface-hover'}`}>{f.toUpperCase()}</button>
                   ))}
                 </div>

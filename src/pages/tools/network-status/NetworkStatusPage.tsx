@@ -14,14 +14,42 @@ const tabList = [
   { id: 'statistics', label: 'Statistics' },
 ];
 
+interface NetworkStats {
+  totalConnections: number;
+  totalDisconnections: number;
+  sessionStartTime: number;
+  totalOnlineTime: number;
+  totalOfflineTime: number;
+  longestOfflineTime: number;
+}
+
+interface NetworkSettings {
+  notifications: boolean;
+  sound: boolean;
+  autoTest: boolean;
+}
+
+interface HistoryEntry {
+  type: string;
+  message: string;
+  time: string;
+}
+
+interface ConnectionInfo {
+  type?: string;
+  effectiveType?: string;
+  downlink?: string;
+  rtt?: string;
+}
+
 export default function NetworkStatusPage() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [history, setHistory] = useLocalStorage('networkHistory', []);
-  const [stats, setStats] = useLocalStorage('networkStats', {
+  const [history, setHistory] = useLocalStorage<HistoryEntry[]>('networkHistory', []);
+  const [stats, setStats] = useLocalStorage<NetworkStats>('networkStats', {
     totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(),
     totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0,
   });
-  const [settings, setSettings] = useLocalStorage('networkMonitorSettings', {
+  const [settings, setSettings] = useLocalStorage<NetworkSettings>('networkMonitorSettings', {
     notifications: true, sound: true, autoTest: true,
   });
 
@@ -33,13 +61,13 @@ export default function NetworkStatusPage() {
   const [dnsResult, setDnsResult] = useState('Not tested');
   const [testProgress, setTestProgress] = useState(0);
 
-  const autoTestRef = useRef(null);
-  const offlineStartRef = useRef(null);
-  const onlineStartRef = useRef(isOnline ? Date.now() : null);
+  const autoTestRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const offlineStartRef = useRef<number | null>(null);
+  const onlineStartRef = useRef<number | null>(isOnline ? Date.now() : null);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
-  const [connInfo, setConnInfo] = useState({});
+  const [connInfo, setConnInfo] = useState<ConnectionInfo>({});
   const updateConnInfo = useCallback(() => {
     const conn = navigator.connection;
     if (conn) {
@@ -52,14 +80,14 @@ export default function NetworkStatusPage() {
     }
   }, []);
 
-  const addToHistory = useCallback((type, message) => {
+  const addToHistory = useCallback((type: string, message: string) => {
     setHistory((prev) => [{ type, message, time: new Date().toLocaleString() }, ...prev].slice(0, 100));
   }, [setHistory]);
 
-  const playSound = useCallback((type) => {
+  const playSound = useCallback((type: string) => {
     if (!settingsRef.current.sound) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = new (window.AudioContext || window.webkitAudioContext!)();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
@@ -147,7 +175,7 @@ export default function NetworkStatusPage() {
   const avgConnTime = stats.totalConnections > 0
     ? ((stats.totalOnlineTime + (isOnline && onlineStartRef.current ? Date.now() - onlineStartRef.current : 0)) / stats.totalConnections / 1000).toFixed(0) : '0';
 
-  const updateSetting = (key, val) => setSettings((prev) => ({ ...prev, [key]: val }));
+  const updateSetting = (key: keyof NetworkSettings, val: boolean) => setSettings((prev) => ({ ...prev, [key]: val }));
 
   const handleExport = () => {
     const data = { history, statistics: stats, exportTime: new Date().toISOString() };
@@ -224,7 +252,7 @@ export default function NetworkStatusPage() {
             <div className="bg-surface-alt rounded-lg border border-border p-5">
               <h3 className="font-medium text-text-secondary mb-3">Notification Settings</h3>
               <div className="space-y-3">
-                {[['notifications', 'Enable status notifications'], ['sound', 'Enable sound alerts'], ['autoTest', 'Auto-test every 30s']].map(([key, label]) => (
+                {([['notifications', 'Enable status notifications'], ['sound', 'Enable sound alerts'], ['autoTest', 'Auto-test every 30s']] as const).map(([key, label]) => (
                   <label key={key} className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" checked={settings[key]} onChange={(e) => updateSetting(key, e.target.checked)} className="w-4 h-4 accent-primary" />
                     <span className="text-sm text-text-secondary">{label}</span>

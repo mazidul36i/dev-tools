@@ -1,10 +1,28 @@
-import { createContext, useContext, useEffect, useCallback } from 'react';
+import { createContext, useContext, useEffect, useCallback, type ReactNode } from 'react';
 import useLocalStorage from './useLocalStorage';
 
-const ThemeContext = createContext({ theme: 'system', setTheme: () => {}, isDark: false });
+type Theme = 'light' | 'dark' | 'system';
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useLocalStorage('theme', 'system');
+interface ThemeContextValue {
+  theme: Theme;
+  setTheme: (theme: Theme | ((prev: Theme) => Theme)) => void;
+  toggleTheme: () => void;
+  isDark: boolean;
+}
+
+const ThemeContext = createContext<ThemeContextValue>({
+  theme: 'system',
+  setTheme: () => {},
+  toggleTheme: () => {},
+  isDark: false,
+});
+
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [theme, setTheme] = useLocalStorage<Theme>('theme', 'system');
 
   const isDark =
     theme === 'dark' ||
@@ -31,7 +49,7 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => {
+    setTheme((prev: Theme) => {
       if (prev === 'light') return 'dark';
       if (prev === 'dark') return 'system';
       return 'light';
@@ -45,7 +63,6 @@ export function ThemeProvider({ children }) {
   );
 }
 
-export function useTheme() {
+export function useTheme(): ThemeContextValue {
   return useContext(ThemeContext);
 }
-

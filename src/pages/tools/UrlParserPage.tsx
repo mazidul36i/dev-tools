@@ -23,13 +23,13 @@ export default function UrlParserPage() {
   const handleEncode = () => {
     if (!encodeInput.trim()) { toast.error('Please enter a URL to encode'); return; }
     try { setEncodedResult(encodeURIComponent(encodeInput.trim())); toast.success('URL encoded!'); }
-    catch (e) { toast.error('Error encoding: ' + e.message); }
+    catch (e) { toast.error('Error encoding: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleDecode = () => {
     if (!decodeInput.trim()) { toast.error('Please enter a URL to decode'); return; }
     try { setDecodedResult(decodeURIComponent(decodeInput.trim())); toast.success('URL decoded!'); }
-    catch (e) { toast.error('Error decoding: ' + e.message); }
+    catch (e) { toast.error('Error decoding: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   return (

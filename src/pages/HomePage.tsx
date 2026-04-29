@@ -2,10 +2,19 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { useTheme } from '@hooks/useTheme';
-import { Sun, Moon, Monitor, Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi } from 'lucide-react';
+import { Sun, Moon, Monitor, Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, type LucideIcon } from 'lucide-react';
 import heroGearImg from '@assets/img/hero-gear.png';
 
-const tools = [
+interface Tool {
+  path: string;
+  icon: LucideIcon;
+  color: string;
+  bg: string;
+  title: string;
+  desc: string;
+}
+
+const tools: Tool[] = [
   { path: '/tools/json-formatter', icon: FileJson2, color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30', title: 'JSON Formatter', desc: 'Format, validate and beautify JSON data with a modern interface' },
   { path: '/tools/image-to-text', icon: Image, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30', title: 'Image to Text Convert', desc: 'Extract text from images using OCR technology. Supports multiple formats with drag & drop, paste, or upload.' },
   { path: '/tools/encoder-decoder', icon: RefreshCw, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30', title: 'Encoder/Decoder', desc: 'Convert data between various encoding formats including Base64, URL, HTML, and Hex' },
@@ -16,16 +25,16 @@ const tools = [
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24 },
-  visible: (i) => ({
+  visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.1 + i * 0.07, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { delay: 0.1 + i * 0.07, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const },
   }),
 };
 
 export default function HomePage() {
   const { theme, toggleTheme } = useTheme();
-  const themeIcons = { light: Sun, dark: Moon, system: Monitor };
+  const themeIcons: Record<string, LucideIcon> = { light: Sun, dark: Moon, system: Monitor };
   const ThemeIcon = themeIcons[theme];
 
   const scrollToTools = () => {

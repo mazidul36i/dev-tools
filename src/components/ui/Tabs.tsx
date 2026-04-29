@@ -1,6 +1,17 @@
 import { motion } from 'framer-motion';
 
-export default function Tabs({ tabs, activeTab, onTabChange }) {
+interface Tab {
+  id: string;
+  label: string;
+}
+
+interface TabsProps {
+  tabs: Tab[];
+  activeTab: string;
+  onTabChange: (id: string) => void;
+}
+
+export default function Tabs({ tabs, activeTab, onTabChange }: TabsProps) {
   return (
     <div className="flex p-1.5 bg-surface-alt/80 border-b border-border">
       {tabs.map((tab) => (

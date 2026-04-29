@@ -2,10 +2,16 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTheme } from '@hooks/useTheme';
+import { type LucideIcon } from 'lucide-react';
 
-const themeIcons = { light: Sun, dark: Moon, system: Monitor };
+const themeIcons: Record<string, LucideIcon> = { light: Sun, dark: Moon, system: Monitor };
 
-export default function Header({ title, backLink = false }) {
+interface HeaderProps {
+  title?: string;
+  backLink?: boolean;
+}
+
+export default function Header({ title, backLink = false }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const ThemeIcon = themeIcons[theme];
 

@@ -9,7 +9,7 @@ import { SecondaryButton } from '@components/ui/Button';
 import { TextAreaOutput } from '@components/ui/TextArea';
 import { downloadFile } from '@lib/download-utils';
 
-function processParagraphs(text) {
+function processParagraphs(text: string): string {
   if (!text) return '';
   const lines = text.split('\n');
   const processedLines = [];
@@ -37,21 +37,21 @@ function processParagraphs(text) {
 }
 
 export default function ImageToTextPage() {
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [output, setOutput] = useState('');
   const [status, setStatus] = useState('');
   const [progress, setProgress] = useState(0);
   const [processing, setProcessing] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback(async (file) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file || !file.type.startsWith('image/')) {
       toast.error('Please select a valid image file');
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result);
+    reader.onload = () => setPreview(reader.result as string);
     reader.readAsDataURL(file);
 
     setProcessing(true);
@@ -60,7 +60,7 @@ export default function ImageToTextPage() {
     try {
       const Tesseract = await import('tesseract.js');
       const { data: { text } } = await Tesseract.recognize(file, 'eng', {
-        logger: (m) => {
+        logger: (m: { status: string; progress: number }) => {
           if (m.status === 'recognizing text') {
             setProgress(m.progress);
             setStatus(`Processing: ${(m.progress * 100).toFixed(1)}%`);
@@ -80,10 +80,15 @@ export default function ImageToTextPage() {
   }, []);
 
   useEffect(() => {
-    const onPaste = (e) => {
-      const items = e.clipboardData.items;
+    const onPaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
       for (const item of items) {
-        if (item.type.startsWith('image/')) { handleFile(item.getAsFile()).then(() => {}); break; }
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) handleFile(file).then(() => {});
+          break;
+        }
       }
     };
     window.addEventListener('paste', onPaste);
@@ -122,7 +127,7 @@ export default function ImageToTextPage() {
             <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors ${dragging ? 'text-primary' : 'text-text-muted'}`} />
             <p className="text-sm font-medium text-text-secondary">Drop image here, click to upload, or paste (Ctrl+V)</p>
             <p className="text-xs text-text-muted mt-1.5">Supports PNG, JPG, JPEG, GIF, and WebP</p>
-            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files[0] && handleFile(e.target.files[0])} />
+            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
           </div>
 
           {/* Preview */}

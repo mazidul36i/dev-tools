@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, type Dispatch, type SetStateAction } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eraser, ChevronDown, ChevronUp, FileJson2, Search, X, ChevronsUpDown, Download } from 'lucide-react';
@@ -25,7 +25,7 @@ const inputClass = "w-full h-full p-4 bg-white/30 dark:bg-gray-900/30 border bor
 const outputClass = "w-full h-full p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-none cursor-default";
 
 // Count search matches across all keys and values in JSON data (mirrors tree render order)
-function countJsonMatches(data, search, parentKey = null) {
+function countJsonMatches(data: unknown, search: string, parentKey: string | number | null = null): number {
   if (!search) return 0;
   const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(escaped, 'gi');
@@ -34,7 +34,7 @@ function countJsonMatches(data, search, parentKey = null) {
 
   // Count matches in the key (rendered via HighlightText)
   if (parentKey !== null) {
-    let keyStr;
+    let keyStr: string;
     if (!dataIsObject) {
       // Leaf nodes always render key quoted: "${key}"
       keyStr = `"${parentKey}"`;
@@ -53,7 +53,7 @@ function countJsonMatches(data, search, parentKey = null) {
     const valStr = typeof data === 'string' ? `"${data}"` : String(data);
     count += (valStr.match(regex) || []).length;
   } else {
-    for (const [k, v] of Object.entries(data)) {
+    for (const [k, v] of Object.entries(data as Record<string, unknown>)) {
       const childKey = Array.isArray(data) ? Number(k) : k;
       count += countJsonMatches(v, search, childKey);
     }
@@ -62,8 +62,17 @@ function countJsonMatches(data, search, parentKey = null) {
 }
 
 // --- Search bar component ---
-function OutputSearchBar({ text, search, setSearch, matchIndex, setMatchIndex, matchCountOverride }) {
-  const inputRef = useRef(null);
+interface OutputSearchBarProps {
+  text: string;
+  search: string;
+  setSearch: Dispatch<SetStateAction<string>>;
+  matchIndex: number;
+  setMatchIndex: Dispatch<SetStateAction<number>>;
+  matchCountOverride?: number;
+}
+
+function OutputSearchBar({ text, search, setSearch, matchIndex, setMatchIndex, matchCountOverride }: OutputSearchBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const matchCount = useMemo(() => {
     if (matchCountOverride !== undefined) return matchCountOverride;
     if (!search || !text) return 0;
@@ -74,14 +83,14 @@ function OutputSearchBar({ text, search, setSearch, matchIndex, setMatchIndex, m
   const goNext = useCallback(() => setMatchIndex(i => matchCount > 0 ? (i + 1) % matchCount : 0), [matchCount]);
   const goPrev = useCallback(() => setMatchIndex(i => matchCount > 0 ? (i - 1 + matchCount) % matchCount : 0), [matchCount]);
 
-  const handleKeyDown = useCallback((e) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') { e.shiftKey ? goPrev() : goNext(); e.preventDefault(); }
     if (e.key === 'Escape') { setSearch(''); setMatchIndex(0); }
   }, [goNext, goPrev]);
 
   // Ctrl+F to focus
   useEffect(() => {
-    const handler = (e) => {
+    const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
         e.preventDefault();
         inputRef.current?.focus();
@@ -121,9 +130,9 @@ function OutputSearchBar({ text, search, setSearch, matchIndex, setMatchIndex, m
 export default function JsonFormatterPage() {
   const { tab } = useParams();
   const navigate = useNavigate();
-  const activeTab = validTabs.has(tab) ? tab : 'format';
+  const activeTab = (tab && validTabs.has(tab)) ? tab : 'format';
 
-  const setActiveTab = useCallback((id) => {
+  const setActiveTab = useCallback((id: string) => {
     navigate(`/tools/json-formatter/${id}`, { replace: true });
   }, [navigate]);
 
@@ -136,8 +145,8 @@ export default function JsonFormatterPage() {
 
   const [formatInput, setFormatInput] = useState('');
   const [formatResult, setFormatResult] = useState('');
-  const [parsedJson, setParsedJson] = useState(null);
-  const [indent, setIndent] = useState(2);
+  const [parsedJson, setParsedJson] = useState<unknown>(null);
+  const [indent, setIndent] = useState<number | string>(2);
   const [view, setView] = useState('text');
   const [minifyInput, setMinifyInput] = useState('');
   const [minifyResult, setMinifyResult] = useState('');
@@ -157,9 +166,9 @@ export default function JsonFormatterPage() {
   const [minifyMatchIdx, setMinifyMatchIdx] = useState(0);
 
   // Tree collapse signal: null = no signal, 'expand' | 'collapse', incremented to retrigger
-  const [collapseSignal, setCollapseSignal] = useState(null);
+  const [collapseSignal, setCollapseSignal] = useState<string | null>(null);
   const [signalCounter, setSignalCounter] = useState(0);
-  const triggerSignal = useCallback((type) => {
+  const triggerSignal = useCallback((type: string) => {
     setCollapseSignal(type);
     setSignalCounter(c => c + 1);
   }, []);
@@ -173,7 +182,7 @@ export default function JsonFormatterPage() {
       setFormatResult(formatJSON(obj, indent));
       setParsedJson(obj);
       toast.success('JSON formatted!');
-    } catch (e) { toast.error('Error: ' + e.message); }
+    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleMinify = () => {
@@ -181,7 +190,7 @@ export default function JsonFormatterPage() {
     try {
       setMinifyResult(minifyJSON(minifyInput.trim()));
       toast.success('JSON minified!');
-    } catch (e) { toast.error('Error: ' + e.message); }
+    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleConvert = () => {
@@ -189,7 +198,7 @@ export default function JsonFormatterPage() {
     try {
       setConvertResult(convertMode === 'normalToString' ? stringifyJSON(convertInput.trim()) : parseStringifiedJSON(convertInput.trim()));
       toast.success('JSON converted!');
-    } catch (e) { toast.error('Error: ' + e.message); }
+    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   const handleDto = () => {
@@ -198,7 +207,7 @@ export default function JsonFormatterPage() {
       const obj = parseDtoString(dtoInput.trim(), autoDetect, stripClass);
       setDtoResult(JSON.stringify(obj, null, 2));
       toast.success('DTO converted!');
-    } catch (e) { toast.error('Error: ' + e.message); }
+    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
   };
 
   // Current output for download

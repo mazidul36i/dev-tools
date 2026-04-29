@@ -3,10 +3,19 @@ import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
 import { useTheme } from '@hooks/useTheme';
+import { type ReactNode } from 'react';
+import { type LucideIcon } from 'lucide-react';
 
-const themeIcons = { light: Sun, dark: Moon, system: Monitor };
+const themeIcons: Record<string, LucideIcon> = { light: Sun, dark: Moon, system: Monitor };
 
-export default function ToolLayout({ title, tagline, metaDescription, children }) {
+interface ToolLayoutProps {
+  title: string;
+  tagline?: string;
+  metaDescription?: string;
+  children: ReactNode;
+}
+
+export default function ToolLayout({ title, tagline, metaDescription, children }: ToolLayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const ThemeIcon = themeIcons[theme];
 

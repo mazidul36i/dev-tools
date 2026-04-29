@@ -1,25 +1,25 @@
-export function formatJSON(jsonData, indent = 2) {
+export function formatJSON(jsonData: string | object, indent: number | string = 2): string {
   const jsonObj = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
   const indentValue = indent === 'tab' ? '\t' : Number(indent);
   return JSON.stringify(jsonObj, null, indentValue);
 }
 
-export function minifyJSON(jsonString) {
+export function minifyJSON(jsonString: string): string {
   return JSON.stringify(JSON.parse(jsonString));
 }
 
-export function stringifyJSON(jsonString) {
+export function stringifyJSON(jsonString: string): string {
   return JSON.stringify(JSON.stringify(JSON.parse(jsonString)));
 }
 
-export function parseStringifiedJSON(stringifiedJson) {
+export function parseStringifiedJSON(stringifiedJson: string): string {
   const jsonString = JSON.parse(stringifiedJson);
   return JSON.stringify(JSON.parse(jsonString), null, 2);
 }
 
 // DTO Parsing
 
-export function parseDtoString(input, autoDetect = true, stripClass = true) {
+export function parseDtoString(input: string, autoDetect: boolean = true, stripClass: boolean = true): Record<string, unknown> {
   input = input.trim();
   const dtoMatch = input.match(/^([A-Za-z_$][\w.$]*)?\((.+)\)$/s);
   if (!dtoMatch) {
@@ -32,8 +32,8 @@ export function parseDtoString(input, autoDetect = true, stripClass = true) {
   return parsed;
 }
 
-function parseDtoContent(content, autoDetect) {
-  const result = {};
+function parseDtoContent(content: string, autoDetect: boolean): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
   let i = 0;
   const len = content.length;
 
@@ -55,7 +55,12 @@ function parseDtoContent(content, autoDetect) {
   return result;
 }
 
-function readDtoValue(content, start, autoDetect) {
+interface DtoReadResult {
+  value: unknown;
+  nextIndex: number;
+}
+
+function readDtoValue(content: string, start: number, autoDetect: boolean): DtoReadResult {
   let i = start;
   const len = content.length;
   while (i < len && content[i] === ' ') i++;
@@ -105,7 +110,7 @@ function readDtoValue(content, start, autoDetect) {
   return { value: coerceValue(valueStr.trim(), autoDetect), nextIndex: i };
 }
 
-function splitTopLevel(str) {
+function splitTopLevel(str: string): string[] {
   const parts = [];
   let current = '';
   let depth = 0;
@@ -120,7 +125,7 @@ function splitTopLevel(str) {
   return parts;
 }
 
-function coerceValue(val, autoDetect) {
+function coerceValue(val: string, autoDetect: boolean): unknown {
   if (!autoDetect) return val;
   if (val === 'null') return null;
   if (val === 'true') return true;
@@ -129,4 +134,3 @@ function coerceValue(val, autoDetect) {
   if (/^-?\d+\.\d+$/.test(val)) return parseFloat(val);
   return val;
 }
-
