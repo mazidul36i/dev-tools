@@ -4,6 +4,8 @@ import { Wifi, WifiOff, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-re
 import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
+import InfoCard from '@components/ui/InfoCard';
+import Checkbox from '@components/ui/Checkbox';
 import Tabs from '@components/ui/Tabs';
 import useLocalStorage from '@hooks/useLocalStorage';
 import { SecondaryButton } from '@components/ui/Button';
@@ -183,10 +185,15 @@ export default function NetworkStatusPage() {
   };
 
   const handleReset = () => {
-    if (confirm('Reset all settings and clear data?')) {
-      setHistory([]); setStats({ totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(), totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0 });
-      setSettings({ notifications: true, sound: true, autoTest: true }); toast.success('Settings reset');
-    }
+    toast('Reset all settings and clear data?', {
+      action: {
+        label: 'Confirm',
+        onClick: () => {
+          setHistory([]); setStats({ totalConnections: 0, totalDisconnections: 0, sessionStartTime: Date.now(), totalOnlineTime: 0, totalOfflineTime: 0, longestOfflineTime: 0 });
+          setSettings({ notifications: true, sound: true, autoTest: true }); toast.success('Settings reset');
+        },
+      },
+    });
   };
 
   return (
@@ -253,17 +260,14 @@ export default function NetworkStatusPage() {
               <h3 className="font-medium text-text-secondary mb-3">Notification Settings</h3>
               <div className="space-y-3">
                 {([['notifications', 'Enable status notifications'], ['sound', 'Enable sound alerts'], ['autoTest', 'Auto-test every 30s']] as const).map(([key, label]) => (
-                  <label key={key} className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={settings[key]} onChange={(e) => updateSetting(key, e.target.checked)} className="w-4 h-4 accent-primary" />
-                    <span className="text-sm text-text-secondary">{label}</span>
-                  </label>
+                  <Checkbox key={key} checked={settings[key]} onChange={(val) => updateSetting(key, val)} label={label} />
                 ))}
               </div>
             </div>
             <div className="bg-surface-alt rounded-lg border border-border p-5">
               <h3 className="font-medium text-text-secondary mb-3">Actions</h3>
               <div className="flex flex-wrap gap-2">
-                <SecondaryButton onClick={() => { if (confirm('Clear history?')) { setHistory([]); toast.success('Cleared'); } }}><Trash2 size={14} /> Clear History</SecondaryButton>
+                <SecondaryButton onClick={() => { toast('Clear all connection history?', { action: { label: 'Confirm', onClick: () => { setHistory([]); toast.success('Cleared'); } } }); }}><Trash2 size={14} /> Clear History</SecondaryButton>
                 <SecondaryButton onClick={handleExport}><Download size={14} /> Export Log</SecondaryButton>
                 <SecondaryButton onClick={handleReset}><RotateCcw size={14} /> Reset</SecondaryButton>
               </div>
@@ -329,10 +333,7 @@ export default function NetworkStatusPage() {
         </div>
       </Card>
 
-      {/* Info */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About Network Monitoring</h2>
+      <InfoCard title="About Network Monitoring">
           <p className="text-text-muted leading-relaxed mb-5">
             This tool monitors your network connection using the browser's Network Information API and online/offline event listeners.
           </p>
@@ -349,8 +350,7 @@ export default function NetworkStatusPage() {
               </div>
             ))}
           </div>
-        </div>
-      </Card>
+      </InfoCard>
     </ToolLayout>
   );
 }

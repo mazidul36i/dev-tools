@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ArrowUpDown, Clipboard, Download, Eraser } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
+import InfoCard from '@components/ui/InfoCard';
 import CopyButton from '@components/ui/CopyButton';
 import { PrimaryButton, SecondaryButton, SmallButton } from '@components/ui/Button';
 import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
+import Checkbox from '@components/ui/Checkbox';
+import SegmentedControl from '@components/ui/SegmentedControl';
 import * as enc from '@lib/encoder-utils';
 import { downloadFile } from '@lib/download-utils';
 
@@ -26,7 +29,7 @@ export default function EncoderDecoderPage() {
   const [hexUpper, setHexUpper] = useState(false);
   const [hexPrefix, setHexPrefix] = useState(false);
 
-  const handleEncode = () => {
+  const handleEncode = useCallback(() => {
     if (!input) { toast.error('Please enter text to encode'); return; }
     try {
       let result = '';
@@ -39,9 +42,9 @@ export default function EncoderDecoderPage() {
       setOutput(result);
       toast.success('Encoded!');
     } catch (e) { toast.error('Encode error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  }, [input, mode, urlSafe, noPadding, urlComponent, hexUpper, hexPrefix]);
 
-  const handleDecode = () => {
+  const handleDecode = useCallback(() => {
     if (!input) { toast.error('Please enter text to decode'); return; }
     try {
       let result = '';
@@ -54,17 +57,17 @@ export default function EncoderDecoderPage() {
       setOutput(result);
       toast.success('Decoded!');
     } catch (e) { toast.error('Decode error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  }, [input, mode, urlSafe, noPadding, urlComponent]);
 
-  const handleSwap = () => { setInput(output); setOutput(input); };
-  const handlePaste = async () => {
+  const handleSwap = useCallback(() => { setInput(output); setOutput(input); }, [input, output]);
+  const handlePaste = useCallback(async () => {
     try { setInput(await navigator.clipboard.readText()); } catch { toast.error('Unable to paste'); }
-  };
-  const handleDownload = () => {
+  }, []);
+  const handleDownload = useCallback(() => {
     if (!output) { toast.error('No content to download'); return; }
     const ext = ({ base64: '.b64', html: '.html', hex: '.hex', url: '.txt' } as Record<string, string>)[mode] || '.txt';
     downloadFile(output, `encoded${ext}`);
-  };
+  }, [output, mode]);
 
   return (
     <ToolLayout
@@ -75,21 +78,7 @@ export default function EncoderDecoderPage() {
       <Card>
         <div className="p-6 space-y-6">
           {/* Mode Selector */}
-          <div className="flex gap-2 flex-wrap">
-            {modes.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMode(m.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  mode === m.id
-                    ? 'bg-primary text-white shadow-soft'
-                    : 'bg-surface-alt text-text-secondary border border-border hover:bg-surface-hover'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl options={modes} value={mode} onChange={setMode} />
 
           {/* Input */}
           <div>
@@ -122,17 +111,17 @@ export default function EncoderDecoderPage() {
           <div className="bg-surface-alt rounded-lg border border-border p-4">
             {mode === 'base64' && (
               <div className="flex flex-wrap gap-5">
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" checked={urlSafe} onChange={e => setUrlSafe(e.target.checked)} className="accent-primary w-4 h-4" /> URL-safe Base64</label>
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" checked={noPadding} onChange={e => setNoPadding(e.target.checked)} className="accent-primary w-4 h-4" /> No padding (=)</label>
+                <Checkbox checked={urlSafe} onChange={setUrlSafe} label="URL-safe Base64" />
+                <Checkbox checked={noPadding} onChange={setNoPadding} label="No padding (=)" />
               </div>
             )}
             {mode === 'url' && (
-              <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" checked={urlComponent} onChange={e => setUrlComponent(e.target.checked)} className="accent-primary w-4 h-4" /> Encode/decode URI Component</label>
+              <Checkbox checked={urlComponent} onChange={setUrlComponent} label="Encode/decode URI Component" />
             )}
             {mode === 'hex' && (
               <div className="flex flex-wrap gap-5">
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" checked={hexUpper} onChange={e => setHexUpper(e.target.checked)} className="accent-primary w-4 h-4" /> Uppercase hex</label>
-                <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" checked={hexPrefix} onChange={e => setHexPrefix(e.target.checked)} className="accent-primary w-4 h-4" /> Add 0x prefix</label>
+                <Checkbox checked={hexUpper} onChange={setHexUpper} label="Uppercase hex" />
+                <Checkbox checked={hexPrefix} onChange={setHexPrefix} label="Add 0x prefix" />
               </div>
             )}
             {mode === 'html' && <p className="text-sm text-text-muted">No additional options for HTML encoding.</p>}
@@ -140,10 +129,7 @@ export default function EncoderDecoderPage() {
         </div>
       </Card>
 
-      {/* Info */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About Encoding/Decoding</h2>
+      <InfoCard title="About Encoding/Decoding">
           <div className="grid md:grid-cols-2 gap-5">
             {[
               { t: 'Base64 Encoding', d: 'Binary-to-text encoding scheme. Used for emails, embedding images in CSS, and data transmission.', ex: ['Hello World', 'SGVsbG8gV29ybGQ='] },
@@ -161,8 +147,7 @@ export default function EncoderDecoderPage() {
               </div>
             ))}
           </div>
-        </div>
-      </Card>
+      </InfoCard>
     </ToolLayout>
   );
 }

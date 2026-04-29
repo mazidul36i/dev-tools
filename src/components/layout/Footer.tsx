@@ -1,24 +1,29 @@
 import { Link } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
 
-export default function Footer() {
+interface FooterProps {
+  variant?: 'compact' | 'full';
+  maxWidth?: string;
+}
+
+export default function Footer({ variant = 'compact', maxWidth = 'max-w-384' }: FooterProps) {
+  const isCompact = variant === 'compact';
+  const textSize = isCompact ? 'text-xs' : 'text-sm';
+  const py = isCompact ? 'py-2' : 'py-6';
+
   return (
-    <footer className="border-t border-border py-6 mt-auto">
-      <div className="max-w-7xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p className="text-sm text-text-muted">&copy; {new Date().getFullYear()} DevTools. Free & open source.</p>
-        <div className="flex items-center gap-4 text-sm">
-          <Link to="/" className="text-text-muted hover:text-text transition-colors">Home</Link>
-          <a
-            href="https://github.com/mazidul36i/dev-tools"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-text-muted hover:text-text transition-colors"
-          >
-            <ExternalLink size={13} />
-            GitHub
-          </a>
+    <footer className={`relative z-10 shrink-0 border-t border-white/40 dark:border-gray-800 ${py}`}>
+      <div className={`${maxWidth} mx-auto px-5 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-2`}>
+        <p className={`${textSize} text-gray-500 dark:text-gray-400`}>
+          &copy; {new Date().getFullYear()} DevTools{!isCompact && '. All tools are free to use.'}
+        </p>
+        <div className={`flex items-center gap-2 ${textSize} text-gray-500 dark:text-gray-400`}>
+          <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">Home</Link>
+          <span>|</span>
+          <a href="https://github.com/mazidul36i/dev-tools" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">GitHub</a>
         </div>
       </div>
     </footer>
   );
 }
+
+

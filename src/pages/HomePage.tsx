@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { useTheme } from '@hooks/useTheme';
-import { Sun, Moon, Monitor, Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, type LucideIcon } from 'lucide-react';
+import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, type LucideIcon } from 'lucide-react';
 import heroGearImg from '@assets/img/hero-gear.png';
+import BackgroundBlobs from '@components/ui/BackgroundBlobs';
+import ThemeToggleButton from '@components/ui/ThemeToggleButton';
+import Footer from '@components/layout/Footer';
 
 interface Tool {
   path: string;
@@ -33,29 +35,13 @@ const cardVariants = {
 };
 
 export default function HomePage() {
-  const { theme, toggleTheme } = useTheme();
-  const themeIcons: Record<string, LucideIcon> = { light: Sun, dark: Moon, system: Monitor };
-  const ThemeIcon = themeIcons[theme];
-
   const scrollToTools = () => {
     document.getElementById('tools-section')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <div className="flex flex-col min-h-screen relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
-      {/* Light mode background gradient blobs */}
-      <div className="absolute inset-0 pointer-events-none dark:hidden">
-        <div className="absolute -top-32 -left-32 w-175 h-175 rounded-full bg-[#fcd5c8]/60 blur-[120px]" />
-        <div className="absolute top-0 right-0 w-150 h-150 rounded-full bg-[#c9d6f5]/50 blur-[120px]" />
-        <div className="absolute top-1/3 left-1/3 w-125 h-125 rounded-full bg-[#e8d5f0]/40 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-150 h-125 rounded-full bg-[#f0e0d0]/50 blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-125 h-100 rounded-full bg-[#d5dff5]/40 blur-[100px]" />
-      </div>
-      {/* Dark mode background */}
-      <div className="absolute inset-0 pointer-events-none hidden dark:block">
-        <div className="absolute -top-32 -left-32 w-125 h-125 rounded-full bg-indigo-950/30 blur-[120px]" />
-        <div className="absolute top-0 right-0 w-100 h-100 rounded-full bg-purple-950/20 blur-[120px]" />
-      </div>
+      <BackgroundBlobs />
 
       <Helmet>
         <title>DevTools - Developer Utilities</title>
@@ -85,13 +71,7 @@ export default function HomePage() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              aria-label={`Theme: ${theme}`}
-            >
-              <ThemeIcon size={16} />
-            </button>
+            <ThemeToggleButton />
             <button className="px-5 py-2 text-sm font-medium rounded-full border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
               CONTACT US
             </button>
@@ -213,21 +193,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="relative z-10 border-t border-white/40 dark:border-gray-800 py-6">
-        <div className="max-w-7xl mx-auto px-6 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} DevTools. All tools are free to use.
-          </p>
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <a href="#" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">Privacy Policy</a>
-            <span>|</span>
-            <a href="#" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">About</a>
-            <span>|</span>
-            <a href="https://github.com/mazidul36i/dev-tools" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">GitHub</a>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="full" maxWidth="max-w-7xl" />
     </div>
   );
 }

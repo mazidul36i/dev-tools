@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Eraser } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
+import InfoCard from '@components/ui/InfoCard';
 import Tabs from '@components/ui/Tabs';
 import CopyButton from '@components/ui/CopyButton';
 import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
@@ -20,17 +21,17 @@ export default function UrlParserPage() {
   const [decodeInput, setDecodeInput] = useState('');
   const [decodedResult, setDecodedResult] = useState('');
 
-  const handleEncode = () => {
+  const handleEncode = useCallback(() => {
     if (!encodeInput.trim()) { toast.error('Please enter a URL to encode'); return; }
     try { setEncodedResult(encodeURIComponent(encodeInput.trim())); toast.success('URL encoded!'); }
     catch (e) { toast.error('Error encoding: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  }, [encodeInput]);
 
-  const handleDecode = () => {
+  const handleDecode = useCallback(() => {
     if (!decodeInput.trim()) { toast.error('Please enter a URL to decode'); return; }
     try { setDecodedResult(decodeURIComponent(decodeInput.trim())); toast.success('URL decoded!'); }
     catch (e) { toast.error('Error decoding: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  }, [decodeInput]);
 
   return (
     <ToolLayout
@@ -79,10 +80,7 @@ export default function UrlParserPage() {
         </div>
       </Card>
 
-      {/* Info Card */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About URL Encoding/Decoding</h2>
+      <InfoCard title="About URL Encoding/Decoding">
           <p className="text-text-muted leading-relaxed mb-4">
             URL encoding converts characters that are not allowed in a URL into character-entity equivalents. For example, spaces are converted to <code className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-xs border border-primary/20">%20</code>.
           </p>
@@ -97,8 +95,7 @@ export default function UrlParserPage() {
               </tbody>
             </table>
           </div>
-        </div>
-      </Card>
+      </InfoCard>
     </ToolLayout>
   );
 }

@@ -4,6 +4,7 @@ import { Upload, Download, Eraser } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
+import InfoCard from '@components/ui/InfoCard';
 import CopyButton from '@components/ui/CopyButton';
 import { SecondaryButton } from '@components/ui/Button';
 import { TextAreaOutput } from '@components/ui/TextArea';
@@ -171,10 +172,7 @@ export default function ImageToTextPage() {
         )}
       </AnimatePresence>
 
-      {/* Info */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About OCR Technology</h2>
+      <InfoCard title="About OCR Technology">
           <p className="text-text-muted leading-relaxed mb-5">
             This tool uses Optical Character Recognition (OCR) technology to extract text from images. Simply upload an image, paste a screenshot, or drag and drop a file.
           </p>
@@ -198,8 +196,7 @@ export default function ImageToTextPage() {
               </ul>
             </div>
           </div>
-        </div>
-      </Card>
+      </InfoCard>
     </ToolLayout>
   );
 }

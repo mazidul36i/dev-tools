@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sun, Moon, Monitor } from 'lucide-react';
-import { useTheme } from '@hooks/useTheme';
+import { ArrowLeft } from 'lucide-react';
 import { type ReactNode } from 'react';
-import { type LucideIcon } from 'lucide-react';
-
-const themeIcons: Record<string, LucideIcon> = { light: Sun, dark: Moon, system: Monitor };
+import BackgroundBlobs from '@components/ui/BackgroundBlobs';
+import ThemeToggleButton from '@components/ui/ThemeToggleButton';
+import Footer from '@components/layout/Footer';
 
 interface ToolLayoutProps {
   title: string;
@@ -16,24 +15,9 @@ interface ToolLayoutProps {
 }
 
 export default function ToolLayout({ title, tagline, metaDescription, children }: ToolLayoutProps) {
-  const { theme, toggleTheme } = useTheme();
-  const ThemeIcon = themeIcons[theme];
-
   return (
     <div className="flex flex-col h-screen relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
-      {/* Light mode background gradient blobs */}
-      <div className="absolute inset-0 pointer-events-none dark:hidden">
-        <div className="absolute -top-32 -left-32 w-175 h-175 rounded-full bg-[#fcd5c8]/60 blur-[120px]" />
-        <div className="absolute top-0 right-0 w-150 h-150 rounded-full bg-[#c9d6f5]/50 blur-[120px]" />
-        <div className="absolute top-1/3 left-1/3 w-125 h-125 rounded-full bg-[#e8d5f0]/40 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-150 h-125 rounded-full bg-[#f0e0d0]/50 blur-[100px]" />
-        <div className="absolute bottom-0 right-1/4 w-125 h-100 rounded-full bg-[#d5dff5]/40 blur-[100px]" />
-      </div>
-      {/* Dark mode background */}
-      <div className="absolute inset-0 pointer-events-none hidden dark:block">
-        <div className="absolute -top-32 -left-32 w-125 h-125 rounded-full bg-indigo-950/30 blur-[120px]" />
-        <div className="absolute top-0 right-0 w-100 h-100 rounded-full bg-purple-950/20 blur-[120px]" />
-      </div>
+      <BackgroundBlobs />
 
       <Helmet>
         <title>{title} | DevTools</title>
@@ -70,13 +54,7 @@ export default function ToolLayout({ title, tagline, metaDescription, children }
             </h1>
           )}
 
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-            aria-label={`Theme: ${theme}`}
-          >
-            <ThemeIcon size={16} />
-          </button>
+          <ThemeToggleButton />
         </div>
       </motion.header>
 
@@ -96,19 +74,7 @@ export default function ToolLayout({ title, tagline, metaDescription, children }
         </div>
       </motion.main>
 
-      {/* Footer pinned at bottom */}
-      <footer className="relative z-10 shrink-0 border-t border-white/40 dark:border-gray-800 py-2">
-        <div className="max-w-384 mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} DevTools
-          </p>
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <Link to="/" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">Home</Link>
-            <span>|</span>
-            <a href="https://github.com/mazidul36i/dev-tools" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 dark:hover:text-gray-200 transition-colors">GitHub</a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

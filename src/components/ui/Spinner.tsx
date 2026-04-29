@@ -1,5 +1,4 @@
 import { Loader2 } from 'lucide-react';
-import { type ReactNode } from 'react';
 
 interface SpinnerProps {
   className?: string;

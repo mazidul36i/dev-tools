@@ -1,10 +1,12 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Shuffle, RotateCcw, Plus, Trash2, Download } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
+import InfoCard from '@components/ui/InfoCard';
 import CopyButton from '@components/ui/CopyButton';
 import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import SegmentedControl from '@components/ui/SegmentedControl';
 import useLocalStorage from '@hooks/useLocalStorage';
 import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor, type RGB } from '@lib/color-utils';
 
@@ -30,10 +32,10 @@ export default function ColorPickerPage() {
     });
   }, []);
 
-  const handleHexInput = (val: string) => {
+  const handleHexInput = useCallback((val: string) => {
     let h = val.startsWith('#') ? val : '#' + val;
     if (h.length >= 4) { try { updateFromRgb(hexToRgb(h)); } catch {} }
-  };
+  }, [updateFromRgb]);
 
   const handleGradientInteraction = useCallback((e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
     const rect = gradientRef.current?.getBoundingClientRect();
@@ -56,15 +58,15 @@ export default function ColorPickerPage() {
     return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); };
   }, [handleGradientInteraction]);
 
-  const handleRandom = () => { updateFromRgb(generateRandomColor()); toast.success('Random color generated!'); };
+  const handleRandom = useCallback(() => { updateFromRgb(generateRandomColor()); toast.success('Random color generated!'); }, [updateFromRgb]);
 
-  const addToPalette = () => {
+  const addToPalette = useCallback(() => {
     if (palette.includes(hex)) { toast.info('Color already in palette'); return; }
     setPalette([...palette, hex]);
     toast.success(`${hex} saved to palette`);
-  };
+  }, [hex, palette, setPalette]);
 
-  const generatePalette = () => {
+  const generatePalette = useCallback(() => {
     const baseH = Math.floor(Math.random() * 360);
     const baseS = 70 + Math.floor(Math.random() * 30);
     const baseL = 45 + Math.floor(Math.random() * 15);
@@ -75,9 +77,9 @@ export default function ColorPickerPage() {
     ].map(([h, s, l]) => { const c = hslToRgb(h, s, l); return rgbToHex(c.r, c.g, c.b); });
     setPalette(colors);
     toast.success('Palette generated!');
-  };
+  }, [setPalette]);
 
-  const getExportCode = (): string => {
+  const exportCode = useMemo((): string => {
     if (palette.length === 0) return '';
     switch (exportFormat) {
       case 'css': return ':root {\n' + palette.map((h, i) => `  --color-${i + 1}: ${h};`).join('\n') + '\n}';
@@ -85,7 +87,7 @@ export default function ColorPickerPage() {
       case 'json': return JSON.stringify(Object.fromEntries(palette.map((h, i) => [`color${i + 1}`, h])), null, 2);
       default: return '';
     }
-  };
+  }, [palette, exportFormat]);
 
   return (
     <ToolLayout
@@ -192,23 +194,20 @@ export default function ColorPickerPage() {
             )}
             {showExport && palette.length > 0 && (
               <div className="mt-4 bg-surface-alt border border-border rounded-lg p-4 space-y-3">
-                <div className="flex gap-2">
-                  {(['css', 'scss', 'json'] as const).map((f) => (
-                    <button key={f} onClick={() => setExportFormat(f)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${exportFormat === f ? 'bg-primary text-white' : 'bg-surface text-text-secondary border border-border hover:bg-surface-hover'}`}>{f.toUpperCase()}</button>
-                  ))}
-                </div>
-                <textarea value={getExportCode()} readOnly className="w-full p-3 bg-surface border border-border rounded-lg font-mono text-xs text-text-secondary min-h-25" />
-                <CopyButton text={getExportCode()} label="Copy Code" />
+                <SegmentedControl
+                  options={[{ id: 'css', label: 'CSS' }, { id: 'scss', label: 'SCSS' }, { id: 'json', label: 'JSON' }]}
+                  value={exportFormat}
+                  onChange={(id) => setExportFormat(id as 'css' | 'scss' | 'json')}
+                />
+                <textarea value={exportCode} readOnly className="w-full p-3 bg-surface border border-border rounded-lg font-mono text-xs text-text-secondary min-h-25" />
+                <CopyButton text={exportCode} label="Copy Code" />
               </div>
             )}
           </div>
         </div>
       </Card>
 
-      {/* Info */}
-      <Card hover={false}>
-        <div className="p-7">
-          <h2 className="text-lg font-semibold text-text border-b border-border pb-3 mb-5">About Color Conversion</h2>
+      <InfoCard title="About Color Conversion">
           <p className="text-text-muted leading-relaxed mb-4">Colors can be represented in different formats for web development:</p>
           <ul className="space-y-2 text-sm text-text-muted mb-6">
             <li><strong className="text-text-secondary">HEX</strong> — Hexadecimal notation (#RRGGBB) used in CSS</li>
@@ -225,8 +224,7 @@ export default function ColorPickerPage() {
               </div>
             ))}
           </div>
-        </div>
-      </Card>
+      </InfoCard>
     </ToolLayout>
   );
 }

@@ -11,6 +11,8 @@ import JsonTreeView from './JsonTreeView';
 import HighlightedOutput from './HighlightedOutput';
 import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
 import { downloadFile } from '@lib/download-utils';
+import Checkbox from '@components/ui/Checkbox';
+import SegmentedControl from '@components/ui/SegmentedControl';
 
 const tabs = [
   { id: 'format', label: 'Format' },
@@ -266,10 +268,12 @@ export default function JsonFormatterPage() {
                       <SecondaryButton onClick={() => triggerSignal('collapse')} title="Collapse All"><ChevronsUpDown size={14} className="rotate-90" /> <span className="text-xs hidden sm:inline">Collapse</span></SecondaryButton>
                     </>
                   )}
-                  <div className="flex rounded-lg overflow-hidden border border-white/60 dark:border-gray-700/60">
-                    <button onClick={() => setView('text')} className={`px-3 py-1.5 text-xs font-medium transition-all ${view === 'text' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Text</button>
-                    <button onClick={() => setView('tree')} className={`px-3 py-1.5 text-xs font-medium transition-all ${view === 'tree' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Tree</button>
-                  </div>
+                  <SegmentedControl
+                    options={[{ id: 'text', label: 'Text' }, { id: 'tree', label: 'Tree' }]}
+                    value={view}
+                    onChange={setView}
+                    variant="glass"
+                  />
                 </div>
               </div>
               {/* Side-by-side panels */}
@@ -347,10 +351,12 @@ export default function JsonFormatterPage() {
                 <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
                 <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={14} /></SecondaryButton>
                 <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
-                <div className="flex rounded-lg overflow-hidden border border-white/60 dark:border-gray-700/60">
-                  <button onClick={() => setConvertMode('normalToString')} className={`px-3 py-1.5 text-xs font-medium transition-all ${convertMode === 'normalToString' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Normal → Stringified</button>
-                  <button onClick={() => setConvertMode('stringToNormal')} className={`px-3 py-1.5 text-xs font-medium transition-all ${convertMode === 'stringToNormal' ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900' : 'bg-white/50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400'}`}>Stringified → Normal</button>
-                </div>
+                <SegmentedControl
+                  options={[{ id: 'normalToString', label: 'Normal → Stringified' }, { id: 'stringToNormal', label: 'Stringified → Normal' }]}
+                  value={convertMode}
+                  onChange={setConvertMode}
+                  variant="glass"
+                />
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
                 <div className="flex flex-col min-h-0">
@@ -374,12 +380,8 @@ export default function JsonFormatterPage() {
                 <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
                 <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={14} /></SecondaryButton>
                 <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
-                  <input type="checkbox" checked={stripClass} onChange={(e) => setStripClass(e.target.checked)} className="accent-gray-900 dark:accent-white w-3.5 h-3.5" /> Strip class
-                </label>
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 cursor-pointer">
-                  <input type="checkbox" checked={autoDetect} onChange={(e) => setAutoDetect(e.target.checked)} className="accent-gray-900 dark:accent-white w-3.5 h-3.5" /> Auto-detect types
-                </label>
+                <Checkbox checked={stripClass} onChange={setStripClass} label="Strip class" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
+                <Checkbox checked={autoDetect} onChange={setAutoDetect} label="Auto-detect types" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
                 <div className="flex flex-col min-h-0">
