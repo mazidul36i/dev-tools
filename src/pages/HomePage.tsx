@@ -183,7 +183,7 @@ export default function HomePage() {
             >
               Available Tools
             </motion.h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {tools.map((tool, i) => (
                 <motion.div
                   key={tool.path}
