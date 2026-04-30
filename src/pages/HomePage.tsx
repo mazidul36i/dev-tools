@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, type LucideIcon } from 'lucide-react';
+import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, type LucideIcon } from 'lucide-react';
 import heroGearImg from '@assets/img/hero-gear.png';
 import BackgroundBlobs from '@components/ui/BackgroundBlobs';
 import ThemeToggleButton from '@components/ui/ThemeToggleButton';
@@ -23,6 +23,7 @@ const tools: Tool[] = [
   { path: '/tools/url-parser', icon: Link2, color: 'text-violet-500', bg: 'bg-violet-100 dark:bg-violet-900/30', title: 'URL Parser', desc: 'Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.' },
   { path: '/tools/color-picker', icon: Palette, color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/30', title: 'Color Picker', desc: 'Pick colors and convert between formats (HEX, RGB, HSL) with live preview' },
   { path: '/tools/network-status', icon: Wifi, color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/30', title: 'Network Status', desc: 'Monitor your network connection status in real-time with visual indicators and connection quality metrics' },
+  { path: '/tools/uuid-generator', icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30', title: 'UUID Generator', desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options' },
 ];
 
 const cardVariants = {
