@@ -222,15 +222,12 @@ export default function JsonTreeView({ data, collapseSignal, search = '', active
 			if (!marks) return;
 			// Remove active styling from all marks
 			marks.forEach(m => {
-				(m as HTMLElement).style.backgroundColor = '';
-				(m as HTMLElement).style.outline = '';
+				(m as HTMLElement).classList.remove('tree-match-active');
 			});
 			// Add active styling to the target match
 			if (activeMatchIndex >= 0 && activeMatchIndex < marks.length) {
 				const el = marks[activeMatchIndex] as HTMLElement;
-				el.style.backgroundColor = '#fbbf24'; // amber-400
-				el.style.outline = '2px solid #f59e0b'; // amber-500
-				el.style.borderRadius = '2px';
+				el.classList.add('tree-match-active');
 				el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 			}
 		}, 200);

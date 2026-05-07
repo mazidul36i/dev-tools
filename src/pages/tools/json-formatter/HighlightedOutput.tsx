@@ -45,7 +45,7 @@ export default function HighlightedOutput({ text, search, activeIndex, className
     }
   }, [activeIndex, search]);
 
-  const markBase = 'text-gray-900 rounded-sm px-px';
+  const markBase = 'text-gray-900 dark:text-gray-100 rounded-sm px-px';
 
   return (
     <pre

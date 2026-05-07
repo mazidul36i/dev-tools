@@ -176,7 +176,7 @@ export default function HomePage() {
                   <Link
                     to={tool.path}
                     className="group flex flex-col p-5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-gray-700/60
-                               hover:border-white/80 dark:hover:border-gray-600 hover:shadow-lg hover:bg-white/70
+                               hover:border-white/80 dark:hover:border-gray-600 hover:shadow-lg hover:bg-white/70 dark:hover:bg-gray-800/70
                                transition-all duration-300 h-full"
                   >
                     <div className={`w-10 h-10 rounded-xl ${tool.bg} flex items-center justify-center mb-4`}>

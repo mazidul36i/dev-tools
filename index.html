@@ -6,8 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#5468ff" />
     <title>DevTools</title>
+    <script>
+      // Prevent FOUC: apply dark class before first paint
+      (function() {
+        try {
+          var theme = JSON.parse(localStorage.getItem('theme') || '"system"');
+          var isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch(e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-slate-50 text-gray-800 antialiased">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -27,7 +27,7 @@ export default function Button({ children, variant = 'primary', size = 'md', cla
   return (
     <button
       className={`inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200
-        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1
+        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1 dark:focus:ring-offset-gray-900
         disabled:opacity-50 disabled:pointer-events-none
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}

@@ -109,3 +109,53 @@
   from { transform: rotate(360deg); }
   to { transform: rotate(0deg); }
 }
+
+/* Tree view active search match (dark-mode aware) */
+.tree-match-active {
+  background-color: #fbbf24 !important;
+  outline: 2px solid #f59e0b;
+  border-radius: 2px;
+}
+.dark .tree-match-active {
+  background-color: #d97706 !important;
+  outline: 2px solid #b45309;
+}
+
+/* Select / option dark mode */
+.dark select option {
+  background-color: #1e1e2e;
+  color: #f0f0f5;
+}
+
+/* Range input thumb styling for dark mode */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.dark input[type="range"]::-moz-range-thumb {
+  background: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
