@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, type LucideIcon } from 'lucide-react';
+import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, type LucideIcon } from 'lucide-react';
 import heroGearImg from '@assets/img/hero-gear.png';
 import BackgroundBlobs from '@components/ui/BackgroundBlobs';
 import ThemeToggleButton from '@components/ui/ThemeToggleButton';
@@ -24,6 +24,7 @@ const tools: Tool[] = [
   { path: '/tools/color-picker', icon: Palette, color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/30', title: 'Color Picker', desc: 'Pick colors and convert between formats (HEX, RGB, HSL) with live preview' },
   { path: '/tools/network-status', icon: Wifi, color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/30', title: 'Network Status', desc: 'Monitor your network connection status in real-time with visual indicators and connection quality metrics' },
   { path: '/tools/uuid-generator', icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30', title: 'UUID Generator', desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options' },
+  { path: '/tools/gzip-converter', icon: FileArchive, color: 'text-teal-500', bg: 'bg-teal-100 dark:bg-teal-900/30', title: 'Gzip Converter', desc: 'Compress text to gzip or decompress base64-encoded gzip data with partial recovery support' },
 ];
 
 const cardVariants = {

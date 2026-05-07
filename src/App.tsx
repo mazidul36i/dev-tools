@@ -10,6 +10,7 @@ const UrlParserPage = lazy(() => import('@pages/tools/UrlParserPage'));
 const ColorPickerPage = lazy(() => import('@pages/tools/color-picker/ColorPickerPage'));
 const NetworkStatusPage = lazy(() => import('@pages/tools/network-status/NetworkStatusPage'));
 const UuidGeneratorPage = lazy(() => import('@pages/tools/uuid-generator/UuidGeneratorPage'));
+const GzipConverterPage = lazy(() => import('@pages/tools/gzip-converter/GzipConverterPage'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/tools/color-picker" element={<ColorPickerPage/>}/>
         <Route path="/tools/network-status" element={<NetworkStatusPage/>}/>
         <Route path="/tools/uuid-generator" element={<UuidGeneratorPage/>}/>
+        <Route path="/tools/gzip-converter" element={<GzipConverterPage/>}/>
         <Route path="*" element={<NotFoundPage/>}/>
       </Routes>
     </Suspense>
