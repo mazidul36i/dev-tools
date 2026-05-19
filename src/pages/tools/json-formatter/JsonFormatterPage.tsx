@@ -13,6 +13,7 @@ import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoSt
 import { downloadFile } from '@lib/download-utils';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
+import ResizablePanels from '@components/ui/ResizablePanels';
 
 const tabs = [
   { id: 'format', label: 'Format' },
@@ -276,37 +277,41 @@ export default function JsonFormatterPage() {
                   />
                 </div>
               </div>
-              {/* Side-by-side panels */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea
-                    value={formatInput}
-                    onChange={(e) => setFormatInput(e.target.value)}
-                    placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
-                    className={inputClass}
-                  />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  {view === 'text' ? (
-                    formatSearch ? (
-                      <HighlightedOutput
-                        text={formatResult}
-                        search={formatSearch}
-                        activeIndex={formatMatchIdx}
-                        className={outputClass + ' flex-1 overflow-auto'}
-                      />
+              {/* Side-by-side resizable panels */}
+              <ResizablePanels
+                left={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                    <textarea
+                      value={formatInput}
+                      onChange={(e) => setFormatInput(e.target.value)}
+                      placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
+                      className={inputClass}
+                    />
+                  </div>
+                }
+                right={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                    {view === 'text' ? (
+                      formatSearch ? (
+                        <HighlightedOutput
+                          text={formatResult}
+                          search={formatSearch}
+                          activeIndex={formatMatchIdx}
+                          className={outputClass + ' flex-1 overflow-auto'}
+                        />
+                      ) : (
+                        <textarea value={formatResult} readOnly className={outputClass} />
+                      )
                     ) : (
-                      <textarea value={formatResult} readOnly className={outputClass} />
-                    )
-                  ) : (
-                    <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
-                      <JsonTreeView data={parsedJson} collapseSignal={treeSignalValue} search={formatSearch} activeMatchIndex={formatMatchIdx} />
-                    </div>
-                  )}
-                </div>
-              </div>
+                      <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
+                        <JsonTreeView data={parsedJson} collapseSignal={treeSignalValue} search={formatSearch} activeMatchIndex={formatMatchIdx} />
+                      </div>
+                    )}
+                  </div>
+                }
+              />
             </div>
           )}
 
@@ -320,25 +325,29 @@ export default function JsonFormatterPage() {
                 <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); setMinifySearch(''); }}><Eraser size={14} /></SecondaryButton>
                 <OutputSearchBar text={minifyResult} search={minifySearch} setSearch={setMinifySearch} matchIndex={minifyMatchIdx} setMatchIndex={setMinifyMatchIdx} />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder="Paste formatted JSON here..." className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  {minifySearch ? (
-                    <HighlightedOutput
-                      text={minifyResult}
-                      search={minifySearch}
-                      activeIndex={minifyMatchIdx}
-                      className={outputClass + ' flex-1 overflow-auto'}
-                    />
-                  ) : (
-                    <textarea value={minifyResult} readOnly className={outputClass} />
-                  )}
-                </div>
-              </div>
+              <ResizablePanels
+                left={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                    <textarea value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder="Paste formatted JSON here..." className={inputClass} />
+                  </div>
+                }
+                right={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                    {minifySearch ? (
+                      <HighlightedOutput
+                        text={minifyResult}
+                        search={minifySearch}
+                        activeIndex={minifyMatchIdx}
+                        className={outputClass + ' flex-1 overflow-auto'}
+                      />
+                    ) : (
+                      <textarea value={minifyResult} readOnly className={outputClass} />
+                    )}
+                  </div>
+                }
+              />
             </div>
           )}
 
@@ -358,16 +367,20 @@ export default function JsonFormatterPage() {
                   variant="glass"
                 />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  <textarea value={convertResult} readOnly className={outputClass} />
-                </div>
-              </div>
+              <ResizablePanels
+                left={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                    <textarea value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} className={inputClass} />
+                  </div>
+                }
+                right={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                    <textarea value={convertResult} readOnly className={outputClass} />
+                  </div>
+                }
+              />
             </div>
           )}
 
@@ -383,16 +396,20 @@ export default function JsonFormatterPage() {
                 <Checkbox checked={stripClass} onChange={setStripClass} label="Strip class" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
                 <Checkbox checked={autoDetect} onChange={setAutoDetect} label="Auto-detect types" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  <textarea value={dtoResult} readOnly className={outputClass} />
-                </div>
-              </div>
+              <ResizablePanels
+                left={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                    <textarea value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" className={inputClass} />
+                  </div>
+                }
+                right={
+                  <div className="flex flex-col min-h-0 h-full">
+                    <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                    <textarea value={dtoResult} readOnly className={outputClass} />
+                  </div>
+                }
+              />
             </div>
           )}
         </div>
