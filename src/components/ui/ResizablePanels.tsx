@@ -55,7 +55,7 @@ export default function ResizablePanels({
   }, [minLeftPercent, maxLeftPercent]);
 
   return (
-    <div ref={containerRef} className={`flex flex-col lg:flex-row flex-1 min-h-0 ${className}`}>
+    <div ref={containerRef} className={`flex flex-col lg:flex-row flex-1 min-h-0 h-full ${className}`}>
       {/* Left panel */}
       <div className="flex flex-col min-h-0 lg:min-w-0" style={{ flex: `0 0 ${leftPercent}%` }}>
         {left}

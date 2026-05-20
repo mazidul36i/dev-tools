@@ -240,7 +240,7 @@ export default function JsonTreeView({ data, collapseSignal, search = '', active
 
 	return (
 		<TreeControlContext.Provider value={ctx}>
-			<div ref={containerRef} className="bg-surface-alt border border-border rounded-lg p-4 font-mono text-sm min-h-45 max-h-150 overflow-auto">
+		                  	<div ref={containerRef} className="bg-surface-alt border border-border rounded-lg p-4 font-mono text-sm min-h-45 h-full overflow-auto">
 				<JsonTreeNode nodeKey={null} value={data} depth={0} path="$" />
 			</div>
 		</TreeControlContext.Provider>
