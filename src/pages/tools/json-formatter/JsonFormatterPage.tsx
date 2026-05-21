@@ -1,30 +1,32 @@
 import { useState, useCallback, useMemo, useRef, useEffect, type Dispatch, type SetStateAction } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Eraser, ChevronDown, ChevronUp, FileJson2, Search, X, ChevronsUpDown, Download } from 'lucide-react';
+import { Eraser, ChevronDown, FileJson2, Search, X, ChevronUp, ChevronsUpDown, Download, CornerDownLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import CopyButton from '@components/ui/CopyButton';
-import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import Button, { SecondaryButton } from '@components/ui/Button';
 import JsonTreeView from './JsonTreeView';
 import HighlightedOutput from './HighlightedOutput';
 import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
 import { downloadFile } from '@lib/download-utils';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
+import ResizablePanels from '@components/ui/ResizablePanels';
+import useLocalStorage from '@hooks/useLocalStorage';
 
-const tabs = [
-  { id: 'format', label: 'Format' },
-  { id: 'minify', label: 'Minify' },
-  { id: 'convert', label: 'Stringify / Parse' },
-  { id: 'dto', label: 'DTO → JSON' },
-];
+type ActionType = 'format' | 'minify' | 'stringify' | 'parse' | 'dto';
 
-const validTabs = new Set(tabs.map(t => t.id));
+const actionLabels: Record<ActionType, string> = {
+  format: 'Format',
+  minify: 'Minify',
+  stringify: 'Stringify',
+  parse: 'Parse',
+  dto: 'DTO → JSON',
+};
 
-const inputClass = "w-full h-full p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-900 dark:text-gray-100 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all";
-const outputClass = "w-full h-full p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-none cursor-default";
+const inputClass = "w-full h-full flex-1 p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-900 dark:text-gray-100 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all";
+const outputClass = "w-full h-full flex-1 p-4 bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm text-gray-700 dark:text-gray-300 resize-none cursor-default";
 
 // Count search matches across all keys and values in JSON data (mirrors tree render order)
 function countJsonMatches(data: unknown, search: string, parentKey: string | number | null = null): number {
@@ -129,96 +131,132 @@ function OutputSearchBar({ text, search, setSearch, matchIndex, setMatchIndex, m
   );
 }
 
+// Placeholder text per action
+const placeholders: Record<ActionType, string> = {
+  format: '{"example":{"property":"value","numbers":[1,2,3]}}',
+  minify: '{\n  "example": "value",\n  "numbers": [1, 2, 3]\n}',
+  stringify: '{\n  "example": "value"\n}',
+  parse: '"{\\"example\\": \\"value\\"}"',
+  dto: 'ClassName(uuid=abc, flowId=123, status=null)',
+};
+
 export default function JsonFormatterPage() {
-  const { tab } = useParams();
-  const navigate = useNavigate();
-  const activeTab = (tab && validTabs.has(tab)) ? tab : 'format';
-
-  const setActiveTab = useCallback((id: string) => {
-    navigate(`/tools/json-formatter/${id}`, { replace: true });
-  }, [navigate]);
-
-  // Redirect bare /tools/json-formatter to /tools/json-formatter/format
-  useEffect(() => {
-    if (!tab || !validTabs.has(tab)) {
-      navigate('/tools/json-formatter/format', { replace: true });
-    }
-  }, [tab]);
-
-  const [formatInput, setFormatInput] = useState('');
-  const [formatResult, setFormatResult] = useState('');
+  const [input, setInput] = useState('');
+  const [output, setOutput] = useState('');
   const [parsedJson, setParsedJson] = useState<unknown>(null);
+  const [lastAction, setLastAction] = useState<ActionType>('format');
+
+  // Format options
   const [indent, setIndent] = useState<number | string>(2);
-  const [view, setView] = useState('text');
-  const [minifyInput, setMinifyInput] = useState('');
-  const [minifyResult, setMinifyResult] = useState('');
-  const [convertInput, setConvertInput] = useState('');
-  const [convertResult, setConvertResult] = useState('');
-  const [convertMode, setConvertMode] = useState('normalToString');
-  const [dtoInput, setDtoInput] = useState('');
-  const [dtoResult, setDtoResult] = useState('');
+  const [view, setView] = useLocalStorage<string>('json-formatter-view', 'text');
+
+  // DTO options
   const [stripClass, setStripClass] = useState(true);
   const [autoDetect, setAutoDetect] = useState(true);
+
   const [showInfo, setShowInfo] = useState(false);
 
   // Search state
-  const [formatSearch, setFormatSearch] = useState('');
-  const [formatMatchIdx, setFormatMatchIdx] = useState(0);
-  const [minifySearch, setMinifySearch] = useState('');
-  const [minifyMatchIdx, setMinifyMatchIdx] = useState(0);
+  const [search, setSearch] = useState('');
+  const [matchIdx, setMatchIdx] = useState(0);
 
-  // Tree collapse signal: null = no signal, 'expand' | 'collapse', incremented to retrigger
+  // Tree collapse signal
   const [collapseSignal, setCollapseSignal] = useState<string | null>(null);
   const [signalCounter, setSignalCounter] = useState(0);
   const triggerSignal = useCallback((type: string) => {
     setCollapseSignal(type);
     setSignalCounter(c => c + 1);
   }, []);
-  // Combine signal + counter so effect retriggers
   const treeSignalValue = collapseSignal !== null ? `${collapseSignal}-${signalCounter}` : null;
 
-  const handleFormat = () => {
-    if (!formatInput.trim()) { toast.error('Please enter JSON to format'); return; }
+  // Whether tree view is applicable (only for actions producing structured JSON)
+  const showTreeToggle = lastAction === 'format' || lastAction === 'parse' || lastAction === 'dto';
+
+  // Effective view: force text for actions that don't support tree
+  const effectiveView = showTreeToggle ? view : 'text';
+
+  const runAction = useCallback((action: ActionType) => {
+    if (!input.trim()) { toast.error('Please enter input'); return; }
+    setLastAction(action);
+    setSearch('');
+    setMatchIdx(0);
     try {
-      const obj = JSON.parse(formatInput.trim());
-      setFormatResult(formatJSON(obj, indent));
-      setParsedJson(obj);
-      toast.success('JSON formatted!');
-    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+      switch (action) {
+        case 'format': {
+          const obj = JSON.parse(input.trim());
+          const result = formatJSON(obj, indent);
+          setOutput(result);
+          setParsedJson(obj);
+          toast.success('JSON formatted!');
+          break;
+        }
+        case 'minify': {
+          setOutput(minifyJSON(input.trim()));
+          setParsedJson(null);
+          toast.success('JSON minified!');
+          break;
+        }
+        case 'stringify': {
+          setOutput(stringifyJSON(input.trim()));
+          setParsedJson(null);
+          toast.success('JSON stringified!');
+          break;
+        }
+        case 'parse': {
+          const result = parseStringifiedJSON(input.trim());
+          const obj = JSON.parse(result);
+          setOutput(result);
+          setParsedJson(obj);
+          toast.success('JSON parsed!');
+          break;
+        }
+        case 'dto': {
+          const obj = parseDtoString(input.trim(), autoDetect, stripClass);
+          const result = JSON.stringify(obj, null, 2);
+          setOutput(result);
+          setParsedJson(obj);
+          toast.success('DTO converted!');
+          break;
+        }
+      }
+    } catch (e) {
+      toast.error('Error: ' + (e instanceof Error ? e.message : String(e)));
+    }
+  }, [input, indent, autoDetect, stripClass]);
 
-  const handleMinify = () => {
-    if (!minifyInput.trim()) { toast.error('Please enter JSON to minify'); return; }
-    try {
-      setMinifyResult(minifyJSON(minifyInput.trim()));
-      toast.success('JSON minified!');
-    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  const handleClear = useCallback(() => {
+    setInput('');
+    setOutput('');
+    setParsedJson(null);
+    setSearch('');
+    setMatchIdx(0);
+  }, []);
 
-  const handleConvert = () => {
-    if (!convertInput.trim()) { toast.error('Please enter JSON to convert'); return; }
-    try {
-      setConvertResult(convertMode === 'normalToString' ? stringifyJSON(convertInput.trim()) : parseStringifiedJSON(convertInput.trim()));
-      toast.success('JSON converted!');
-    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  const handleDownload = useCallback(() => {
+    if (!output) { toast.error('Nothing to download'); return; }
+    downloadFile(output, 'output.json', 'application/json');
+  }, [output]);
 
-  const handleDto = () => {
-    if (!dtoInput.trim()) { toast.error('Please enter DTO string'); return; }
-    try {
-      const obj = parseDtoString(dtoInput.trim(), autoDetect, stripClass);
-      setDtoResult(JSON.stringify(obj, null, 2));
-      toast.success('DTO converted!');
-    } catch (e) { toast.error('Error: ' + (e instanceof Error ? e.message : String(e))); }
-  };
+  const handleUseAsInput = useCallback(() => {
+    if (!output) { toast.error('No output to use'); return; }
+    setInput(output);
+    setOutput('');
+    setParsedJson(null);
+    setSearch('');
+    toast.success('Output moved to input');
+  }, [output]);
 
-  // Current output for download
-  const currentOutput = activeTab === 'format' ? formatResult : activeTab === 'minify' ? minifyResult : activeTab === 'convert' ? convertResult : dtoResult;
-
-  const handleDownload = () => {
-    if (!currentOutput) { toast.error('Nothing to download'); return; }
-    downloadFile(currentOutput, 'output.json', 'application/json');
-  };
+  // Keyboard shortcut: Ctrl+Enter to run last action
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runAction(lastAction);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [runAction, lastAction]);
 
   return (
     <ToolLayout
@@ -227,174 +265,110 @@ export default function JsonFormatterPage() {
       metaDescription="Format, validate and prettify JSON data. Easily format minified JSON and validate syntax."
     >
       <Card hover={false} className="h-[calc(100vh-210px)] min-h-152 flex flex-col">
-        {/* Tab bar */}
-        <div className="shrink-0 flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`relative px-4 py-2 text-sm font-medium rounded-t-lg transition-all duration-200 whitespace-nowrap
-                ${activeTab === t.id
-                  ? 'text-gray-900 dark:text-white bg-white/50 dark:bg-gray-800/50'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {/* Toolbar */}
+        <div className="shrink-0 px-4 pt-3 pb-0">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Action buttons */}
+            {(Object.keys(actionLabels) as ActionType[]).map((action) => (
+              <Button
+                key={action}
+                variant={lastAction === action ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => runAction(action)}
+                title={action === lastAction ? `${actionLabels[action]} (Ctrl+Enter)` : actionLabels[action]}
+              >
+                {actionLabels[action]}
+              </Button>
+            ))}
 
-        <div className="p-4 flex-1 min-h-0">
-          {/* FORMAT TAB */}
-          {activeTab === 'format' && (
-            <div className="flex flex-col gap-3 h-full">
-              {/* Compact toolbar */}
-              <div className="shrink-0 flex flex-wrap items-center gap-2">
-                <PrimaryButton onClick={handleFormat}>Format</PrimaryButton>
-                <CopyButton text={formatResult} label="Copy" />
-                <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
-                <SecondaryButton onClick={() => { setFormatInput(''); setFormatResult(''); setParsedJson(null); setFormatSearch(''); }}><Eraser size={14} /></SecondaryButton>
-                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
-                <select value={indent} onChange={(e) => setIndent(parseInt(e.target.value))} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
-                  <option value="2">2 spaces</option>
-                  <option value="4">4 spaces</option>
-                  <option value="tab">Tab</option>
-                </select>
-                <div className="flex items-center gap-2 ml-auto">
-                  <OutputSearchBar text={formatResult} search={formatSearch} setSearch={setFormatSearch} matchIndex={formatMatchIdx} setMatchIndex={setFormatMatchIdx} matchCountOverride={view === 'tree' && parsedJson ? countJsonMatches(parsedJson, formatSearch) : undefined} />
-                  {view === 'tree' && (
-                    <>
-                      <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50" />
-                      <SecondaryButton onClick={() => triggerSignal('expand')} title="Expand All"><ChevronsUpDown size={14} className="rotate-0" /> <span className="text-xs hidden sm:inline">Expand</span></SecondaryButton>
-                      <SecondaryButton onClick={() => triggerSignal('collapse')} title="Collapse All"><ChevronsUpDown size={14} className="rotate-90" /> <span className="text-xs hidden sm:inline">Collapse</span></SecondaryButton>
-                    </>
-                  )}
-                  <SegmentedControl
-                    options={[{ id: 'text', label: 'Text' }, { id: 'tree', label: 'Tree' }]}
-                    value={view}
-                    onChange={setView}
-                    variant="glass"
-                  />
-                </div>
-              </div>
-              {/* Side-by-side panels */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea
-                    value={formatInput}
-                    onChange={(e) => setFormatInput(e.target.value)}
-                    placeholder='{"example":{"property":"value","numbers":[1,2,3]}}'
-                    className={inputClass}
-                  />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  {view === 'text' ? (
-                    formatSearch ? (
-                      <HighlightedOutput
-                        text={formatResult}
-                        search={formatSearch}
-                        activeIndex={formatMatchIdx}
-                        className={outputClass + ' flex-1 overflow-auto'}
-                      />
-                    ) : (
-                      <textarea value={formatResult} readOnly className={outputClass} />
-                    )
-                  ) : (
-                    <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
-                      <JsonTreeView data={parsedJson} collapseSignal={treeSignalValue} search={formatSearch} activeMatchIndex={formatMatchIdx} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+            <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-0.5" />
 
-          {/* MINIFY TAB */}
-          {activeTab === 'minify' && (
-            <div className="flex flex-col gap-3 h-full">
-              <div className="shrink-0 flex flex-wrap items-center gap-2">
-                <PrimaryButton onClick={handleMinify}>Minify</PrimaryButton>
-                <CopyButton text={minifyResult} label="Copy" />
-                <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
-                <SecondaryButton onClick={() => { setMinifyInput(''); setMinifyResult(''); setMinifySearch(''); }}><Eraser size={14} /></SecondaryButton>
-                <OutputSearchBar text={minifyResult} search={minifySearch} setSearch={setMinifySearch} matchIndex={minifyMatchIdx} setMatchIndex={setMinifyMatchIdx} />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={minifyInput} onChange={(e) => setMinifyInput(e.target.value)} placeholder="Paste formatted JSON here..." className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  {minifySearch ? (
-                    <HighlightedOutput
-                      text={minifyResult}
-                      search={minifySearch}
-                      activeIndex={minifyMatchIdx}
-                      className={outputClass + ' flex-1 overflow-auto'}
-                    />
-                  ) : (
-                    <textarea value={minifyResult} readOnly className={outputClass} />
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* CONVERT TAB */}
-          {activeTab === 'convert' && (
-            <div className="flex flex-col gap-3 h-full">
-              <div className="shrink-0 flex flex-wrap items-center gap-2">
-                <PrimaryButton onClick={handleConvert}>Convert</PrimaryButton>
-                <CopyButton text={convertResult} label="Copy" />
-                <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
-                <SecondaryButton onClick={() => { setConvertInput(''); setConvertResult(''); }}><Eraser size={14} /></SecondaryButton>
-                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
-                <SegmentedControl
-                  options={[{ id: 'normalToString', label: 'Normal → Stringified' }, { id: 'stringToNormal', label: 'Stringified → Normal' }]}
-                  value={convertMode}
-                  onChange={setConvertMode}
-                  variant="glass"
-                />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={convertInput} onChange={(e) => setConvertInput(e.target.value)} placeholder={convertMode === 'normalToString' ? '{\n  "example": "value"\n}' : '"{\\"example\\": \\"value\\"}"'} className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  <textarea value={convertResult} readOnly className={outputClass} />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* DTO TAB */}
-          {activeTab === 'dto' && (
-            <div className="flex flex-col gap-3 h-full">
-              <div className="shrink-0 flex flex-wrap items-center gap-2">
-                <PrimaryButton onClick={handleDto}>Convert</PrimaryButton>
-                <CopyButton text={dtoResult} label="Copy" />
-                <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
-                <SecondaryButton onClick={() => { setDtoInput(''); setDtoResult(''); }}><Eraser size={14} /></SecondaryButton>
-                <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-1" />
+            {/* Contextual options */}
+            {lastAction === 'format' && (
+              <select value={indent} onChange={(e) => setIndent(parseInt(e.target.value))} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
+                <option value="2">2 spaces</option>
+                <option value="4">4 spaces</option>
+                <option value="tab">Tab</option>
+              </select>
+            )}
+            {lastAction === 'dto' && (
+              <>
                 <Checkbox checked={stripClass} onChange={setStripClass} label="Strip class" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
                 <Checkbox checked={autoDetect} onChange={setAutoDetect} label="Auto-detect types" className="text-xs text-gray-500 dark:text-gray-400 gap-1.5" />
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
-                  <textarea value={dtoInput} onChange={(e) => setDtoInput(e.target.value)} placeholder="ClassName(uuid=abc, flowId=123, status=null)" className={inputClass} />
-                </div>
-                <div className="flex flex-col min-h-0">
-                  <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
-                  <textarea value={dtoResult} readOnly className={outputClass} />
-                </div>
-              </div>
+              </>
+            )}
+
+            <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-0.5" />
+
+            {/* Utility buttons */}
+            <CopyButton text={output} label="Copy" />
+            <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
+            <SecondaryButton onClick={handleUseAsInput} title="Use output as input"><CornerDownLeft size={14} /></SecondaryButton>
+            <SecondaryButton onClick={handleClear}><Eraser size={14} /></SecondaryButton>
+
+            {/* Right-aligned: search + tree toggle */}
+            <div className="flex items-center gap-2 ml-auto">
+              <OutputSearchBar
+                text={output}
+                search={search}
+                setSearch={setSearch}
+                matchIndex={matchIdx}
+                setMatchIndex={setMatchIdx}
+                matchCountOverride={effectiveView === 'tree' && parsedJson ? countJsonMatches(parsedJson, search) : undefined}
+              />
+              {showTreeToggle && effectiveView === 'tree' && (
+                <>
+                  <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50" />
+                  <SecondaryButton onClick={() => triggerSignal('expand')} title="Expand All"><ChevronsUpDown size={14} className="rotate-0" /> <span className="text-xs hidden sm:inline">Expand</span></SecondaryButton>
+                  <SecondaryButton onClick={() => triggerSignal('collapse')} title="Collapse All"><ChevronsUpDown size={14} className="rotate-90" /> <span className="text-xs hidden sm:inline">Collapse</span></SecondaryButton>
+                </>
+              )}
+              {showTreeToggle && (
+                <SegmentedControl
+                  options={[{ id: 'text', label: 'Text' }, { id: 'tree', label: 'Tree' }]}
+                  value={effectiveView}
+                  onChange={setView}
+                  variant="glass"
+                />
+              )}
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Editor panels */}
+        <div className="p-4 flex-1 min-h-0 flex flex-col">
+          <ResizablePanels
+            left={
+              <div className="flex flex-col min-h-0 h-full">
+                <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={placeholders[lastAction]}
+                  className={inputClass}
+                />
+              </div>
+            }
+            right={
+              <div className="flex flex-col min-h-0 h-full">
+                <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                {showTreeToggle && effectiveView === 'tree' && parsedJson ? (
+                  <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
+                    <JsonTreeView data={parsedJson} collapseSignal={treeSignalValue} search={search} activeMatchIndex={matchIdx} />
+                  </div>
+                ) : search ? (
+                  <HighlightedOutput
+                    text={output}
+                    search={search}
+                    activeIndex={matchIdx}
+                    className={outputClass + ' flex-1 overflow-auto'}
+                  />
+                ) : (
+                  <textarea value={output} readOnly className={outputClass} />
+                )}
+              </div>
+            }
+          />
         </div>
       </Card>
 
@@ -421,10 +395,10 @@ export default function JsonFormatterPage() {
                 <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <div>
                     <p className="mb-3 leading-relaxed">
-                      JSON (JavaScript Object Notation) is a lightweight data interchange format. This tool supports formatting, minifying, stringify/parse conversion, and Java DTO to JSON conversion.
+                      JSON (JavaScript Object Notation) is a lightweight data interchange format. This tool supports formatting, minifying, stringify/parse conversion, and Java DTO to JSON conversion — all from a single input.
                     </p>
                     <ul className="space-y-1.5">
-                      {['Format & beautify JSON', 'Validate syntax', 'Minify for compact transfer', 'Stringify ↔ Parse conversion', 'Java DTO / Lombok → JSON', 'Search output with navigation', 'Tree view with JSON path copy', 'Download as .json file'].map((item) => (
+                      {['Format & beautify JSON', 'Validate syntax', 'Minify for compact transfer', 'Stringify ↔ Parse conversion', 'Java DTO / Lombok → JSON', 'Search output with navigation', 'Tree view with JSON path copy', 'Use output as input for chaining', 'Download as .json file'].map((item) => (
                         <li key={item} className="flex items-center gap-2">
                           <span className="text-green-500 text-xs">✓</span>
                           <span>{item}</span>

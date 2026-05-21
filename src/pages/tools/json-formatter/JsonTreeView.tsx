@@ -93,11 +93,12 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 
 	const currentPath = path;
 
-	const copyPath = useCallback((e: React.MouseEvent) => {
+	const copyValue = useCallback((e: React.MouseEvent) => {
 		e.stopPropagation();
-		navigator.clipboard.writeText(currentPath).then(() => {});
-		toast.success(`Copied: ${currentPath}`);
-	}, [currentPath]);
+		const text = (typeof value === 'object' && value !== null) ? JSON.stringify(value, null, 2) : String(value);
+		navigator.clipboard.writeText(text).then(() => {});
+		toast.success('Copied value');
+	}, [value]);
 
 	if (!isObject) {
 		const nodeMatches = search && (matchesSearch(String(nodeKey), search) || matchesSearch(String(value), search));
@@ -114,9 +115,9 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 				)}
 				<ValueSpan value={value} />
 				<button
-					onClick={copyPath}
+					onClick={copyValue}
 					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
-					title={currentPath}
+					title="Copy value"
 				>
 					<Copy size={11} />
 				</button>
@@ -157,9 +158,9 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 				)}
 				{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
 				<button
-					onClick={copyPath}
+					onClick={copyValue}
 					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
-					title={currentPath}
+					title="Copy value"
 				>
 					<Copy size={11} />
 				</button>
@@ -239,7 +240,7 @@ export default function JsonTreeView({ data, collapseSignal, search = '', active
 
 	return (
 		<TreeControlContext.Provider value={ctx}>
-			<div ref={containerRef} className="bg-surface-alt border border-border rounded-lg p-4 font-mono text-sm min-h-45 max-h-150 overflow-auto">
+		                  	<div ref={containerRef} className="bg-surface-alt border border-border rounded-lg p-4 font-mono text-sm min-h-45 h-full overflow-auto">
 				<JsonTreeNode nodeKey={null} value={data} depth={0} path="$" />
 			</div>
 		</TreeControlContext.Provider>
