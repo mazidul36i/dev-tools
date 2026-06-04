@@ -11,3 +11,7 @@ firebase-debug.log
 
 # IDE files
 .idea
+
+# Environment files
+.env*
+.npmrc
