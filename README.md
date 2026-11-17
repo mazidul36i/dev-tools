@@ -24,6 +24,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | URL Parser | `/tools/url-parser` | URL encode/decode |
 | Color Picker | `/tools/color-picker` | HEX/RGB/HSL picker with palette management |
 | Network Status | `/tools/network-status` | Real-time network monitoring with history |
+| HTML Preview | `/tools/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
 
 ## Development
 

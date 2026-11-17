@@ -9,20 +9,23 @@ import Footer from '@components/layout/Footer';
 
 interface ToolLayoutProps {
   title: string;
+  /** Optional longer, keyword-rich title for the browser tab / OG tags. Defaults to `title`. */
+  seoTitle?: string;
   tagline?: string;
   metaDescription?: string;
   children: ReactNode;
 }
 
-export default function ToolLayout({ title, tagline, metaDescription, children }: ToolLayoutProps) {
+export default function ToolLayout({ title, seoTitle, tagline, metaDescription, children }: ToolLayoutProps) {
+  const pageTitle = `${seoTitle || title} | DevTools`;
   return (
     <div className="flex flex-col h-screen relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
       <BackgroundBlobs />
 
       <Helmet>
-        <title>{title} | DevTools</title>
+        <title>{pageTitle}</title>
         {metaDescription && <meta name="description" content={metaDescription} />}
-        <meta property="og:title" content={`${title} | DevTools`} />
+        <meta property="og:title" content={pageTitle} />
         {metaDescription && <meta property="og:description" content={metaDescription} />}
       </Helmet>
 

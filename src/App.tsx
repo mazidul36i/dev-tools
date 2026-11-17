@@ -12,6 +12,7 @@ const NetworkStatusPage = lazy(() => import('@pages/tools/network-status/Network
 const UuidGeneratorPage = lazy(() => import('@pages/tools/uuid-generator/UuidGeneratorPage'));
 const GzipConverterPage = lazy(() => import('@pages/tools/gzip-converter/GzipConverterPage'));
 const CsvToSqlPage = lazy(() => import('@pages/tools/csv-to-sql/CsvToSqlPage'));
+const HtmlPreviewPage = lazy(() => import('@pages/tools/html-preview/HtmlPreviewPage'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/tools/uuid-generator" element={<UuidGeneratorPage/>}/>
         <Route path="/tools/gzip-converter" element={<GzipConverterPage/>}/>
         <Route path="/tools/csv-to-sql" element={<CsvToSqlPage/>}/>
+        <Route path="/tools/html-preview" element={<HtmlPreviewPage/>}/>
         <Route path="*" element={<NotFoundPage/>}/>
       </Routes>
     </Suspense>
