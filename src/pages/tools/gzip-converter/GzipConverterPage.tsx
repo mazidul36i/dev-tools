@@ -1,13 +1,10 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { ArrowUpDown, Clipboard, Download, Eraser } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
 import Card from '@components/ui/Card';
 import InfoCard from '@components/ui/InfoCard';
-import CopyButton from '@components/ui/CopyButton';
-import { PrimaryButton, SecondaryButton, SmallButton } from '@components/ui/Button';
-import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
-import { downloadFile } from '@lib/download-utils';
+import ToolIO from '@components/ui/ToolIO';
+import { PrimaryButton } from '@components/ui/Button';
 import { compressGzip, decompressGzip } from '@lib/gzip-utils';
 
 export default function GzipConverterPage() {
@@ -37,13 +34,6 @@ export default function GzipConverterPage() {
   }, [input]);
 
   const handleSwap = useCallback(() => { setInput(output); setOutput(input); }, [input, output]);
-  const handlePaste = useCallback(async () => {
-    try { setInput(await navigator.clipboard.readText()); } catch { toast.error('Unable to paste'); }
-  }, []);
-  const handleDownload = useCallback(() => {
-    if (!output) { toast.error('No content to download'); return; }
-    downloadFile(output, 'gzip-output.txt');
-  }, [output]);
 
   return (
     <ToolLayout
@@ -52,40 +42,21 @@ export default function GzipConverterPage() {
       metaDescription="Compress text to gzip (base64-encoded) or decompress base64-encoded gzip data back to text. Supports partial recovery for corrupted data."
     >
       <Card>
-        <div className="p-6 space-y-6">
-          {/* Input */}
-          <div>
-            <label htmlFor="gzip-input" className="block text-sm font-medium text-text-secondary mb-2">
-              Input:
-            </label>
-            <TextAreaInput
-              id="gzip-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter plain text to compress, or base64-encoded gzip data (H4sIA...) to decompress..."
-            />
-            <div className="flex gap-2 mt-2">
-              <SmallButton onClick={() => setInput('')}><Eraser size={12} /> Clear</SmallButton>
-              <SmallButton onClick={handlePaste}><Clipboard size={12} /> Paste</SmallButton>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <PrimaryButton onClick={handleCompress}>Compress (Gzip)</PrimaryButton>
-            <PrimaryButton onClick={handleDecompress}>Decompress (Gunzip)</PrimaryButton>
-            <SecondaryButton onClick={handleSwap} title="Swap input and output"><ArrowUpDown size={15} /> Swap</SecondaryButton>
-          </div>
-
-          {/* Output */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Output:</label>
-            <TextAreaOutput value={output} placeholder="Result will appear here..." />
-            <div className="flex gap-2 mt-2">
-              <CopyButton text={output} label="Copy" size="sm" />
-              <SmallButton onClick={handleDownload}><Download size={12} /> Download</SmallButton>
-            </div>
-          </div>
+        <div className="p-6">
+          <ToolIO
+            input={input}
+            onInputChange={setInput}
+            output={output}
+            onSwap={handleSwap}
+            inputPlaceholder="Enter plain text to compress, or base64-encoded gzip data (H4sIA...) to decompress..."
+            downloadName="gzip-output.txt"
+            actions={
+              <>
+                <PrimaryButton onClick={handleCompress}>Compress (Gzip)</PrimaryButton>
+                <PrimaryButton onClick={handleDecompress}>Decompress (Gunzip)</PrimaryButton>
+              </>
+            }
+          />
         </div>
       </Card>
 
