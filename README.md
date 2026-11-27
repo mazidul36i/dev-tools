@@ -30,6 +30,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | HTML Preview | `/tools/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
 | JWT Decoder | `/tools/jwt-decoder` | Decode JWTs, show expiry, verify HS/RS/PS/ES signatures with a secret or public key |
 | Unix Timestamp Converter | `/tools/timestamp-converter` | Epoch (s/ms/µs/ns) ↔ ISO 8601, RFC 2822 and any time zone, with a live clock |
+| Hash Generator | `/tools/hash-generator` | MD5, SHA-1/256/384/512, CRC32 and HMAC for text or files, with checksum comparison |
 
 ## Development
 

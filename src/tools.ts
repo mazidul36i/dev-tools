@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock,
+  ShieldCheck, Clock, Hash,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -153,6 +153,15 @@ export const tools: ToolDefinition[] = [
     category: 'Converters',
     keywords: ['epoch', 'unix time', 'date', 'iso 8601', 'timezone', 'milliseconds'],
     component: lazy(() => import('@pages/tools/timestamp-converter/TimestampConverterPage')),
+  },
+  {
+    slug: 'hash-generator',
+    title: 'Hash Generator',
+    desc: 'Compute MD5, SHA-1, SHA-256/384/512 and CRC32 hashes or HMACs of text and files',
+    icon: Hash, color: 'text-lime-600', bg: 'bg-lime-100 dark:bg-lime-900/30',
+    category: 'Encoders & Crypto',
+    keywords: ['md5', 'sha1', 'sha256', 'sha512', 'crc32', 'checksum', 'hmac', 'digest'],
+    component: lazy(() => import('@pages/tools/hash-generator/HashGeneratorPage')),
   },
 ];
 
