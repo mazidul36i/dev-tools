@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -261,6 +261,15 @@ export const tools: ToolDefinition[] = [
     category: 'Web & Network',
     keywords: ['linux permissions', 'unix', 'file mode', 'rwx', '755', '644', 'setuid', 'sticky bit'],
     component: lazy(() => import('@pages/tools/chmod-calculator/ChmodCalculatorPage')),
+  },
+  {
+    slug: 'cidr-calculator',
+    title: 'Subnet / CIDR Calculator',
+    desc: 'IPv4 and IPv6 network, broadcast, host range and netmask; split subnets and convert ranges',
+    icon: Network, color: 'text-teal-600', bg: 'bg-teal-100 dark:bg-teal-900/30',
+    category: 'Web & Network',
+    keywords: ['subnet', 'ip calculator', 'netmask', 'ipv4', 'ipv6', 'cidr', 'network address', 'broadcast'],
+    component: lazy(() => import('@pages/tools/cidr-calculator/CidrCalculatorPage')),
   },
 ];
 

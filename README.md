@@ -47,6 +47,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Markdown Preview | `/tools/markdown-preview` | GFM editor with sanitised live preview, light/dark, TOC copy and .md/.html export |
 | Cron Expression Helper | `/tools/cron-parser` | Plain-English cron descriptions, per-field editor, presets/macros and next run times |
 | Chmod Calculator | `/tools/chmod-calculator` | Permission checkboxes ↔ octal ↔ symbolic, special bits, chmod expressions and commands |
+| Subnet / CIDR Calculator | `/tools/cidr-calculator` | IPv4/IPv6 network, broadcast, host range, masks; subnet splitting and range → CIDR |
 
 ## Development
 
