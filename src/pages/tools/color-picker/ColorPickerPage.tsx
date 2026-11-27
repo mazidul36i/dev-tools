@@ -1,231 +1,303 @@
-import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
+import { useRef, useCallback, useMemo, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { toast } from 'sonner';
-import { Shuffle, RotateCcw, Plus, Trash2, Download } from 'lucide-react';
+import { Shuffle, Plus, Trash2, X, Sparkles } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import CopyButton from '@components/ui/CopyButton';
-import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import CodeBlock from '@components/ui/CodeBlock';
+import Button from '@components/ui/Button';
+import Badge from '@components/ui/Badge';
 import SegmentedControl from '@components/ui/SegmentedControl';
+import { Panel, ResultRows } from '@components/workspace';
 import useLocalStorage from '@hooks/useLocalStorage';
-import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor, type RGB } from '@lib/color-utils';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { opt } from '@lib/url-state';
+import { hexToRgb, rgbToHex, rgbToHsl, hslToRgb, generateRandomColor, contrastRatio, type RGB } from '@lib/color-utils';
 
-export default function ColorPickerPage() {
-  const [rgb, setRgb] = useState<RGB>({ r: 255, g: 255, b: 255 });
-  const [palette, setPalette] = useLocalStorage<string[]>('colorPalette', []);
-  const [exportFormat, setExportFormat] = useState<'css' | 'scss' | 'json'>('css');
-  const [showExport, setShowExport] = useState(false);
-  const gradientRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
+const schema = {
+  c: opt.str('2563eb', 8),
+  fmt: opt.oneOf(['css', 'scss', 'json', 'tailwind'] as const, 'css'),
+};
 
-  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
-  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+const WHITE = { r: 255, g: 255, b: 255 };
+const BLACK = { r: 0, g: 0, b: 0 };
 
-  const hslHueRef = useRef(hsl.h);
-  hslHueRef.current = hsl.h;
+const numInput =
+  'w-16 h-8 px-2 rounded-md bg-surface-alt border border-border-strong text-sm text-center text-text tabular-nums focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25';
 
-  const updateFromRgb = useCallback((newRgb: RGB) => {
-    setRgb({
-      r: Math.max(0, Math.min(255, Math.round(newRgb.r))),
-      g: Math.max(0, Math.min(255, Math.round(newRgb.g))),
-      b: Math.max(0, Math.min(255, Math.round(newRgb.b))),
-    });
-  }, []);
+function parseHex(value: string): RGB | null {
+  const h = value.trim().replace(/^#/, '');
+  if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h)) return null;
+  try {
+    return hexToRgb(`#${h}`);
+  } catch {
+    return null;
+  }
+}
 
-  const handleHexInput = useCallback((val: string) => {
-    let h = val.startsWith('#') ? val : '#' + val;
-    if (h.length >= 4) { try { updateFromRgb(hexToRgb(h)); } catch {} }
-  }, [updateFromRgb]);
+function clampRgb(c: RGB): RGB {
+  const f = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
+  return { r: f(c.r), g: f(c.g), b: f(c.b) };
+}
 
-  const handleGradientInteraction = useCallback((e: MouseEvent | TouchEvent | React.MouseEvent | React.TouchEvent) => {
-    const rect = gradientRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const clientX = 'touches' in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
-    let x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    let y = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
-    updateFromRgb(hslToRgb(hslHueRef.current, Math.round(x * 100), Math.round(y * 100)));
-  }, [updateFromRgb]);
-
-  const onPointerDown = (e: React.MouseEvent | React.TouchEvent) => { isDragging.current = true; handleGradientInteraction(e); };
-  useEffect(() => {
-    const onMove = (e: MouseEvent | TouchEvent) => { if (isDragging.current) handleGradientInteraction(e); };
-    const onUp = () => { isDragging.current = false; };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-    document.addEventListener('touchmove', onMove);
-    document.addEventListener('touchend', onUp);
-    return () => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp); };
-  }, [handleGradientInteraction]);
-
-  const handleRandom = useCallback(() => { updateFromRgb(generateRandomColor()); toast.success('Random color generated!'); }, [updateFromRgb]);
-
-  const addToPalette = useCallback(() => {
-    if (palette.includes(hex)) { toast.info('Color already in palette'); return; }
-    setPalette([...palette, hex]);
-    toast.success(`${hex} saved to palette`);
-  }, [hex, palette, setPalette]);
-
-  const generatePalette = useCallback(() => {
-    const baseH = Math.floor(Math.random() * 360);
-    const baseS = 70 + Math.floor(Math.random() * 30);
-    const baseL = 45 + Math.floor(Math.random() * 15);
-    const colors = [
-      [baseH, baseS, baseL], [(baseH + 180) % 360, baseS, baseL],
-      [(baseH + 30) % 360, baseS, baseL], [(baseH + 330) % 360, baseS, baseL],
-      [baseH, baseS, Math.max(baseL - 30, 10)],
-    ].map(([h, s, l]) => { const c = hslToRgb(h, s, l); return rgbToHex(c.r, c.g, c.b); });
-    setPalette(colors);
-    toast.success('Palette generated!');
-  }, [setPalette]);
-
-  const exportCode = useMemo((): string => {
-    if (palette.length === 0) return '';
-    switch (exportFormat) {
-      case 'css': return ':root {\n' + palette.map((h, i) => `  --color-${i + 1}: ${h};`).join('\n') + '\n}';
-      case 'scss': return palette.map((h, i) => `$color-${i + 1}: ${h};`).join('\n');
-      case 'json': return JSON.stringify(Object.fromEntries(palette.map((h, i) => [`color${i + 1}`, h])), null, 2);
-      default: return '';
-    }
-  }, [palette, exportFormat]);
-
+function ContrastBadge({ ratio, on }: { ratio: number; on: string }) {
+  const level = ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : ratio >= 3 ? 'AA large' : 'Fail';
+  const tone = level === 'Fail' ? 'error' : level === 'AA large' ? 'warning' : 'success';
   return (
-    <ToolLayout
-      title="Color Picker Tool"
-      tagline="Pick colors and convert between formats with live preview"
-      metaDescription="Pick colors and convert between HEX, RGB, HSL formats with live preview. Create and export color palettes."
-    >
-      <Card>
-        <div className="p-6 space-y-6">
-          {/* Color Inputs */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="hex-input" className="block text-sm font-medium text-text-secondary mb-2">HEX Color:</label>
-              <div className="flex gap-2">
-                <input id="hex-input" type="text" value={hex} onChange={(e) => handleHexInput(e.target.value)} maxLength={9} className="flex-1 p-2.5 bg-surface border border-border rounded-lg font-mono text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50" />
-                <CopyButton text={hex} label="Copy" size="sm" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">RGB Color:</label>
-              <div className="flex gap-1.5 items-center">
-                {(['r', 'g', 'b'] as const).map((c) => (
-                  <div key={c} className="flex items-center gap-1">
-                    <label htmlFor={`rgb-${c}`} className="text-xs font-medium text-text-muted uppercase">{c}:</label>
-                    <input id={`rgb-${c}`} type="number" min={0} max={255} value={rgb[c]} onChange={(e) => updateFromRgb({ ...rgb, [c]: Number(e.target.value) || 0 })} className="w-16 p-2 bg-surface border border-border rounded-lg text-sm text-center text-text focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                  </div>
-                ))}
-                <CopyButton text={`rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`} label="Copy" size="sm" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">HSL Color:</label>
-              <div className="flex gap-1.5 items-center">
-                {[['h', hsl.h, 360], ['s', hsl.s, 100], ['l', hsl.l, 100]].map(([k, v, max]) => (
-                  <div key={k} className="flex items-center gap-1">
-                    <label htmlFor={`hsl-${k}`} className="text-xs font-medium text-text-muted uppercase">{k}:</label>
-                    <input id={`hsl-${k}`} type="number" min={0} max={max} value={v}
-                      onChange={(e) => updateFromRgb(hslToRgb(k === 'h' ? Number(e.target.value) : hsl.h, k === 's' ? Number(e.target.value) : hsl.s, k === 'l' ? Number(e.target.value) : hsl.l))}
-                      className="w-16 p-2 bg-surface border border-border rounded-lg text-sm text-center text-text focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                    {k !== 'h' && <span className="text-xs text-text-muted">%</span>}
-                  </div>
-                ))}
-                <CopyButton text={`hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`} label="Copy" size="sm" />
-              </div>
-            </div>
-          </div>
-
-          {/* Gradient + Preview */}
-          <div className="grid md:grid-cols-[1fr_200px] gap-5">
-            <div className="space-y-4">
-              <div
-                ref={gradientRef}
-                onMouseDown={onPointerDown}
-                onTouchStart={onPointerDown}
-                className="relative w-full h-56 rounded-lg cursor-crosshair border border-border overflow-hidden select-none"
-                role="slider" tabIndex={0}
-                aria-label="Color gradient picker"
-                aria-valuetext={`Saturation ${hsl.s}%, Lightness ${hsl.l}%`}
-                style={{ background: `linear-gradient(to top, black, transparent 50%, white), linear-gradient(to right, white, hsl(${hsl.h}, 100%, 50%))` }}
-              >
-                <div className="absolute w-4 h-4 rounded-full border-2 border-white shadow-elevated -translate-x-1/2 -translate-y-1/2 pointer-events-none" style={{ left: `${hsl.s}%`, top: `${100 - hsl.l}%`, backgroundColor: hex }} />
-              </div>
-              <input
-                type="range" min={0} max={360} value={hsl.h}
-                aria-label="Hue slider"
-                onChange={(e) => updateFromRgb(hslToRgb(Number(e.target.value), hsl.s, hsl.l))}
-                className="w-full h-3 rounded-full appearance-none cursor-pointer"
-                style={{ background: 'linear-gradient(to right, #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)' }}
-              />
-              <div className="flex flex-wrap gap-2">
-                <PrimaryButton onClick={handleRandom}><Shuffle size={15} /> Random</PrimaryButton>
-                <SecondaryButton onClick={() => updateFromRgb({ r: 255, g: 255, b: 255 })}><RotateCcw size={15} /> Reset</SecondaryButton>
-                <PrimaryButton onClick={addToPalette}><Plus size={15} /> Save to Palette</PrimaryButton>
-              </div>
-            </div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-full h-36 rounded-xl shadow-card border border-border" style={{ backgroundColor: hex }} aria-label={`Color preview: ${hex}`} />
-              <div className="text-center space-y-1 text-sm font-mono">
-                <div className="font-medium text-text">{hex}</div>
-                <div className="text-text-muted">rgb({rgb.r}, {rgb.g}, {rgb.b})</div>
-                <div className="text-text-muted">hsl({hsl.h}, {hsl.s}%, {hsl.l}%)</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Palette */}
-          <div className="border-t border-border pt-5">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <PrimaryButton onClick={generatePalette}>Generate Palette</PrimaryButton>
-              <SecondaryButton onClick={() => setShowExport(!showExport)}><Download size={14} /> Export as Code</SecondaryButton>
-              <SecondaryButton onClick={() => { setPalette([]); toast.success('Palette cleared'); }}><Trash2 size={14} /> Clear</SecondaryButton>
-            </div>
-            {palette.length === 0 ? (
-              <p className="text-sm text-text-muted italic">Your palette is empty. Pick colors and save them here.</p>
-            ) : (
-              <div className="flex flex-wrap gap-3">
-                {palette.map((c, i) => (
-                  <div key={`${c}-${i}`} className="group text-center cursor-pointer" onClick={() => { try { updateFromRgb(hexToRgb(c)); } catch {} }} onDoubleClick={() => { setPalette(palette.filter((_, j) => j !== i)); toast.success('Removed'); }}>
-                    <div className="w-14 h-14 rounded-lg shadow-soft border border-border group-hover:scale-110 transition-transform" style={{ backgroundColor: c }} title="Click to use, double-click to remove" />
-                    <div className="text-xs font-mono text-text-muted mt-1">{c}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-            {showExport && palette.length > 0 && (
-              <div className="mt-4 bg-surface-alt border border-border rounded-lg p-4 space-y-3">
-                <SegmentedControl
-                  options={[{ id: 'css', label: 'CSS' }, { id: 'scss', label: 'SCSS' }, { id: 'json', label: 'JSON' }]}
-                  value={exportFormat}
-                  onChange={(id) => setExportFormat(id as 'css' | 'scss' | 'json')}
-                />
-                <textarea value={exportCode} readOnly className="w-full p-3 bg-surface border border-border rounded-lg font-mono text-xs text-text-secondary min-h-25" />
-                <CopyButton text={exportCode} label="Copy Code" />
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-
-      <InfoCard title="About Color Conversion">
-          <p className="text-text-muted leading-relaxed mb-4">Colors can be represented in different formats for web development:</p>
-          <ul className="space-y-2 text-sm text-text-muted mb-6">
-            <li><strong className="text-text-secondary">HEX</strong> — Hexadecimal notation (#RRGGBB) used in CSS</li>
-            <li><strong className="text-text-secondary">RGB</strong> — Red, Green, Blue model (rgb(R, G, B))</li>
-            <li><strong className="text-text-secondary">HSL</strong> — Hue, Saturation, Lightness (hsl(H, S%, L%))</li>
-          </ul>
-          <div className="flex flex-wrap gap-4">
-            {[['#FF5733', 'rgb(255,87,51)', 'hsl(14,100%,60%)'], ['#3498DB', 'rgb(52,152,219)', 'hsl(204,70%,53%)'], ['#2ECC71', 'rgb(46,204,113)', 'hsl(145,63%,49%)']].map(([h, r, l]) => (
-              <div key={h} className="flex items-center gap-3 bg-surface-alt rounded-lg p-3 border border-border">
-                <div className="w-10 h-10 rounded-lg shadow-soft" style={{ backgroundColor: h }} />
-                <div className="text-xs font-mono space-y-0.5 text-text-muted">
-                  <div>{h}</div><div>{r}</div><div>{l}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-      </InfoCard>
-    </ToolLayout>
+    <Badge tone={tone}>
+      {ratio.toFixed(2)}:1 on {on} · {level}
+    </Badge>
   );
 }
 
+export default function ColorPickerPage() {
+  const [o, setO] = useUrlOptions(schema);
+  const rgb = useMemo(() => parseHex(o.c) ?? { r: 37, g: 99, b: 235 }, [o.c]);
+  const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+  const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+  const [hexDraft, setHexDraft] = useState<string | null>(null);
+  const [palette, setPalette] = useLocalStorage<string[]>('colorPalette', []);
+  const areaRef = useRef<HTMLDivElement>(null);
+  // Hue is lost for greys (s = 0); keep the last chosen hue for the picker area.
+  const [hue, setHue] = useState(hsl.h);
+  const shownHue = hsl.s === 0 ? hue : hsl.h;
+
+  const setColor = useCallback((c: RGB) => {
+    const next = clampRgb(c);
+    setO({ c: rgbToHex(next.r, next.g, next.b).slice(1).toLowerCase() });
+  }, [setO]);
+
+  const setFromArea = (clientX: number, clientY: number) => {
+    const rect = areaRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const s = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const l = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height));
+    setColor(hslToRgb(shownHue, Math.round(s * 100), Math.round(l * 100)));
+  };
+
+  const onAreaPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setFromArea(e.clientX, e.clientY);
+  };
+  const onAreaPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) setFromArea(e.clientX, e.clientY);
+  };
+  const onAreaKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = e.shiftKey ? 10 : 1;
+    let { s, l } = hsl;
+    if (e.key === 'ArrowLeft') s -= step;
+    else if (e.key === 'ArrowRight') s += step;
+    else if (e.key === 'ArrowUp') l += step;
+    else if (e.key === 'ArrowDown') l -= step;
+    else return;
+    e.preventDefault();
+    setColor(hslToRgb(shownHue, Math.max(0, Math.min(100, s)), Math.max(0, Math.min(100, l))));
+  };
+
+  const addToPalette = () => {
+    if (palette.includes(hex)) return toast.info(`${hex} is already in the palette`);
+    setPalette([...palette, hex]);
+  };
+
+  const generatePalette = () => {
+    const h = hsl.h;
+    const colors = [[h, hsl.s, hsl.l], [(h + 180) % 360, hsl.s, hsl.l], [(h + 30) % 360, hsl.s, hsl.l], [(h + 330) % 360, hsl.s, hsl.l], [h, hsl.s, Math.max(hsl.l - 30, 10)]]
+      .map(([hh, ss, ll]) => { const c = hslToRgb(hh, ss, ll); return rgbToHex(c.r, c.g, c.b); });
+    setPalette(colors);
+  };
+
+  const exportCode = useMemo((): string => {
+    if (palette.length === 0) return '';
+    switch (o.fmt) {
+      case 'css': return ':root {\n' + palette.map((h, i) => `  --color-${i + 1}: ${h};`).join('\n') + '\n}';
+      case 'scss': return palette.map((h, i) => `$color-${i + 1}: ${h};`).join('\n');
+      case 'json': return JSON.stringify(Object.fromEntries(palette.map((h, i) => [`color${i + 1}`, h])), null, 2);
+      case 'tailwind': return '@theme {\n' + palette.map((h, i) => `  --color-brand-${(i + 1) * 100}: ${h};`).join('\n') + '\n}';
+    }
+  }, [palette, o.fmt]);
+
+  const onWhite = contrastRatio(rgb, WHITE);
+  const onBlack = contrastRatio(rgb, BLACK);
+  const hexValue = hexDraft ?? hex;
+
+  return (
+    <ToolLayout
+      seoTitle="Color Picker & Converter – HEX, RGB, HSL with Contrast Check"
+      tagline="Pick a colour, convert HEX/RGB/HSL, check WCAG contrast and build a palette"
+      metaDescription="Pick colors and convert between HEX, RGB and HSL with live preview. Check WCAG contrast on white and black, and build and export palettes as CSS, SCSS, JSON or Tailwind."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">HEX</strong> (#RRGGBB) is the usual CSS notation. <strong className="text-text">RGB</strong> gives the red, green and blue channels (0–255).</li>
+          <li><strong className="text-text">HSL</strong> (hue, saturation, lightness) is easiest to adjust by hand: keep the hue and change lightness for tints and shades.</li>
+          <li><strong className="text-text">Contrast.</strong> Body text needs 4.5:1 against its background (AA), large text 3:1, and 7:1 meets AAA. The picker area works with arrow keys (Shift for ×10).</li>
+        </ul>
+      }
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] items-start">
+        <Panel
+          title="Picker"
+          bodyClassName="p-4 space-y-4"
+          actions={
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setColor(generateRandomColor())}><Shuffle size={13} aria-hidden="true" /> Random</Button>
+              <Button variant="ghost" size="sm" onClick={addToPalette}><Plus size={13} aria-hidden="true" /> Save</Button>
+            </>
+          }
+        >
+          <div
+            ref={areaRef}
+            role="slider"
+            tabIndex={0}
+            aria-label="Saturation and lightness"
+            aria-valuetext={`Saturation ${hsl.s}%, lightness ${hsl.l}%`}
+            aria-valuenow={hsl.l}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            onPointerDown={onAreaPointerDown}
+            onPointerMove={onAreaPointerMove}
+            onKeyDown={onAreaKeyDown}
+            className="relative w-full h-60 rounded-md cursor-crosshair border border-border overflow-hidden select-none touch-none focus-ring"
+            style={{ background: `linear-gradient(to top, black, transparent 50%, white), linear-gradient(to right, hsl(${shownHue}, 0%, 50%), hsl(${shownHue}, 100%, 50%))` }}
+          >
+            <div
+              className="absolute w-4 h-4 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/0.4)] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+              style={{ left: `${hsl.s}%`, top: `${100 - hsl.l}%`, backgroundColor: hex }}
+            />
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={360}
+            value={shownHue}
+            aria-label="Hue"
+            onChange={(e) => { const h = Number(e.target.value); setHue(h); setColor(hslToRgb(h, hsl.s || 100, hsl.s === 0 ? 50 : hsl.l)); }}
+            className="w-full h-3 rounded-full appearance-none cursor-pointer"
+            style={{ background: 'linear-gradient(to right, #f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)' }}
+          />
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label htmlFor="hex-input" className="block mb-1 text-xs text-text-muted">HEX</label>
+              <input
+                id="hex-input"
+                value={hexValue}
+                onChange={(e) => {
+                  setHexDraft(e.target.value);
+                  const c = parseHex(e.target.value);
+                  if (c) setColor(c);
+                }}
+                onBlur={() => setHexDraft(null)}
+                maxLength={7}
+                spellCheck={false}
+                aria-invalid={hexDraft !== null && !parseHex(hexDraft)}
+                className="w-full h-8 px-2 rounded-md bg-surface-alt border border-border-strong font-mono text-sm text-text uppercase focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25 aria-invalid:border-error"
+              />
+            </div>
+            <fieldset className="min-w-0">
+              <legend className="mb-1 text-xs text-text-muted">RGB</legend>
+              <div className="flex gap-1">
+                {(['r', 'g', 'b'] as const).map((c) => (
+                  <input key={c} type="number" min={0} max={255} aria-label={c.toUpperCase()} value={rgb[c]} onChange={(e) => setColor({ ...rgb, [c]: Number(e.target.value) || 0 })} className={numInput} />
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="min-w-0">
+              <legend className="mb-1 text-xs text-text-muted">HSL</legend>
+              <div className="flex gap-1">
+                {([['h', hsl.h, 360, 'Hue'], ['s', hsl.s, 100, 'Saturation %'], ['l', hsl.l, 100, 'Lightness %']] as const).map(([k, v, max, label]) => (
+                  <input
+                    key={k}
+                    type="number"
+                    min={0}
+                    max={max}
+                    aria-label={label}
+                    value={v}
+                    onChange={(e) => {
+                      const n = Number(e.target.value) || 0;
+                      setColor(hslToRgb(k === 'h' ? n : hsl.h, k === 's' ? n : hsl.s, k === 'l' ? n : hsl.l));
+                    }}
+                    className={numInput}
+                  />
+                ))}
+              </div>
+            </fieldset>
+          </div>
+        </Panel>
+
+        <div className="space-y-4 min-w-0">
+          <Panel title="Colour" bodyClassName="p-4 space-y-4">
+            <div className="h-28 rounded-md border border-border" style={{ backgroundColor: hex }} role="img" aria-label={`Colour preview ${hex}`} />
+            <ResultRows
+              labelWidth="sm:w-14"
+              rows={[
+                { label: 'HEX', value: hex },
+                { label: 'RGB', value: `rgb(${rgb.r} ${rgb.g} ${rgb.b})` },
+                { label: 'HSL', value: `hsl(${hsl.h} ${hsl.s}% ${hsl.l}%)` },
+              ]}
+            />
+            <div className="flex flex-wrap gap-1.5" aria-label="Contrast">
+              <ContrastBadge ratio={onWhite} on="white" />
+              <ContrastBadge ratio={onBlack} on="black" />
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm font-medium">
+              <div className="rounded-md px-3 py-2 bg-white border border-border" style={{ color: hex }}>Text on white</div>
+              <div className="rounded-md px-3 py-2 bg-black" style={{ color: hex }}>Text on black</div>
+            </div>
+          </Panel>
+        </div>
+      </div>
+
+      <Panel
+        title={`Palette · ${palette.length}`}
+        className="mt-4"
+        bodyClassName="p-4 space-y-4"
+        actions={
+          <>
+            <Button variant="ghost" size="sm" onClick={generatePalette} title="Complementary and analogous colours from the current one">
+              <Sparkles size={13} aria-hidden="true" /> Generate from colour
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setPalette([])} disabled={!palette.length}>
+              <Trash2 size={13} aria-hidden="true" /> Clear
+            </Button>
+          </>
+        }
+      >
+        {palette.length === 0 ? (
+          <p className="text-sm text-text-muted">Save colours here with “Save”, or generate a palette from the current colour. It’s kept in this browser.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-3">
+            {palette.map((c, i) => (
+              <li key={`${c}-${i}`} className="relative group">
+                <button
+                  type="button"
+                  onClick={() => { const p = parseHex(c); if (p) setColor(p); }}
+                  className="flex flex-col items-center gap-1 rounded-md focus-ring"
+                  aria-label={`Use ${c}`}
+                >
+                  <span className="block w-14 h-14 rounded-md border border-border" style={{ backgroundColor: c }} />
+                  <span className="text-xs font-mono text-text-muted">{c}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPalette(palette.filter((_, j) => j !== i))}
+                  aria-label={`Remove ${c}`}
+                  className="absolute -top-1.5 -right-1.5 grid place-items-center w-5 h-5 rounded-full bg-surface border border-border-strong text-text-muted hover:text-error opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-ring"
+                >
+                  <X size={11} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {palette.length > 0 && (
+          <div className="space-y-2">
+            <SegmentedControl
+              ariaLabel="Export format"
+              options={[{ id: 'css', label: 'CSS' }, { id: 'scss', label: 'SCSS' }, { id: 'json', label: 'JSON' }, { id: 'tailwind', label: 'Tailwind v4' }]}
+              value={o.fmt}
+              onChange={(id) => setO({ fmt: id as typeof o.fmt })}
+            />
+            <CodeBlock title="Export" code={exportCode} />
+          </div>
+        )}
+      </Panel>
+    </ToolLayout>
+  );
+}

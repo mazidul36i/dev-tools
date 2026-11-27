@@ -78,3 +78,18 @@ export function generateRandomColor(): RGB {
   const l = Math.floor(Math.random() * 40) + 30;
   return hslToRgb(h, s, l);
 }
+
+/** WCAG relative luminance (0 = black, 1 = white). */
+export function relativeLuminance({ r, g, b }: RGB): number {
+  const lin = (c: number) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+/** WCAG contrast ratio between two colours (1–21). */
+export function contrastRatio(a: RGB, b: RGB): number {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
