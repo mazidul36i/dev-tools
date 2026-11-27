@@ -14,6 +14,7 @@ A collection of free, browser-based web developer utilities built with **React +
 - **Tesseract.js** — Client-side OCR for Image-to-Text
 - **Recharts** — Charts for Network Status statistics
 - **yaml** — YAML parsing / serialisation for YAML ↔ JSON
+- **diff** (jsdiff) — Myers diff for Text Diff
 
 ## Available Tools
 
@@ -35,6 +36,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Regex Tester | `/tools/regex-tester` | Live match highlighting, capture/named groups, replace preview, presets and cheat sheet |
 | YAML ↔ JSON | `/tools/yaml-json` | Two-way conversion with anchors, merge keys, multi-document streams and error locations |
 | JSON to Types | `/tools/json-to-types` | TypeScript, Go, Java, Kotlin, Python and Rust types from sample JSON (optional/nullable detection) |
+| Text Diff | `/tools/text-diff` | Side-by-side / inline diff with word or character highlights, ignore options and unified patch |
 
 ## Development
 

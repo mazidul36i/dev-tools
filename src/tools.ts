@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -189,6 +189,15 @@ export const tools: ToolDefinition[] = [
     category: 'Converters',
     keywords: ['typescript interface', 'go struct', 'java class', 'kotlin data class', 'python dataclass', 'rust serde', 'quicktype', 'dto'],
     component: lazy(() => import('@pages/tools/json-to-types/JsonToTypesPage')),
+  },
+  {
+    slug: 'text-diff',
+    title: 'Text Diff',
+    desc: 'Compare two texts side by side or inline with word and character highlighting',
+    icon: GitCompare, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-900/30',
+    category: 'Text',
+    keywords: ['compare', 'difference', 'diff checker', 'patch', 'merge', 'changes'],
+    component: lazy(() => import('@pages/tools/text-diff/TextDiffPage')),
   },
 ];
 
