@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck,
+  ShieldCheck, Clock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -144,6 +144,15 @@ export const tools: ToolDefinition[] = [
     category: 'Encoders & Crypto',
     keywords: ['json web token', 'bearer', 'oauth', 'claims', 'verify', 'hs256', 'rs256'],
     component: lazy(() => import('@pages/tools/jwt-decoder/JwtDecoderPage')),
+  },
+  {
+    slug: 'timestamp-converter',
+    title: 'Unix Timestamp Converter',
+    desc: 'Convert Unix epoch timestamps to readable dates and back, in any time zone',
+    icon: Clock, color: 'text-sky-500', bg: 'bg-sky-100 dark:bg-sky-900/30',
+    category: 'Converters',
+    keywords: ['epoch', 'unix time', 'date', 'iso 8601', 'timezone', 'milliseconds'],
+    component: lazy(() => import('@pages/tools/timestamp-converter/TimestampConverterPage')),
   },
 ];
 
