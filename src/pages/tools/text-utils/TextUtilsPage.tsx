@@ -1,12 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { Clipboard, Eraser, Redo2, Undo2 } from 'lucide-react';
+import { Redo2, Undo2 } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
 import CopyButton from '@components/ui/CopyButton';
-import { SmallButton } from '@components/ui/Button';
-import { TextAreaInput } from '@components/ui/TextArea';
+import Button from '@components/ui/Button';
+import { EditorPanel, Panel } from '@components/workspace';
+import { useShareInput } from '@hooks/useShareInput';
 import {
   CASE_STYLES, LINE_OPERATIONS, applyLineOperation, convertCase, slugify, textStats,
   type CaseStyle, type LineOperation,
@@ -42,25 +40,29 @@ function useHistory(initial: string) {
 
 const formatNumber = (n: number) => n.toLocaleString();
 
+const action =
+  'inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring disabled:opacity-40 disabled:pointer-events-none';
+
+function Group({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div role="group" aria-label={title} className="space-y-1.5">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+        {title} {hint && <span className="font-normal normal-case tracking-normal">· {hint}</span>}
+      </h3>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+}
+
 export default function TextUtilsPage() {
   const text = useHistory(SAMPLE);
   const stats = useMemo(() => textStats(text.value), [text.value]);
 
-  const apply = (fn: (t: string) => string) => {
-    if (!text.value) {
-      toast.error('Enter some text first');
-      return;
-    }
-    text.set(fn(text.value));
-  };
+  useShareInput({ text: text.value }, (d) => d.text !== undefined && text.set(d.text), { enabled: text.value.length > 0 });
 
-  const paste = useCallback(async () => {
-    try {
-      text.set(await navigator.clipboard.readText());
-    } catch {
-      toast.error('Unable to paste');
-    }
-  }, [text]);
+  const apply = (fn: (t: string) => string) => {
+    if (text.value) text.set(fn(text.value));
+  };
 
   const statRows: [string, string][] = [
     ['Characters', formatNumber(stats.characters)],
@@ -73,88 +75,14 @@ export default function TextUtilsPage() {
     ['Reading time', stats.readingMinutes < 1 ? `${Math.ceil(stats.readingMinutes * 60)} sec` : `${Math.round(stats.readingMinutes)} min`],
   ];
 
-  const buttonClass = 'px-3 py-2 rounded-lg text-sm text-left border border-border bg-surface hover:border-primary/40 hover:bg-primary/5 transition-colors';
-
   return (
     <ToolLayout
-      title="Case Converter & Text Utilities"
       seoTitle="Case Converter – camelCase, snake_case, kebab-case & Text Tools"
-      tagline="Convert text case, sort and clean up lines, and count words and characters"
+      tagline="Convert case, sort and clean up lines, and count words and characters. Edits apply in place."
       metaDescription="Convert text to camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, Title Case and more. Sort, dedupe and trim lines, slugify, and count characters, words, lines and bytes."
-    >
-      <div className="grid lg:grid-cols-[1fr_280px] gap-3">
-        <Card hover={false} className="mb-0! lg:mb-3!">
-          <div className="p-6">
-            <TextAreaInput
-              value={text.value}
-              onChange={(e) => text.set(e.target.value, false)}
-              onBlur={() => text.set(text.value)}
-              placeholder="Type or paste text..."
-              aria-label="Text"
-              spellCheck={false}
-              className="min-h-72!"
-            />
-            <div className="flex flex-wrap gap-2 mt-2">
-              <SmallButton onClick={text.undo} disabled={!text.canUndo}><Undo2 size={12} /> Undo</SmallButton>
-              <SmallButton onClick={text.redo} disabled={!text.canRedo}><Redo2 size={12} /> Redo</SmallButton>
-              <SmallButton onClick={() => text.set('')}><Eraser size={12} /> Clear</SmallButton>
-              <SmallButton onClick={paste}><Clipboard size={12} /> Paste</SmallButton>
-              <CopyButton text={text.value} size="sm" className="ml-auto" />
-            </div>
-          </div>
-        </Card>
-        <Card hover={false}>
-          <div className="p-6">
-            <h2 className="font-semibold text-text mb-3">Statistics</h2>
-            <dl className="divide-y divide-border">
-              {statRows.map(([label, value]) => (
-                <div key={label} className="flex justify-between py-1.5 text-sm">
-                  <dt className="text-text-muted">{label}</dt>
-                  <dd className="font-mono text-text">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </Card>
-      </div>
-
-      <Card hover={false}>
-        <div className="p-6 space-y-6">
-          <section>
-            <h2 className="text-sm font-semibold text-text-secondary mb-3">Change case <span className="font-normal text-text-muted">(applied line by line)</span></h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-7 gap-2">
-              {CASE_STYLES.map((c) => (
-                <button key={c.id} onClick={() => apply((t) => convertCase(t, c.id as CaseStyle))} className={buttonClass} title={c.example}>
-                  <span className="font-mono text-text">{c.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-          <section>
-            <h2 className="text-sm font-semibold text-text-secondary mb-3">Lines</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
-              {LINE_OPERATIONS.map((op) => (
-                <button key={op.id} onClick={() => apply((t) => applyLineOperation(t, op.id as LineOperation))} className={buttonClass}>
-                  <span className="text-text">{op.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-          <section>
-            <h2 className="text-sm font-semibold text-text-secondary mb-3">Other</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
-              {OTHER_OPERATIONS.map((op) => (
-                <button key={op.id} onClick={() => apply(op.fn)} className={buttonClass}>
-                  <span className="text-text">{op.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-        </div>
-      </Card>
-
-      <InfoCard title="Naming Conventions">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      variant="wide"
+      about={
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ['camelCase', 'JavaScript/Java variables and functions'],
             ['PascalCase', 'Classes, types, React components'],
@@ -163,15 +91,65 @@ export default function TextUtilsPage() {
             ['kebab-case', 'URLs, CSS classes, file names, CLI flags'],
             ['Train-Case', 'HTTP headers (Content-Type)'],
             ['dot.case', 'Config keys and i18n message ids'],
-            ['Title Case', 'Headings — small words like “of” stay lower case'],
+            ['Title Case', 'Headings; small words like “of” stay lower case'],
           ].map(([name, use]) => (
-            <div key={name} className="bg-surface-alt rounded-lg p-4 border border-border">
-              <div className="font-mono text-sm text-primary mb-1">{name}</div>
-              <p className="text-xs text-text-muted">{use}</p>
+            <div key={name} className="rounded-md border border-border bg-surface-alt p-2.5">
+              <code className="text-[13px] text-text">{name}</code>
+              <p className="mt-0.5 text-xs text-text-muted">{use}</p>
             </div>
           ))}
         </div>
-      </InfoCard>
+      }
+    >
+      <Panel title="Transforms" className="mb-4" bodyClassName="p-4 grid gap-4 xl:grid-cols-[3fr_2fr_2fr]">
+        <Group title="Case" hint="line by line">
+          {CASE_STYLES.map((c) => (
+            <Button key={c.id} variant="secondary" size="sm" onClick={() => apply((t) => convertCase(t, c.id as CaseStyle))} title={c.example} className="font-mono">
+              {c.label}
+            </Button>
+          ))}
+        </Group>
+        <Group title="Lines">
+          {LINE_OPERATIONS.map((op) => (
+            <Button key={op.id} variant="secondary" size="sm" onClick={() => apply((t) => applyLineOperation(t, op.id as LineOperation))}>{op.label}</Button>
+          ))}
+        </Group>
+        <Group title="Other">
+          {OTHER_OPERATIONS.map((op) => (
+            <Button key={op.id} variant="secondary" size="sm" onClick={() => apply(op.fn)}>{op.label}</Button>
+          ))}
+        </Group>
+      </Panel>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] items-start">
+        <EditorPanel
+          label="Text"
+          value={text.value}
+          onChange={(v) => text.set(v, false)}
+          placeholder="Type or paste text…"
+          sample={SAMPLE}
+          fileAccept="text/*,.txt,.md,.csv"
+          textareaClassName="min-h-80"
+          textareaProps={{ onBlur: () => text.set(text.value) }}
+          actions={
+            <>
+              <button type="button" onClick={text.undo} disabled={!text.canUndo} className={action}><Undo2 size={13} aria-hidden="true" /> Undo</button>
+              <button type="button" onClick={text.redo} disabled={!text.canRedo} className={action}><Redo2 size={13} aria-hidden="true" /> Redo</button>
+              <CopyButton text={text.value} size="sm" className="h-7! border-transparent! bg-transparent! hover:bg-surface-hover! text-text-secondary hover:text-text" />
+            </>
+          }
+        />
+        <Panel title="Statistics">
+          <dl className="divide-y divide-border" aria-live="polite">
+            {statRows.map(([label, value]) => (
+              <div key={label} className="flex justify-between py-1.5 text-sm first:pt-0 last:pb-0">
+                <dt className="text-text-muted">{label}</dt>
+                <dd className="font-mono text-[13px] text-text tabular-nums">{value}</dd>
+              </div>
+            ))}
+          </dl>
+        </Panel>
+      </div>
     </ToolLayout>
   );
 }

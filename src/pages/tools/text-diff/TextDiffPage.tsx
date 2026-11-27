@@ -1,15 +1,16 @@
-import { Fragment, useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
-import { toast } from 'sonner';
-import { ArrowLeftRight, Clipboard, Eraser, FileUp } from 'lucide-react';
+import { Fragment, useDeferredValue, useMemo, useState, type ReactNode } from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
 import Badge from '@components/ui/Badge';
 import Checkbox from '@components/ui/Checkbox';
 import CodeBlock from '@components/ui/CodeBlock';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import { SecondaryButton, SmallButton } from '@components/ui/Button';
-import { TextAreaInput } from '@components/ui/TextArea';
+import Button from '@components/ui/Button';
+import { EditorPanel, Panel, Toolbar, ToolbarDivider, ToolbarSpacer } from '@components/workspace';
+import { downloadFile } from '@lib/download-utils';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
 import { computeDiff, unifiedPatch, type DiffRow, type Granularity, type InlinePart } from '@lib/diff-utils';
 
 const SAMPLE_A = `function greet(name) {
@@ -83,73 +84,39 @@ const rowBg = {
 function Cell({ num, children, tone, sign, divider }: { num?: number; children?: ReactNode; tone: keyof typeof rowBg; sign?: string; divider?: boolean }) {
   return (
     <>
-      <td className={`select-none text-right pr-2 pl-2 text-text-muted/70 align-top ${divider ? 'border-l border-border' : ''} ${rowBg[tone]}`}>{num ?? ''}</td>
-      <td className={`select-none w-4 text-center align-top ${tone === 'del' ? 'text-error' : tone === 'ins' ? 'text-success' : 'text-text-muted/50'} ${rowBg[tone]}`}>{sign}</td>
+      <td className={`select-none text-right pr-2 pl-2 text-text-muted tabular-nums align-top ${divider ? 'border-l border-border' : ''} ${rowBg[tone]}`}>{num ?? ''}</td>
+      <td aria-hidden="true" className={`select-none w-4 text-center align-top ${tone === 'del' ? 'text-error' : tone === 'ins' ? 'text-success' : 'text-text-muted'} ${rowBg[tone]}`}>{sign}</td>
       <td className={`pr-3 whitespace-pre-wrap break-all align-top text-text ${rowBg[tone]} ${num === undefined && tone === 'none' ? 'bg-surface-hover/50' : ''}`}>{children}</td>
     </>
   );
 }
 
-function useTextFile(onText: (text: string) => void) {
-  const ref = useRef<HTMLInputElement>(null);
-  const input = (
-    <input
-      ref={ref}
-      type="file"
-      hidden
-      onChange={async (e) => {
-        const f = e.target.files?.[0];
-        e.target.value = '';
-        if (!f) return;
-        if (f.size > 5 * 1024 * 1024) {
-          toast.error('File is larger than 5 MB');
-          return;
-        }
-        onText(await f.text());
-      }}
-    />
-  );
-  return { open: () => ref.current?.click(), input };
-}
-
-function InputPane({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  const file = useTextFile(onChange);
-  const paste = useCallback(async () => {
-    try {
-      onChange(await navigator.clipboard.readText());
-    } catch {
-      toast.error('Unable to paste');
-    }
-  }, [onChange]);
-  return (
-    <div className="min-w-0">
-      <span className="block text-sm font-medium text-text-secondary mb-2">{label}</span>
-      <TextAreaInput value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} spellCheck={false} className="min-h-56!" />
-      <div className="flex gap-2 mt-2">
-        <SmallButton onClick={() => onChange('')}><Eraser size={12} /> Clear</SmallButton>
-        <SmallButton onClick={paste}><Clipboard size={12} /> Paste</SmallButton>
-        <SmallButton onClick={file.open}><FileUp size={12} /> Open file</SmallButton>
-        {file.input}
-      </div>
-    </div>
-  );
-}
+const schema = {
+  view: opt.oneOf(['split', 'inline', 'patch'] as const, 'split'),
+  gran: opt.oneOf(['word', 'char'] as const, 'word'),
+  ws: opt.bool(false),
+  ic: opt.bool(false),
+  only: opt.bool(false),
+};
 
 export default function TextDiffPage() {
   const [original, setOriginal] = useState(SAMPLE_A);
   const [modified, setModified] = useState(SAMPLE_B);
-  const [view, setView] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? 'inline' : 'split'));
-  const [granularity, setGranularity] = useState<Granularity>('word');
-  const [ignoreWhitespace, setIgnoreWhitespace] = useState(false);
-  const [ignoreCase, setIgnoreCase] = useState(false);
-  const [onlyChanges, setOnlyChanges] = useState(false);
+  const [o, setO] = useUrlOptions(schema);
+  const a = useDeferredValue(original);
+  const b = useDeferredValue(modified);
 
   const diff = useMemo(
-    () => computeDiff(original, modified, { ignoreWhitespace, ignoreCase }, granularity),
-    [original, modified, ignoreWhitespace, ignoreCase, granularity],
+    () => computeDiff(a, b, { ignoreWhitespace: o.ws, ignoreCase: o.ic }, o.gran as Granularity),
+    [a, b, o.ws, o.ic, o.gran],
   );
-  const patch = useMemo(() => (view === 'patch' ? unifiedPatch(original, modified) : ''), [view, original, modified]);
-  const items = useMemo(() => collapse(diff.rows, onlyChanges), [diff.rows, onlyChanges]);
+  const patch = useMemo(() => (o.view === 'patch' ? unifiedPatch(a, b) : ''), [o.view, a, b]);
+  const items = useMemo(() => collapse(diff.rows, o.only), [diff.rows, o.only]);
+
+  useShareInput({ original, modified }, (d) => {
+    if (d.original !== undefined) setOriginal(d.original);
+    if (d.modified !== undefined) setModified(d.modified);
+  }, { enabled: original.length + modified.length > 0 });
 
   const swap = () => {
     setOriginal(modified);
@@ -158,114 +125,107 @@ export default function TextDiffPage() {
 
   const gapRow = (count: number, key: number, cols: number) => (
     <tr key={key}>
-      <td colSpan={cols} className="py-1 text-center text-xs text-text-muted bg-surface-hover/60">⋯ {count} unchanged line{count === 1 ? '' : 's'}</td>
+      <td colSpan={cols} className="py-1 text-center text-xs text-text-muted bg-surface-hover">⋯ {count} unchanged line{count === 1 ? '' : 's'}</td>
     </tr>
   );
 
   return (
     <ToolLayout
-      title="Text Diff"
       seoTitle="Text Diff Checker – Compare Two Texts Online"
       tagline="Compare two texts side by side with line, word and character highlighting"
       metaDescription="Compare two pieces of text or code online. Side-by-side and inline views with word or character highlighting, ignore whitespace/case options and unified patch export. Runs in your browser."
+      variant="wide"
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">How it works.</strong> Lines are compared with the Myers algorithm (the one Git uses); changed lines are paired and compared again by word or character.</li>
+          <li><strong className="text-text">Ignore options.</strong> Ignore whitespace treats runs of spaces/tabs as equal and trims lines (like diff -w). Ignore case compares case-insensitively.</li>
+          <li><strong className="text-text">Unified patch.</strong> Export a standard diff you can apply with patch or git apply. The patch always compares the texts exactly.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <div className="p-6 space-y-4">
-          <div className="grid lg:grid-cols-2 gap-5">
-            <InputPane label="Original" value={original} onChange={setOriginal} />
-            <InputPane label="Modified" value={modified} onChange={setModified} />
-          </div>
-          <SecondaryButton onClick={swap}><ArrowLeftRight size={15} /> Swap sides</SecondaryButton>
-        </div>
-      </Card>
+      <Toolbar>
+        <SegmentedControl ariaLabel="View" options={viewOptions} value={o.view} onChange={(v) => setO({ view: v as typeof o.view })} />
+        {o.view !== 'patch' && (
+          <>
+            <SegmentedControl ariaLabel="Highlight" options={granularityOptions} value={o.gran} onChange={(v) => setO({ gran: v as typeof o.gran })} />
+            <ToolbarDivider />
+            <Checkbox checked={o.ws} onChange={(v) => setO({ ws: v })} label="Ignore whitespace" className="text-xs" />
+            <Checkbox checked={o.ic} onChange={(v) => setO({ ic: v })} label="Ignore case" className="text-xs" />
+            <Checkbox checked={o.only} onChange={(v) => setO({ only: v })} label="Only changes" className="text-xs" />
+          </>
+        )}
+        <ToolbarSpacer />
+        <Button variant="secondary" size="sm" onClick={swap}><ArrowLeftRight size={14} aria-hidden="true" /> Swap sides</Button>
+      </Toolbar>
 
-      <Card hover={false}>
-        <div className="p-6 space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <SegmentedControl options={viewOptions} value={view} onChange={setView} />
-            {view !== 'patch' && (
+      <div className="grid gap-4 lg:grid-cols-2 mb-4">
+        <EditorPanel label="Original" value={original} onChange={setOriginal} fileAccept="text/*,*" maxFileBytes={5 * 1024 * 1024} textareaClassName="min-h-56" />
+        <EditorPanel label="Modified" value={modified} onChange={setModified} fileAccept="text/*,*" maxFileBytes={5 * 1024 * 1024} textareaClassName="min-h-56" />
+      </div>
+
+      <Panel
+        title="Differences"
+        bodyClassName=""
+        actions={
+          <span className="flex gap-1.5" role="status">
+            {diff.identical ? (
+              <Badge tone="success">No differences</Badge>
+            ) : (
               <>
-                <SegmentedControl options={granularityOptions} value={granularity} onChange={(v) => setGranularity(v as Granularity)} variant="glass" />
-                <Checkbox checked={ignoreWhitespace} onChange={setIgnoreWhitespace} label="Ignore whitespace" />
-                <Checkbox checked={ignoreCase} onChange={setIgnoreCase} label="Ignore case" />
-                <Checkbox checked={onlyChanges} onChange={setOnlyChanges} label="Only changes" />
+                <Badge tone="success">+{diff.added}</Badge>
+                <Badge tone="error">−{diff.removed}</Badge>
               </>
             )}
-            <div className="flex gap-2 ml-auto">
-              {diff.identical ? (
-                <Badge tone="success">No differences</Badge>
-              ) : (
-                <>
-                  <Badge tone="success">+{diff.added}</Badge>
-                  <Badge tone="error">−{diff.removed}</Badge>
-                </>
-              )}
-            </div>
+          </span>
+        }
+      >
+        {o.view === 'patch' ? (
+          <div className="p-3"><CodeBlock title="original → modified" code={patch} preClassName="max-h-[36rem]" actions={<Button variant="ghost" size="sm" onClick={() => downloadFile(patch, 'changes.patch', 'text/x-diff')}>Download</Button>} /></div>
+        ) : (
+          <div className="overflow-auto max-h-[40rem]">
+            <table className="w-full table-fixed font-mono text-[13px] leading-6 border-collapse">
+              <colgroup>
+                {Array.from({ length: o.view === 'split' ? 2 : 1 }, (_, i) => (
+                  <Fragment key={i}>
+                    <col className="w-12" />
+                    <col className="w-5" />
+                    <col />
+                  </Fragment>
+                ))}
+              </colgroup>
+              <tbody>
+                {o.view === 'split'
+                  ? items.map((item, i) => {
+                    if (item.kind === 'gap') return gapRow(item.count, i, 6);
+                    const { row } = item;
+                    return (
+                      <tr key={i}>
+                        <Cell num={row.left?.num} tone={row.left && row.type !== 'equal' ? 'del' : 'none'} sign={row.left && row.type !== 'equal' ? '−' : ''}>
+                          {row.left && <Parts parts={row.left.parts} tone="del" />}
+                        </Cell>
+                        <Cell divider num={row.right?.num} tone={row.right && row.type !== 'equal' ? 'ins' : 'none'} sign={row.right && row.type !== 'equal' ? '+' : ''}>
+                          {row.right && <Parts parts={row.right.parts} tone="ins" />}
+                        </Cell>
+                      </tr>
+                    );
+                  })
+                  : items.flatMap((item, i) => {
+                    if (item.kind === 'gap') return [gapRow(item.count, i, 3)];
+                    const { row } = item;
+                    if (row.type === 'equal') {
+                      return [<tr key={i}><Cell num={row.right!.num} tone="none"><Parts parts={row.right!.parts} tone="ins" /></Cell></tr>];
+                    }
+                    const out = [];
+                    if (row.left) out.push(<tr key={`${i}l`}><Cell num={row.left.num} tone="del" sign="−"><Parts parts={row.left.parts} tone="del" /></Cell></tr>);
+                    if (row.right) out.push(<tr key={`${i}r`}><Cell num={row.right.num} tone="ins" sign="+"><Parts parts={row.right.parts} tone="ins" /></Cell></tr>);
+                    return out;
+                  })}
+              </tbody>
+            </table>
+            {diff.rows.length === 0 && <p className="p-4 text-sm text-text-muted">Both sides are empty.</p>}
           </div>
-
-          {view === 'patch' ? (
-            <CodeBlock title="original → modified" code={patch} preClassName="max-h-[36rem]" />
-          ) : (
-            <div className="rounded-lg border border-border overflow-auto max-h-[40rem] bg-surface">
-              <table className="w-full table-fixed font-mono text-[13px] leading-6 border-collapse">
-                <colgroup>
-                  {Array.from({ length: view === 'split' ? 2 : 1 }, (_, i) => (
-                    <Fragment key={i}>
-                      <col className="w-12" />
-                      <col className="w-5" />
-                      <col />
-                    </Fragment>
-                  ))}
-                </colgroup>
-                <tbody>
-                  {view === 'split'
-                    ? items.map((item, i) => {
-                      if (item.kind === 'gap') return gapRow(item.count, i, 6);
-                      const { row } = item;
-                      return (
-                        <tr key={i}>
-                          <Cell num={row.left?.num} tone={row.left && row.type !== 'equal' ? 'del' : 'none'} sign={row.left && row.type !== 'equal' ? '−' : ''}>
-                            {row.left && <Parts parts={row.left.parts} tone="del" />}
-                          </Cell>
-                          <Cell divider num={row.right?.num} tone={row.right && row.type !== 'equal' ? 'ins' : 'none'} sign={row.right && row.type !== 'equal' ? '+' : ''}>
-                            {row.right && <Parts parts={row.right.parts} tone="ins" />}
-                          </Cell>
-                        </tr>
-                      );
-                    })
-                    : items.flatMap((item, i) => {
-                      if (item.kind === 'gap') return [gapRow(item.count, i, 3)];
-                      const { row } = item;
-                      if (row.type === 'equal') {
-                        return [<tr key={i}><Cell num={row.right!.num} tone="none"><Parts parts={row.right!.parts} tone="ins" /></Cell></tr>];
-                      }
-                      const out = [];
-                      if (row.left) out.push(<tr key={`${i}l`}><Cell num={row.left.num} tone="del" sign="−"><Parts parts={row.left.parts} tone="del" /></Cell></tr>);
-                      if (row.right) out.push(<tr key={`${i}r`}><Cell num={row.right.num} tone="ins" sign="+"><Parts parts={row.right.parts} tone="ins" /></Cell></tr>);
-                      return out;
-                    })}
-                </tbody>
-              </table>
-              {diff.rows.length === 0 && <p className="p-4 text-sm text-text-muted">Both sides are empty.</p>}
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <InfoCard title="About Text Diff">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'How it works', d: 'Lines are compared with the Myers diff algorithm (the one Git uses). Changed lines are paired up and compared again word by word or character by character.' },
-            { t: 'Ignore options', d: 'Ignore whitespace treats runs of spaces and tabs as equal and ignores leading/trailing space (like diff -w). Ignore case compares lines case-insensitively.' },
-            { t: 'Unified patch', d: 'Export the changes as a standard unified diff you can apply with patch or git apply. The patch always compares the texts exactly.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
-        </div>
-      </InfoCard>
+        )}
+      </Panel>
     </ToolLayout>
   );
 }

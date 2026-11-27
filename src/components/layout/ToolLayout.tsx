@@ -19,8 +19,9 @@ interface ToolLayoutProps {
   /**
    * `page`: centred, max-width, scrolls (forms, calculators, generators).
    * `workspace`: full width and, on large screens, fills the viewport (editors, split panes).
+   * `wide`: full width with natural height (long side-by-side results such as diffs).
    */
-  variant?: 'page' | 'workspace';
+  variant?: 'page' | 'workspace' | 'wide';
   /** Extra header actions, rendered before the standard ones. */
   actions?: ReactNode;
   /** "About this tool" content, shown in a collapsible section below the tool. */
@@ -147,7 +148,7 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
           {footer}
         </div>
       ) : (
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
+        <div className={`w-full px-4 sm:px-6 pt-5 pb-10 ${variant === 'wide' ? '' : 'max-w-6xl mx-auto'}`}>
           {header}
           {children}
           {footer}
