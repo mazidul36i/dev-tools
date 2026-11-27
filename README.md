@@ -18,6 +18,7 @@ A collection of free, browser-based web developer utilities built with **React +
 - **sql-formatter** — dialect-aware SQL formatting
 - **marked** + **DOMPurify** — markdown rendering and HTML sanitising
 - **cronstrue** — plain-English cron descriptions
+- **qrcode** + **jsQR** — QR code generation and decoding
 
 ## Available Tools
 
@@ -51,6 +52,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | HTTP Status Codes & MIME Types | `/tools/http-reference` | Searchable status code (1xx–5xx) and Content-Type reference |
 | CSS Gradient & Shadow Generator | `/tools/css-generator` | Visual linear/radial/conic gradients and layered box shadows with CSS + Tailwind output |
 | Image Compressor & Converter | `/tools/image-converter` | Bulk compress/resize/convert to WebP, AVIF, JPEG, PNG; image ↔ Base64 data URI |
+| QR Code Generator & Reader | `/tools/qr-code` | QR codes for text/URL, Wi-Fi, email, phone, SMS, vCard (PNG/SVG); decode from image or camera |
 
 ## Development
 

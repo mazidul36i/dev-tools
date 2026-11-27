@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen, Blend, ImageDown,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen, Blend, ImageDown, QrCode,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -297,6 +297,15 @@ export const tools: ToolDefinition[] = [
     category: 'Images',
     keywords: ['compress image', 'resize', 'webp', 'avif', 'jpg', 'png', 'optimize', 'base64 image', 'data uri'],
     component: lazy(() => import('@pages/tools/image-converter/ImageConverterPage')),
+  },
+  {
+    slug: 'qr-code',
+    title: 'QR Code Generator & Reader',
+    desc: 'Create QR codes for URLs, Wi-Fi, contacts and more (PNG/SVG), or decode one from an image or camera',
+    icon: QrCode, color: 'text-zinc-800 dark:text-zinc-100', bg: 'bg-zinc-200 dark:bg-zinc-700/40',
+    category: 'Generators',
+    keywords: ['qr', 'barcode', 'scanner', 'wifi qr', 'vcard', 'decode qr', 'qr reader'],
+    component: lazy(() => import('@pages/tools/qr-code/QrCodePage')),
   },
 ];
 
