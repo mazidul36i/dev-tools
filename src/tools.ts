@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen, Blend,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -279,6 +279,15 @@ export const tools: ToolDefinition[] = [
     category: 'Web & Network',
     keywords: ['404', '500', 'response code', 'content type', 'mime', 'media type', 'http error'],
     component: lazy(() => import('@pages/tools/http-reference/HttpReferencePage')),
+  },
+  {
+    slug: 'css-generator',
+    title: 'CSS Gradient & Shadow Generator',
+    desc: 'Design linear, radial and conic gradients and layered box shadows; copy CSS or Tailwind',
+    icon: Blend, color: 'text-fuchsia-600', bg: 'bg-gradient-to-br from-fuchsia-100 to-sky-100 dark:from-fuchsia-900/30 dark:to-sky-900/30',
+    category: 'Generators',
+    keywords: ['linear-gradient', 'radial-gradient', 'box-shadow', 'tailwind', 'css3', 'background'],
+    component: lazy(() => import('@pages/tools/css-generator/CssGeneratorPage')),
   },
 ];
 
