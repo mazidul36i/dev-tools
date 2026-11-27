@@ -1,6 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -134,6 +135,15 @@ export const tools: ToolDefinition[] = [
     category: 'Web & Network',
     keywords: ['html editor', 'viewer', 'playground', 'css', 'javascript'],
     component: lazy(() => import('@pages/tools/html-preview/HtmlPreviewPage')),
+  },
+  {
+    slug: 'jwt-decoder',
+    title: 'JWT Decoder',
+    desc: 'Decode JSON Web Tokens, check expiry and verify HMAC, RSA and ECDSA signatures locally',
+    icon: ShieldCheck, color: 'text-fuchsia-500', bg: 'bg-fuchsia-100 dark:bg-fuchsia-900/30',
+    category: 'Encoders & Crypto',
+    keywords: ['json web token', 'bearer', 'oauth', 'claims', 'verify', 'hs256', 'rs256'],
+    component: lazy(() => import('@pages/tools/jwt-decoder/JwtDecoderPage')),
   },
 ];
 

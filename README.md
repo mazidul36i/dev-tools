@@ -28,6 +28,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Gzip Converter | `/tools/gzip-converter` | Gzip compress / decompress (Base64) with partial recovery |
 | CSV to SQL | `/tools/csv-to-sql` | CSV to `CREATE TABLE` / `INSERT` for MySQL, PostgreSQL and SQLite |
 | HTML Preview | `/tools/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
+| JWT Decoder | `/tools/jwt-decoder` | Decode JWTs, show expiry, verify HS/RS/PS/ES signatures with a secret or public key |
 
 ## Development
 
