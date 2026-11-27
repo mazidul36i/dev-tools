@@ -50,6 +50,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Subnet / CIDR Calculator | `/tools/cidr-calculator` | IPv4/IPv6 network, broadcast, host range, masks; subnet splitting and range → CIDR |
 | HTTP Status Codes & MIME Types | `/tools/http-reference` | Searchable status code (1xx–5xx) and Content-Type reference |
 | CSS Gradient & Shadow Generator | `/tools/css-generator` | Visual linear/radial/conic gradients and layered box shadows with CSS + Tailwind output |
+| Image Compressor & Converter | `/tools/image-converter` | Bulk compress/resize/convert to WebP, AVIF, JPEG, PNG; image ↔ Base64 data URI |
 
 ## Development
 

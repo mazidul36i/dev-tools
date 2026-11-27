@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen, Blend,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen, Blend, ImageDown,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -288,6 +288,15 @@ export const tools: ToolDefinition[] = [
     category: 'Generators',
     keywords: ['linear-gradient', 'radial-gradient', 'box-shadow', 'tailwind', 'css3', 'background'],
     component: lazy(() => import('@pages/tools/css-generator/CssGeneratorPage')),
+  },
+  {
+    slug: 'image-converter',
+    title: 'Image Compressor & Converter',
+    desc: 'Compress, resize and convert images to WebP, AVIF, JPEG or PNG, and to/from Base64 — privately',
+    icon: ImageDown, color: 'text-violet-600', bg: 'bg-violet-100 dark:bg-violet-900/30',
+    category: 'Images',
+    keywords: ['compress image', 'resize', 'webp', 'avif', 'jpg', 'png', 'optimize', 'base64 image', 'data uri'],
+    component: lazy(() => import('@pages/tools/image-converter/ImageConverterPage')),
   },
 ];
 
