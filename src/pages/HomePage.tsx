@@ -1,33 +1,12 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
-import { Eye, Star, FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2, type LucideIcon } from 'lucide-react';
+import { Eye, Star } from 'lucide-react';
 import heroGearImg from '@assets/img/hero-gear.png';
 import BackgroundBlobs from '@components/ui/BackgroundBlobs';
 import ThemeToggleButton from '@components/ui/ThemeToggleButton';
 import Footer from '@components/layout/Footer';
-
-interface Tool {
-  path: string;
-  icon: LucideIcon;
-  color: string;
-  bg: string;
-  title: string;
-  desc: string;
-}
-
-const tools: Tool[] = [
-  { path: '/tools/json-formatter', icon: FileJson2, color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30', title: 'JSON Formatter', desc: 'Format, validate and beautify JSON data with a modern interface' },
-  { path: '/tools/image-to-text', icon: Image, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30', title: 'Image to Text Convert', desc: 'Extract text from images using OCR technology. Supports multiple formats with drag & drop, paste, or upload.' },
-  { path: '/tools/encoder-decoder', icon: RefreshCw, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30', title: 'Encoder/Decoder', desc: 'Convert data between various encoding formats including Base64, URL, HTML, and Hex' },
-  { path: '/tools/url-parser', icon: Link2, color: 'text-violet-500', bg: 'bg-violet-100 dark:bg-violet-900/30', title: 'URL Parser', desc: 'Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.' },
-  { path: '/tools/color-picker', icon: Palette, color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/30', title: 'Color Picker', desc: 'Pick colors and convert between formats (HEX, RGB, HSL) with live preview' },
-  { path: '/tools/network-status', icon: Wifi, color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/30', title: 'Network Status', desc: 'Monitor your network connection status in real-time with visual indicators and connection quality metrics' },
-  { path: '/tools/uuid-generator', icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30', title: 'UUID Generator', desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options' },
-  { path: '/tools/gzip-converter', icon: FileArchive, color: 'text-teal-500', bg: 'bg-teal-100 dark:bg-teal-900/30', title: 'Gzip Converter', desc: 'Compress text to gzip or decompress base64-encoded gzip data with partial recovery support' },
-  { path: '/tools/csv-to-sql', icon: Table, color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/30', title: 'CSV to SQL', desc: 'Convert CSV data to SQL statements with dialect support for MySQL, PostgreSQL, and SQLite' },
-  { path: '/tools/html-preview', icon: Code2, color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/30', title: 'HTML Preview', desc: 'Online HTML editor & viewer with live or on-demand rendering, responsive device sizes and a built-in console' },
-];
+import { tools, toolPath } from '../tools';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -170,14 +149,14 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
               {tools.map((tool, i) => (
                 <motion.div
-                  key={tool.path}
+                  key={tool.slug}
                   custom={i}
                   initial="hidden"
                   animate="visible"
                   variants={cardVariants}
                 >
                   <Link
-                    to={tool.path}
+                    to={toolPath(tool)}
                     className="group flex flex-col p-5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-gray-700/60
                                hover:border-white/80 dark:hover:border-gray-600 hover:shadow-lg hover:bg-white/70
                                transition-all duration-300 h-full"

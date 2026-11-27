@@ -24,6 +24,9 @@ A collection of free, browser-based web developer utilities built with **React +
 | URL Parser | `/tools/url-parser` | URL encode/decode |
 | Color Picker | `/tools/color-picker` | HEX/RGB/HSL picker with palette management |
 | Network Status | `/tools/network-status` | Real-time network monitoring with history |
+| UUID Generator | `/tools/uuid-generator` | v4 and time-based UUIDs with formatting options |
+| Gzip Converter | `/tools/gzip-converter` | Gzip compress / decompress (Base64) with partial recovery |
+| CSV to SQL | `/tools/csv-to-sql` | CSV to `CREATE TABLE` / `INSERT` for MySQL, PostgreSQL and SQLite |
 | HTML Preview | `/tools/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
 
 ## Development
@@ -34,6 +37,15 @@ npm run dev
 ```
 
 Opens at `http://localhost:5173`
+
+## Testing
+
+```bash
+npm test          # run once
+npm run test:watch
+```
+
+Unit tests (Vitest) live next to the pure logic in `src/lib/*.test.ts`.
 
 ## Building
 
@@ -61,25 +73,24 @@ Builds and deploys to Firebase Hosting.
 
 ```
 src/
-├── main.jsx                    # Entry point
-├── App.jsx                     # Route definitions (lazy loaded)
+├── main.tsx                    # Entry point
+├── App.tsx                     # Routes, generated from tools.ts
+├── tools.ts                    # Tool registry: metadata, category, lazy page
 ├── index.css                   # Tailwind imports + theme
 ├── components/
-│   ├── layout/                 # Header, Footer, ToolLayout
-│   └── ui/                     # Card, Tabs, CopyButton, Spinner
-├── hooks/                      # useLocalStorage
-├── lib/                        # Pure utility functions
-│   ├── json-utils.js           # JSON format/minify/DTO parsing
-│   ├── color-utils.js          # HEX/RGB/HSL conversions
-│   └── encoder-utils.js        # Base64/URL/HTML/Hex encoding
+│   ├── layout/                 # Footer, ToolLayout
+│   └── ui/                     # Card, Button, TextArea, Tabs, CopyButton, ...
+├── hooks/                      # useLocalStorage, useTheme
+├── lib/                        # Pure logic per tool (*-utils.ts) + tests
 └── pages/
-    ├── HomePage.jsx
-    ├── NotFoundPage.jsx
-    └── tools/
-        ├── json-formatter/     # JsonFormatterPage + JsonTreeView
-        ├── color-picker/       # ColorPickerPage
-        ├── network-status/     # NetworkStatusPage
-        ├── EncoderDecoderPage.jsx
-        ├── ImageToTextPage.jsx
-        └── UrlParserPage.jsx
+    ├── HomePage.tsx
+    ├── NotFoundPage.tsx
+    └── tools/                  # One folder (or file) per tool page
 ```
+
+## Adding a Tool
+
+1. Put the logic in `src/lib/<tool>-utils.ts` (no React) and test it in `src/lib/<tool>-utils.test.ts`.
+2. Build the page in `src/pages/tools/<tool>/<Tool>Page.tsx` using `ToolLayout` and the shared UI components.
+3. Add one entry to `src/tools.ts` — the route and the home page card come from it.
+4. Add a row to the table above.

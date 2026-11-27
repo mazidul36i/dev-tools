@@ -1,0 +1,140 @@
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
+import {
+  FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
+  type LucideIcon,
+} from 'lucide-react';
+
+export type ToolCategory =
+  | 'Formatters'
+  | 'Encoders & Crypto'
+  | 'Converters'
+  | 'Generators'
+  | 'Text'
+  | 'Web & Network'
+  | 'Images';
+
+export const toolCategories: ToolCategory[] = [
+  'Formatters',
+  'Encoders & Crypto',
+  'Converters',
+  'Generators',
+  'Text',
+  'Web & Network',
+  'Images',
+];
+
+export interface ToolDefinition {
+  /** URL segment under `/tools/`. */
+  slug: string;
+  title: string;
+  desc: string;
+  icon: LucideIcon;
+  /** Tailwind text colour class for the icon. */
+  color: string;
+  /** Tailwind background classes for the icon tile. */
+  bg: string;
+  category: ToolCategory;
+  /** Extra words matched by the home page search. */
+  keywords?: string[];
+  component: LazyExoticComponent<ComponentType>;
+}
+
+/**
+ * Single source of truth for every tool: `App.tsx` builds routes from it and
+ * `HomePage.tsx` builds the tool grid from it. To add a tool, create its page
+ * and add one entry here.
+ */
+export const tools: ToolDefinition[] = [
+  {
+    slug: 'json-formatter',
+    title: 'JSON Formatter',
+    desc: 'Format, validate and beautify JSON data with a modern interface',
+    icon: FileJson2, color: 'text-orange-500', bg: 'bg-orange-100 dark:bg-orange-900/30',
+    category: 'Formatters',
+    keywords: ['beautify', 'minify', 'validate', 'dto', 'tree'],
+    component: lazy(() => import('@pages/tools/json-formatter/JsonFormatterPage')),
+  },
+  {
+    slug: 'image-to-text',
+    title: 'Image to Text Convert',
+    desc: 'Extract text from images using OCR technology. Supports multiple formats with drag & drop, paste, or upload.',
+    icon: Image, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    category: 'Images',
+    keywords: ['ocr', 'tesseract', 'extract'],
+    component: lazy(() => import('@pages/tools/ImageToTextPage')),
+  },
+  {
+    slug: 'encoder-decoder',
+    title: 'Encoder/Decoder',
+    desc: 'Convert data between various encoding formats including Base64, URL, HTML, and Hex',
+    icon: RefreshCw, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-900/30',
+    category: 'Encoders & Crypto',
+    keywords: ['base64', 'hex', 'html entities', 'url encode'],
+    component: lazy(() => import('@pages/tools/EncoderDecoderPage')),
+  },
+  {
+    slug: 'url-parser',
+    title: 'URL Parser',
+    desc: 'Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.',
+    icon: Link2, color: 'text-violet-500', bg: 'bg-violet-100 dark:bg-violet-900/30',
+    category: 'Encoders & Crypto',
+    keywords: ['url encode', 'url decode', 'percent encoding'],
+    component: lazy(() => import('@pages/tools/UrlParserPage')),
+  },
+  {
+    slug: 'color-picker',
+    title: 'Color Picker',
+    desc: 'Pick colors and convert between formats (HEX, RGB, HSL) with live preview',
+    icon: Palette, color: 'text-pink-500', bg: 'bg-pink-100 dark:bg-pink-900/30',
+    category: 'Converters',
+    keywords: ['hex', 'rgb', 'hsl', 'palette'],
+    component: lazy(() => import('@pages/tools/color-picker/ColorPickerPage')),
+  },
+  {
+    slug: 'network-status',
+    title: 'Network Status',
+    desc: 'Monitor your network connection status in real-time with visual indicators and connection quality metrics',
+    icon: Wifi, color: 'text-cyan-500', bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    category: 'Web & Network',
+    keywords: ['online', 'offline', 'latency', 'speed'],
+    component: lazy(() => import('@pages/tools/network-status/NetworkStatusPage')),
+  },
+  {
+    slug: 'uuid-generator',
+    title: 'UUID Generator',
+    desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options',
+    icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30',
+    category: 'Generators',
+    keywords: ['guid', 'unique id', 'random'],
+    component: lazy(() => import('@pages/tools/uuid-generator/UuidGeneratorPage')),
+  },
+  {
+    slug: 'gzip-converter',
+    title: 'Gzip Converter',
+    desc: 'Compress text to gzip or decompress base64-encoded gzip data with partial recovery support',
+    icon: FileArchive, color: 'text-teal-500', bg: 'bg-teal-100 dark:bg-teal-900/30',
+    category: 'Encoders & Crypto',
+    keywords: ['compress', 'decompress', 'gunzip', 'deflate'],
+    component: lazy(() => import('@pages/tools/gzip-converter/GzipConverterPage')),
+  },
+  {
+    slug: 'csv-to-sql',
+    title: 'CSV to SQL',
+    desc: 'Convert CSV data to SQL statements with dialect support for MySQL, PostgreSQL, and SQLite',
+    icon: Table, color: 'text-indigo-500', bg: 'bg-indigo-100 dark:bg-indigo-900/30',
+    category: 'Converters',
+    keywords: ['insert', 'create table', 'mysql', 'postgres', 'sqlite'],
+    component: lazy(() => import('@pages/tools/csv-to-sql/CsvToSqlPage')),
+  },
+  {
+    slug: 'html-preview',
+    title: 'HTML Preview',
+    desc: 'Online HTML editor & viewer with live or on-demand rendering, responsive device sizes and a built-in console',
+    icon: Code2, color: 'text-rose-500', bg: 'bg-rose-100 dark:bg-rose-900/30',
+    category: 'Web & Network',
+    keywords: ['html editor', 'viewer', 'playground', 'css', 'javascript'],
+    component: lazy(() => import('@pages/tools/html-preview/HtmlPreviewPage')),
+  },
+];
+
+export const toolPath = (tool: Pick<ToolDefinition, 'slug'>) => `/tools/${tool.slug}`;
