@@ -52,8 +52,8 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
   };
 
   const header = (
-    <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 mb-4 shrink-0">
-      <div className="flex items-start gap-3 min-w-0">
+    <header className="flex items-start justify-between gap-3 mb-4 shrink-0">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
         {tool && (
           <span className={`grid place-items-center w-9 h-9 rounded-md shrink-0 ${tool.bg}`}>
             <tool.icon size={18} aria-hidden="true" className={tool.color} />
@@ -64,7 +64,7 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
           {description && <p className="mt-0.5 text-sm text-text-muted max-w-3xl">{description}</p>}
         </div>
       </div>
-      <div className="flex items-center gap-1 -mr-1">
+      <div className="flex items-center gap-1 -mr-1 shrink-0">
         {actions}
         {share && (
           <button type="button" onClick={share} className={headerButton} title="Copy a link that includes your input">

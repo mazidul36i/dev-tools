@@ -115,11 +115,13 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 				)}
 				<ValueSpan value={value} />
 				<button
+					type="button"
 					onClick={copyValue}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
+					className="ml-2 rounded opacity-0 group-hover/node:opacity-70 focus-visible:opacity-100 hover:opacity-100! transition-opacity focus-ring"
 					title="Copy value"
+					aria-label="Copy value"
 				>
-					<Copy size={11} />
+					<Copy size={11} aria-hidden="true" />
 				</button>
 			</div>
 		);
@@ -130,39 +132,46 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 
 	return (
 		<div style={{ paddingLeft: 20 }}>
-			<div
-				className={`flex items-center py-0.5 cursor-pointer select-none group/node ${keyMatches ? 'bg-amber-100/50 dark:bg-amber-900/20 rounded' : ''}`}
-				onClick={toggle}
-			>
-				{entries.length > 0 && (
-					<motion.span
-						animate={{ rotate: collapsed ? 0 : 90 }}
-						transition={{ duration: 0.15 }}
-						className="inline-flex mr-1 text-text-muted"
-					>
-						<ChevronRight size={14} />
-					</motion.span>
-				)}
-				{nodeKey !== null && (
-					<>
-						<HighlightText
-							text={typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"`}
-							className="text-code-key font-medium"
-						/>
-						<span className="mx-1 text-text-muted">:</span>
-					</>
-				)}
-				<span className="text-text-muted">{bracket[0]}</span>
-				{collapsed && entries.length > 0 && (
-					<span className="text-text-muted italic ml-1">...{bracket[1]}</span>
-				)}
-				{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
+			<div className={`flex items-center py-0.5 rounded group/node ${keyMatches ? 'bg-amber-100/50 dark:bg-amber-900/20' : ''}`}>
 				<button
-					onClick={copyValue}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
-					title="Copy value"
+					type="button"
+					onClick={toggle}
+					disabled={entries.length === 0}
+					aria-expanded={entries.length > 0 ? !collapsed : undefined}
+					className="flex items-center rounded text-left select-none cursor-pointer disabled:cursor-default focus-ring"
 				>
-					<Copy size={11} />
+					{entries.length > 0 && (
+						<motion.span
+							animate={{ rotate: collapsed ? 0 : 90 }}
+							transition={{ duration: 0.15 }}
+							className="inline-flex mr-1 text-text-muted"
+						>
+							<ChevronRight size={14} aria-hidden="true" />
+						</motion.span>
+					)}
+					{nodeKey !== null && (
+						<>
+							<HighlightText
+								text={typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"`}
+								className="text-code-key font-medium"
+							/>
+							<span className="mx-1 text-text-muted">:</span>
+						</>
+					)}
+					<span className="text-text-muted">{bracket[0]}</span>
+					{collapsed && entries.length > 0 && (
+						<span className="text-text-muted italic ml-1">...{bracket[1]}</span>
+					)}
+					{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
+				</button>
+				<button
+					type="button"
+					onClick={copyValue}
+					className="ml-2 rounded opacity-0 group-hover/node:opacity-70 focus-visible:opacity-100 hover:opacity-100! transition-opacity focus-ring"
+					title="Copy value"
+					aria-label="Copy value"
+				>
+					<Copy size={11} aria-hidden="true" />
 				</button>
 			</div>
 			<AnimatePresence initial={false}>

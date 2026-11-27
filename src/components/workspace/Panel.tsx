@@ -24,7 +24,7 @@ export default function Panel({ title, actions, footer, children, className = ''
     >
       {(titled || actions) && (
         <header className="flex items-center justify-between gap-2 min-h-10 px-3 py-1 border-b border-border shrink-0">
-          <div id={id} className="min-w-0 truncate text-xs font-semibold uppercase tracking-wider text-text-muted">
+          <div id={id} className="shrink-0 text-xs font-semibold uppercase tracking-wider text-text-muted">
             {title}
           </div>
           {actions && <div className="flex flex-wrap items-center justify-end gap-1">{actions}</div>}
