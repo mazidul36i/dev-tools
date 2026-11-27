@@ -30,13 +30,13 @@ export default function ConsolePanel({ entries, open, onToggle, onClear }: Conso
       <div className="flex items-center justify-between px-3 py-1.5">
         <button
           onClick={onToggle}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring"
           aria-expanded={open}
         >
           <Terminal size={13} />
           Console
           {entries.length > 0 && (
-            <span className="text-[10px] text-gray-400">({entries.length})</span>
+            <span className="text-xs text-gray-600 dark:text-gray-400">({entries.length})</span>
           )}
           {errors > 0 && (
             <span className="text-[10px] px-1.5 rounded-full bg-red-500 text-white">{errors}</span>
@@ -49,7 +49,7 @@ export default function ConsolePanel({ entries, open, onToggle, onClear }: Conso
         {open && (
           <button
             onClick={onClear}
-            className="inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring"
             title="Clear console"
           >
             <Ban size={11} /> Clear
@@ -59,7 +59,7 @@ export default function ConsolePanel({ entries, open, onToggle, onClear }: Conso
       {open && (
         <div ref={listRef} className="max-h-40 overflow-y-auto border-t border-white/50 dark:border-gray-700/50 font-mono text-xs">
           {entries.length === 0 ? (
-            <p className="px-3 py-2 text-gray-400 dark:text-gray-500">No output yet. Use console.log() in a &lt;script&gt;.</p>
+            <p className="px-3 py-2 text-gray-600 dark:text-gray-400">No output yet. Use console.log() in a &lt;script&gt;.</p>
           ) : (
             entries.map((e) => (
               <pre

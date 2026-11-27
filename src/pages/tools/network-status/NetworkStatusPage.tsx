@@ -235,7 +235,7 @@ export default function NetworkStatusPage() {
             <div className="bg-surface-alt rounded-lg border border-border p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-text-secondary">Connection Test</h3>
-                <button onClick={runTest} disabled={testing} className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover transition-all duration-200 disabled:opacity-50">
+                <button onClick={runTest} disabled={testing} className="px-4 py-1.5 bg-primary text-on-primary rounded-lg text-sm font-medium hover:bg-primary-hover transition-all duration-200 disabled:opacity-50">
                   {testing ? 'Testing...' : 'Test Now'}
                 </button>
               </div>

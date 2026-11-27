@@ -17,7 +17,7 @@ export function TextAreaInput({ id, value, onChange, placeholder, className = ''
       placeholder={placeholder}
       className={`w-full p-3.5 bg-surface border border-border rounded-lg font-mono text-sm text-text min-h-40 resize-y
         placeholder:text-text-muted
-        focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50
+        focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary
         transition-all duration-200 ${className}`}
       {...props}
     />

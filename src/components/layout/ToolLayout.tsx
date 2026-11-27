@@ -6,6 +6,7 @@ import { type ReactNode } from 'react';
 import BackgroundBlobs from '@components/ui/BackgroundBlobs';
 import ThemeToggleButton from '@components/ui/ThemeToggleButton';
 import Footer from '@components/layout/Footer';
+import SkipLink from '@components/layout/SkipLink';
 
 interface ToolLayoutProps {
   title: string;
@@ -19,7 +20,8 @@ interface ToolLayoutProps {
 export default function ToolLayout({ title, seoTitle, tagline, metaDescription, children }: ToolLayoutProps) {
   const pageTitle = `${seoTitle || title} | DevTools`;
   return (
-    <div className="flex flex-col h-screen relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
+    <div className="flex flex-col h-dvh relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
+      <SkipLink />
       <BackgroundBlobs />
 
       <Helmet>
@@ -40,21 +42,23 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-sm font-medium"
+              aria-label="Back to all tools"
+              className="inline-flex items-center gap-1.5 min-h-10 min-w-10 justify-center sm:justify-start -ml-2 px-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-900/5 dark:hover:bg-white/10 transition-colors text-sm font-medium focus-ring"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={16} aria-hidden="true" />
               <span className="hidden sm:inline">Back</span>
             </Link>
-            <span className="text-gray-300 dark:text-gray-600">|</span>
-            <Link to="/" className="font-bold text-lg text-gray-900 dark:text-white">
+            <span aria-hidden="true" className="text-gray-300 dark:text-gray-600">|</span>
+            <Link to="/" className="font-bold text-lg text-gray-900 dark:text-white rounded focus-ring">
               DevTools
             </Link>
           </div>
 
+          {/* Breadcrumb-style context only; the page's <h1> is in <main>. */}
           {title && (
-            <h1 className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate max-w-xs md:max-w-md hidden md:block">
+            <p aria-hidden="true" className="text-sm font-medium text-gray-600 dark:text-gray-300 truncate max-w-xs md:max-w-md hidden md:block">
               {title}
-            </h1>
+            </p>
           )}
 
           <ThemeToggleButton />
@@ -66,12 +70,14 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.05 }}
-        className="flex-1 relative z-10 pt-20 pb-2 overflow-y-auto"
+        id="main-content"
+        tabIndex={-1}
+        className="flex-1 relative z-10 pt-20 pb-2 overflow-y-auto scroll-pt-20 outline-none"
       >
         <div className="max-w-384 mx-auto px-3 md:px-5 h-full">
           <div className="mb-2">
             <h1 className="text-xl md:text-2xl font-black tracking-tight text-gray-900 dark:text-white">{title}</h1>
-            {tagline && <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-xs md:text-sm">{tagline}</p>}
+            {tagline && <p className="text-gray-600 dark:text-gray-400 mt-0.5 text-xs md:text-sm">{tagline}</p>}
           </div>
           {children}
         </div>

@@ -55,10 +55,10 @@ const backgroundOptions = [
 const editorClass =
   'w-full h-full flex-1 p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all';
 const selectClass =
-  'border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none';
-const labelClass = 'block text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide';
+  'border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus-ring';
+const labelClass = 'block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide';
 const linkBtnClass =
-  'inline-flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors';
+  'inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring';
 const divider = <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-0.5" />;
 
 const escapeAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
@@ -246,7 +246,7 @@ export default function HtmlPreviewPage() {
           className={editorClass}
         />
       </div>
-      <div className="flex justify-between text-[10px] text-gray-400 dark:text-gray-500">
+      <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
         <span>
           {lineCount} lines · {code.length.toLocaleString()} chars
         </span>

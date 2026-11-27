@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
+import { MotionConfig } from 'framer-motion';
 import { ThemeProvider } from '@hooks/useTheme';
 import App from './App';
 import ErrorBoundary from '@components/ErrorBoundary';
@@ -14,10 +15,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <BrowserRouter>
         <ThemeProvider>
-          <ErrorBoundary>
-            <ScrollToTop />
-            <App />
-          </ErrorBoundary>
+          {/* Honour the OS "reduce motion" setting for every Framer Motion animation. */}
+          <MotionConfig reducedMotion="user">
+            <ErrorBoundary>
+              <ScrollToTop />
+              <App />
+            </ErrorBoundary>
+          </MotionConfig>
           <Toaster position="bottom-right" richColors closeButton />
         </ThemeProvider>
       </BrowserRouter>

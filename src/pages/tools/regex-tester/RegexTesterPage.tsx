@@ -135,10 +135,10 @@ export default function RegexTesterPage() {
                 aria-pressed={flags.includes(flag)}
                 className={`px-2.5 py-1 rounded-md text-xs font-mono border transition-colors ${
                   flags.includes(flag)
-                    ? 'bg-primary text-white border-primary'
+                    ? 'bg-primary text-on-primary border-primary'
                     : 'bg-surface-alt text-text-secondary border-border hover:border-primary/40'}`}
               >
-                {flag} <span className="font-sans opacity-80">{name}</span>
+                {flag} <span className="font-sans">{name}</span>
               </button>
             ))}
           </div>
@@ -223,7 +223,7 @@ export default function RegexTesterPage() {
                         <td className="py-1.5 pr-4 text-text-muted whitespace-nowrap">{m.index}–{m.end}</td>
                         <td className="py-1.5 pr-4 text-text break-all">{m.text || <em className="text-text-muted">empty</em>}</td>
                         {Array.from({ length: groupCount }, (_, g) => (
-                          <td key={g} className="py-1.5 pr-4 text-violet-500 break-all">
+                          <td key={g} className="py-1.5 pr-4 text-violet-600 dark:text-violet-400 break-all">
                             {m.groups[g] ?? <span className="text-text-muted">—</span>}
                           </td>
                         ))}

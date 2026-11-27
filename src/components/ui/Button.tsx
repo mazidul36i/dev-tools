@@ -4,7 +4,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 shadow-soft hover:shadow-card',
+  primary: 'bg-gradient-to-r from-primary to-accent text-on-primary hover:opacity-90 shadow-soft hover:shadow-card',
   secondary: 'bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30',
   ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
   danger: 'bg-error/10 text-error border border-error/20 hover:bg-error/20',
@@ -27,7 +27,7 @@ export default function Button({ children, variant = 'primary', size = 'md', cla
   return (
     <button
       className={`inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200
-        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-1
+        active:scale-[0.97] focus-ring
         disabled:opacity-50 disabled:pointer-events-none
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}

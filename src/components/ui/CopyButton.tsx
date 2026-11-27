@@ -1,5 +1,5 @@
 import { Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,6 +12,10 @@ interface CopyButtonProps {
 
 export default function CopyButton({ text, label = 'Copy', size = 'default', className = '' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+  // Icon-only buttons (label="") still need a name for screen readers.
+  const iconOnly = !label;
 
   const handleCopy = async () => {
     if (!text) {
@@ -22,7 +26,8 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
       await navigator.clipboard.writeText(text);
       setCopied(true);
       toast.success('Copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
+      clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('Failed to copy');
     }
@@ -34,10 +39,13 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
-      className={`inline-flex items-center gap-1.5 rounded-lg font-medium transition-all duration-200
+      aria-label={iconOnly ? (copied ? 'Copied' : 'Copy to clipboard') : undefined}
+      title={iconOnly ? 'Copy to clipboard' : undefined}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-all duration-200
         bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30
-        active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-primary/30
+        active:scale-[0.97] focus-ring
         ${sizeClasses} ${className}`}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -51,7 +59,7 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
           </motion.span>
         )}
       </AnimatePresence>
-      {copied ? 'Copied!' : label}
+      {!iconOnly && (copied ? 'Copied!' : label)}
     </button>
   );
 }

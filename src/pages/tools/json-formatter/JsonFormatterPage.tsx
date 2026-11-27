@@ -285,7 +285,7 @@ export default function JsonFormatterPage() {
 
             {/* Contextual options */}
             {lastAction === 'format' && (
-              <select value={indent} onChange={(e) => setIndent(parseInt(e.target.value))} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus:outline-none">
+              <select aria-label="Indentation" value={indent} onChange={(e) => setIndent(parseInt(e.target.value))} className="border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus-ring">
                 <option value="2">2 spaces</option>
                 <option value="4">4 spaces</option>
                 <option value="tab">Tab</option>
@@ -302,9 +302,9 @@ export default function JsonFormatterPage() {
 
             {/* Utility buttons */}
             <CopyButton text={output} label="Copy" />
-            <SecondaryButton onClick={handleDownload} title="Download"><Download size={14} /></SecondaryButton>
-            <SecondaryButton onClick={handleUseAsInput} title="Use output as input"><CornerDownLeft size={14} /></SecondaryButton>
-            <SecondaryButton onClick={handleClear}><Eraser size={14} /></SecondaryButton>
+            <SecondaryButton onClick={handleDownload} title="Download" aria-label="Download"><Download size={14} aria-hidden="true" /></SecondaryButton>
+            <SecondaryButton onClick={handleUseAsInput} title="Use output as input" aria-label="Use output as input"><CornerDownLeft size={14} aria-hidden="true" /></SecondaryButton>
+            <SecondaryButton onClick={handleClear} title="Clear" aria-label="Clear"><Eraser size={14} aria-hidden="true" /></SecondaryButton>
 
             {/* Right-aligned: search + tree toggle */}
             <div className="flex items-center gap-2 ml-auto">
@@ -340,8 +340,10 @@ export default function JsonFormatterPage() {
           <ResizablePanels
             left={
               <div className="flex flex-col min-h-0 h-full">
-                <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
+                <label htmlFor="json-input" className="shrink-0 block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Input</label>
                 <textarea
+                  id="json-input"
+                  spellCheck={false}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={placeholders[lastAction]}
@@ -351,7 +353,7 @@ export default function JsonFormatterPage() {
             }
             right={
               <div className="flex flex-col min-h-0 h-full">
-                <label className="shrink-0 block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</label>
+                <span className="shrink-0 block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Output</span>
                 {showTreeToggle && effectiveView === 'tree' && parsedJson ? (
                   <div className="flex-1 min-h-0 overflow-auto bg-white/20 dark:bg-gray-900/20 border border-white/50 dark:border-gray-700/50 rounded-xl p-4">
                     <JsonTreeView data={parsedJson} collapseSignal={treeSignalValue} search={search} activeMatchIndex={matchIdx} />
@@ -364,7 +366,7 @@ export default function JsonFormatterPage() {
                     className={outputClass + ' flex-1 overflow-auto'}
                   />
                 ) : (
-                  <textarea value={output} readOnly className={outputClass} />
+                  <textarea aria-label="Output" value={output} readOnly className={outputClass} />
                 )}
               </div>
             }

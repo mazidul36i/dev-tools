@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
+import { useState, useCallback, useRef, type ReactNode, type KeyboardEvent, type PointerEvent } from 'react';
 
 interface ResizablePanelsProps {
   left: ReactNode;
@@ -12,6 +12,15 @@ interface ResizablePanelsProps {
   className?: string;
 }
 
+const KEY_STEP = 2;
+const KEY_STEP_LARGE = 10;
+
+/**
+ * Two panels side by side (stacked below `lg`) with a draggable divider.
+ * The divider works with mouse, touch and pen (pointer capture keeps the drag
+ * alive over iframes), and with the keyboard: arrows, Shift+arrows, Home/End,
+ * Enter to reset. Double-click also resets.
+ */
 export default function ResizablePanels({
   left,
   right,
@@ -22,37 +31,46 @@ export default function ResizablePanels({
 }: ResizablePanelsProps) {
   const [leftPercent, setLeftPercent] = useState(defaultLeftPercent);
   const containerRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
 
-  const onMouseDown = useCallback((e: React.MouseEvent) => {
+  const clamp = useCallback(
+    (pct: number) => Math.max(minLeftPercent, Math.min(maxLeftPercent, pct)),
+    [minLeftPercent, maxLeftPercent],
+  );
+
+  const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
     e.preventDefault();
-    dragging.current = true;
+    e.currentTarget.setPointerCapture(e.pointerId);
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
-  }, []);
+  };
 
-  useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => {
-      if (!dragging.current || !containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      let pct = ((e.clientX - rect.left) / rect.width) * 100;
-      pct = Math.max(minLeftPercent, Math.min(maxLeftPercent, pct));
-      setLeftPercent(pct);
-    };
-    const onMouseUp = () => {
-      if (dragging.current) {
-        dragging.current = false;
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    };
-  }, [minLeftPercent, maxLeftPercent]);
+  const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId) || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setLeftPercent(clamp(((e.clientX - rect.left) / rect.width) * 100));
+  };
+
+  const endDrag = (e: PointerEvent<HTMLDivElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = e.shiftKey ? KEY_STEP_LARGE : KEY_STEP;
+    let next: number;
+    switch (e.key) {
+      case 'ArrowLeft': next = leftPercent - step; break;
+      case 'ArrowRight': next = leftPercent + step; break;
+      case 'Home': next = minLeftPercent; break;
+      case 'End': next = maxLeftPercent; break;
+      case 'Enter': next = defaultLeftPercent; break;
+      default: return;
+    }
+    e.preventDefault();
+    setLeftPercent(clamp(next));
+  };
 
   return (
     <div ref={containerRef} className={`flex flex-col lg:flex-row flex-1 min-h-0 h-full ${className}`}>
@@ -63,11 +81,23 @@ export default function ResizablePanels({
 
       {/* Drag handle – visible only on lg+ */}
       <div
-        onMouseDown={onMouseDown}
-        className="hidden lg:flex items-center justify-center w-3 shrink-0 cursor-col-resize group"
-        title="Drag to resize"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize panels"
+        aria-valuenow={Math.round(leftPercent)}
+        aria-valuemin={minLeftPercent}
+        aria-valuemax={maxLeftPercent}
+        tabIndex={0}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onKeyDown={onKeyDown}
+        onDoubleClick={() => setLeftPercent(clamp(defaultLeftPercent))}
+        className="hidden lg:flex items-center justify-center w-3 shrink-0 cursor-col-resize touch-none group rounded focus-ring"
+        title="Drag to resize · double-click to reset"
       >
-        <div className="w-0.5 h-8 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 group-active:bg-blue-500 dark:group-active:bg-blue-400 transition-colors" />
+        <div className="w-0.5 h-8 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 group-active:bg-primary group-focus-visible:bg-primary transition-colors" />
       </div>
 
       {/* Gap for mobile (stacked view) */}
@@ -80,4 +110,3 @@ export default function ResizablePanels({
     </div>
   );
 }
-
