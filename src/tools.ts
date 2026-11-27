@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex,
+  ShieldCheck, Clock, Hash, Regex, FileCode2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -171,6 +171,15 @@ export const tools: ToolDefinition[] = [
     category: 'Text',
     keywords: ['regular expression', 'regexp', 'pattern', 'match', 'replace', 'capture group'],
     component: lazy(() => import('@pages/tools/regex-tester/RegexTesterPage')),
+  },
+  {
+    slug: 'yaml-json',
+    title: 'YAML ↔ JSON',
+    desc: 'Convert YAML to JSON and back, with anchors, merge keys and multi-document support',
+    icon: FileCode2, color: 'text-yellow-600', bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    category: 'Converters',
+    keywords: ['yml', 'convert', 'docker compose', 'kubernetes', 'config'],
+    component: lazy(() => import('@pages/tools/yaml-json/YamlJsonPage')),
   },
 ];
 

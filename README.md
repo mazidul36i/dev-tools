@@ -13,6 +13,7 @@ A collection of free, browser-based web developer utilities built with **React +
 - **React Helmet Async** — Per-route SEO meta tags
 - **Tesseract.js** — Client-side OCR for Image-to-Text
 - **Recharts** — Charts for Network Status statistics
+- **yaml** — YAML parsing / serialisation for YAML ↔ JSON
 
 ## Available Tools
 
@@ -32,6 +33,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Unix Timestamp Converter | `/tools/timestamp-converter` | Epoch (s/ms/µs/ns) ↔ ISO 8601, RFC 2822 and any time zone, with a live clock |
 | Hash Generator | `/tools/hash-generator` | MD5, SHA-1/256/384/512, CRC32 and HMAC for text or files, with checksum comparison |
 | Regex Tester | `/tools/regex-tester` | Live match highlighting, capture/named groups, replace preview, presets and cheat sheet |
+| YAML ↔ JSON | `/tools/yaml-json` | Two-way conversion with anchors, merge keys, multi-document streams and error locations |
 
 ## Development
 
