@@ -57,7 +57,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: 'image-to-text',
-    title: 'Image to Text Convert',
+    title: 'Image to Text (OCR)',
     desc: 'Extract text from images using OCR technology. Supports multiple formats with drag & drop, paste, or upload.',
     icon: Image, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30',
     category: 'Images',

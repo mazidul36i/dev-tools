@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
-import { Upload, Download, Eraser } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import CopyButton from '@components/ui/CopyButton';
-import { SecondaryButton } from '@components/ui/Button';
-import { TextAreaOutput } from '@components/ui/TextArea';
-import { downloadFile } from '@lib/download-utils';
+import Button from '@components/ui/Button';
+import Checkbox from '@components/ui/Checkbox';
+import FileDropZone from '@components/ui/FileDropZone';
+import { OutputPanel, Panel } from '@components/workspace';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
 
 function processParagraphs(text: string): string {
   if (!text) return '';
@@ -37,26 +36,33 @@ function processParagraphs(text: string): string {
   return processedLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+const schema = { join: opt.bool(true) };
+
 export default function ImageToTextPage() {
+  const [o, setO] = useUrlOptions(schema);
   const [preview, setPreview] = useState<string | null>(null);
-  const [output, setOutput] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [raw, setRaw] = useState('');
   const [status, setStatus] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [processing, setProcessing] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const output = useMemo(() => (o.join ? processParagraphs(raw) : raw.trim()), [raw, o.join]);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file || !file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file');
+      toast.error('Please choose an image file');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => setPreview(reader.result as string);
-    reader.readAsDataURL(file);
-
+    setPreview((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return URL.createObjectURL(file);
+    });
+    setFileName(file.name || 'pasted image');
+    setError(null);
+    setRaw('');
     setProcessing(true);
-    setStatus('Initializing OCR...');
+    setStatus('Loading the OCR engine…');
     setProgress(0);
     try {
       const Tesseract = await import('tesseract.js');
@@ -64,17 +70,16 @@ export default function ImageToTextPage() {
         logger: (m: { status: string; progress: number }) => {
           if (m.status === 'recognizing text') {
             setProgress(m.progress);
-            setStatus(`Processing: ${(m.progress * 100).toFixed(1)}%`);
+            setStatus(`Recognising text… ${Math.round(m.progress * 100)}%`);
           }
         },
       });
-      setOutput(processParagraphs(text));
-      setStatus('✅ Text extraction complete!');
-      toast.success('Text extracted successfully!');
+      setRaw(text);
+      setStatus(text.trim() ? 'Done' : 'No text found in this image');
     } catch (err) {
       console.error(err);
-      setStatus('❌ Error reading image');
-      toast.error('Failed to extract text');
+      setStatus('');
+      setError('Could not read text from this image. If you are offline, the OCR language data may not have loaded.');
     } finally {
       setProcessing(false);
     }
@@ -82,121 +87,76 @@ export default function ImageToTextPage() {
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file) handleFile(file).then(() => {});
-          break;
-        }
-      }
+      const file = Array.from(e.clipboardData?.files ?? []).find((f) => f.type.startsWith('image/'));
+      if (file) handleFile(file);
     };
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
   }, [handleFile]);
 
-  const handleDownload = () => {
-    if (!output) { toast.error('No text to download'); return; }
-    downloadFile(output, 'extracted-text.txt');
-  };
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+    // Only on unmount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleClear = () => {
-    setPreview(null); setOutput(''); setStatus(''); setProgress(0);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const clear = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null); setRaw(''); setStatus(''); setError(null); setProgress(0);
   };
 
   return (
     <ToolLayout
-      title="Image to Text Converter"
-      tagline="Extract text from images using advanced OCR technology"
+      seoTitle="Image to Text (OCR) – Extract Text from Images"
+      tagline="Extract text from screenshots, photos and scans with OCR, in your browser"
       metaDescription="Convert images to text using OCR technology. Extract text from images, screenshots, and documents easily."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Private.</strong> Recognition runs in your browser with Tesseract.js. Your image is never uploaded; only the English language data is downloaded once.</li>
+          <li><strong className="text-text">Best results</strong> come from sharp, high-contrast images with horizontal text. Crop to the text you need and paste screenshots straight in with Ctrl/⌘+V.</li>
+          <li><strong className="text-text">Line breaks.</strong> “Join lines into paragraphs” merges wrapped lines; turn it off to keep the exact line layout (tables, code).</li>
+        </ul>
+      }
     >
-      <Card>
-        <div className="p-6">
-          {/* Drop Zone */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]).then(() => {}); }}
-            onClick={() => fileInputRef.current?.click()}
-            role="button"
-            aria-label="Upload an image for text extraction"
-            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-300
-              ${dragging ? 'border-primary bg-primary/5 scale-[1.01]' : 'border-border bg-surface-alt hover:border-primary/40 hover:bg-primary/5'}`}
-          >
-            <Upload className={`w-10 h-10 mx-auto mb-3 transition-colors ${dragging ? 'text-primary' : 'text-text-muted'}`} />
-            <p className="text-sm font-medium text-text-secondary">Drop image here, click to upload, or paste (Ctrl+V)</p>
-            <p className="text-xs text-text-muted mt-1.5">Supports PNG, JPG, JPEG, GIF, and WebP</p>
-            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
-          </div>
-
-          {/* Preview */}
-          <AnimatePresence>
-            {preview && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-6 bg-surface-alt rounded-lg p-5 text-center">
-                <h3 className="text-sm font-medium text-text-secondary mb-3">Image Preview</h3>
-                <img src={preview} alt="Preview" className="max-w-full max-h-96 rounded-lg shadow-card mx-auto" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Progress */}
+      <div className="grid gap-4 lg:grid-cols-2 items-start">
+        <Panel
+          title="Image"
+          bodyClassName="p-4 space-y-3"
+          actions={preview ? <Button variant="ghost" size="sm" onClick={clear}><X size={13} aria-hidden="true" /> Remove</Button> : undefined}
+          footer={processing || status ? <span role="status">{status}</span> : undefined}
+        >
+          {preview ? (
+            <figure className="space-y-2">
+              <img src={preview} alt={`Selected image: ${fileName}`} className="max-w-full max-h-96 mx-auto rounded-md border border-border" />
+              <figcaption className="text-center text-xs text-text-muted truncate">{fileName}</figcaption>
+            </figure>
+          ) : null}
+          <FileDropZone
+            accept="image/*"
+            onFiles={(f) => handleFile(f[0])}
+            compact={!!preview}
+            title={preview ? 'Use another image' : 'Drop an image, click to browse, or paste (Ctrl/⌘+V)'}
+            hint={preview ? undefined : 'PNG, JPG, GIF or WebP. Screenshots work best.'}
+          />
           {processing && (
-            <div className="mt-5">
-              <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
-                <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${progress * 100}%` }} transition={{ duration: 0.3 }} />
-              </div>
+            <div className="w-full bg-border rounded-full h-1.5 overflow-hidden" role="progressbar" aria-label="Recognition progress" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full bg-primary rounded-full transition-[width]" style={{ width: `${progress * 100}%` }} />
             </div>
           )}
-          {status && <p className="text-center text-text-secondary text-sm font-medium mt-3">{status}</p>}
-        </div>
-      </Card>
+        </Panel>
 
-      {/* Result */}
-      <AnimatePresence>
-        {output && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <Card>
-              <div className="p-6">
-                <h2 className="text-lg font-semibold text-text mb-4">Extracted Text</h2>
-                <TextAreaOutput value={output} className="min-h-50" />
-                <div className="flex flex-wrap gap-3 mt-4">
-                  <CopyButton text={output} label="Copy Text" />
-                  <SecondaryButton onClick={handleDownload}><Download size={15} /> Download as .txt</SecondaryButton>
-                  <SecondaryButton onClick={handleClear}><Eraser size={15} /> Clear</SecondaryButton>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <InfoCard title="About OCR Technology">
-          <p className="text-text-muted leading-relaxed mb-5">
-            This tool uses Optical Character Recognition (OCR) technology to extract text from images. Simply upload an image, paste a screenshot, or drag and drop a file.
-          </p>
-          <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-3">Key Features</h3>
-              <ul className="space-y-2 text-sm text-text-muted">
-                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Multiple input methods: upload, drag & drop, or paste</li>
-                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Fast processing with Tesseract.js OCR engine</li>
-                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Privacy focused — all processing in your browser</li>
-                <li className="flex gap-2"><span className="text-success font-bold">✓</span> Copy text or download as .txt file</li>
-              </ul>
-            </div>
-            <div className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-3">💡 Tips for Best Results</h3>
-              <ul className="space-y-2 text-sm text-text-muted">
-                <li>• Use high-quality images with clear text</li>
-                <li>• Ensure good contrast between text and background</li>
-                <li>• Avoid blurry or distorted images</li>
-                <li>• For screenshots, use Ctrl+V to paste directly</li>
-              </ul>
-            </div>
-          </div>
-      </InfoCard>
+        <OutputPanel
+          label="Extracted text"
+          value={output}
+          error={error}
+          errorTitle="OCR failed"
+          placeholder={processing ? 'Recognising…' : 'Text from the image appears here'}
+          downloadName="extracted-text.txt"
+          className="min-h-96"
+          textareaClassName="min-h-80 font-sans! text-sm!"
+          actions={<Checkbox checked={o.join} onChange={(v) => setO({ join: v })} label="Join lines into paragraphs" className="text-xs mr-2" />}
+        />
+      </div>
     </ToolLayout>
   );
 }
