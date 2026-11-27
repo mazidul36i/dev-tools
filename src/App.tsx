@@ -1,9 +1,10 @@
 import {Routes, Route} from 'react-router-dom';
 import {lazy, Suspense} from 'react';
 import Spinner from '@components/ui/Spinner';
-import {tools, toolPath} from './tools';
 
 const HomePage = lazy(() => import('@pages/HomePage'));
+// Tool routes come from the registry in src/tools.ts.
+const ToolRoute = lazy(() => import('@pages/ToolRoute'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 export default function App() {
@@ -11,9 +12,7 @@ export default function App() {
     <Suspense fallback={<Spinner/>}>
       <Routes>
         <Route path="/" element={<HomePage/>}/>
-        {tools.map(({slug, component: Page}) => (
-          <Route key={slug} path={toolPath({slug})} element={<Page/>}/>
-        ))}
+        <Route path="/tools/:slug" element={<ToolRoute/>}/>
         <Route path="*" element={<NotFoundPage/>}/>
       </Routes>
     </Suspense>

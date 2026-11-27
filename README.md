@@ -99,7 +99,7 @@ Builds and deploys to Firebase Hosting.
 ```
 src/
 ├── main.tsx                    # Entry point
-├── App.tsx                     # Routes, generated from tools.ts
+├── App.tsx                     # Routes (/tools/:slug resolved via tools.ts)
 ├── tools.ts                    # Tool registry: metadata, category, lazy page
 ├── index.css                   # Tailwind imports + theme
 ├── components/
