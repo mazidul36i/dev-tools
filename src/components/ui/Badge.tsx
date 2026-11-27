@@ -7,7 +7,7 @@ const tones: Record<Tone, string> = {
   success: 'bg-success/10 text-success border-success/30',
   warning: 'bg-warning/10 text-warning border-warning/30',
   error: 'bg-error/10 text-error border-error/30',
-  primary: 'bg-primary/10 text-primary border-primary/30',
+  primary: 'bg-primary/10 text-primary-hover border-primary/30',
 };
 
 export default function Badge({ tone = 'neutral', children, className = '' }: { tone?: Tone; children: ReactNode; className?: string }) {

@@ -28,7 +28,7 @@ export default function RunButton({ onClick, children = 'Run', disabled, shortcu
     >
       {children}
       {shortcut && (
-        <kbd aria-hidden="true" className="hidden sm:inline ml-1 px-1 rounded bg-black/10 dark:bg-black/20 text-[10px] font-sans leading-4 opacity-80">
+        <kbd aria-hidden="true" className="hidden sm:inline ml-1 px-1 rounded bg-black/15 dark:bg-black/20 text-[11px] font-sans leading-4">
           {modKeyLabel === 'Ctrl' ? 'Ctrl ↵' : '⌘↵'}
         </kbd>
       )}

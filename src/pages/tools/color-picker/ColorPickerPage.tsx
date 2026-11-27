@@ -236,9 +236,13 @@ export default function ColorPickerPage() {
               <ContrastBadge ratio={onWhite} on="white" />
               <ContrastBadge ratio={onBlack} on="black" />
             </div>
+            {/* Samples of the picked colour as text; their contrast is what the badges above report. */}
             <div className="grid grid-cols-2 gap-2 text-sm font-medium">
-              <div className="rounded-md px-3 py-2 bg-white border border-border" style={{ color: hex }}>Text on white</div>
-              <div className="rounded-md px-3 py-2 bg-black" style={{ color: hex }}>Text on black</div>
+              {([['white', '#ffffff'], ['black', '#000000']] as const).map(([name, bgColor]) => (
+                <svg key={name} role="img" aria-label={`${hex} as text on ${name}`} viewBox="0 0 140 36" preserveAspectRatio="xMinYMid meet" className="w-full h-9 rounded-md border border-border" style={{ background: bgColor }}>
+                  <text x="12" y="23" fill={hex} fontSize="14" fontWeight="500" fontFamily="inherit">Text on {name}</text>
+                </svg>
+              ))}
             </div>
           </Panel>
         </div>

@@ -46,9 +46,9 @@ const action =
 function Group({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
     <div role="group" aria-label={title} className="space-y-1.5">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
         {title} {hint && <span className="font-normal normal-case tracking-normal">· {hint}</span>}
-      </h3>
+      </h2>
       <div className="flex flex-wrap gap-1.5">{children}</div>
     </div>
   );

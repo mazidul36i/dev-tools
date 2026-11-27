@@ -34,9 +34,10 @@
   --color-on-primary: #ffffff;
   --color-accent: #2563eb;
 
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-error: #dc2626;
+  /* 700/800 shades so status text stays >= 5.5:1 even on its own 10% tint. */
+  --color-success: #166534;
+  --color-warning: #92400e;
+  --color-error: #b91c1c;
 
   /* Syntax colours (JSON tree, highlighted output). */
   --color-code-key: #0550ae;

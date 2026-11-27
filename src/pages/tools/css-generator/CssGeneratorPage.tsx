@@ -133,7 +133,7 @@ function GradientEditor({ g, setG }: { g: Gradient; setG: Dispatch<SetStateActio
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">Colour stops</h3>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">Colour stops</h2>
             <Button
               variant="ghost"
               size="sm"

@@ -3,20 +3,15 @@ interface SegmentedControlOption {
   label: string;
 }
 
-type SegmentedVariant = 'default' | 'glass';
-
 interface SegmentedControlProps {
   options: SegmentedControlOption[];
   value: string;
   onChange: (id: string) => void;
-  /** @deprecated Both variants now render the same; kept so older call sites compile. */
-  variant?: SegmentedVariant;
   className?: string;
   /** Accessible name for the group, e.g. "Encoding". */
   ariaLabel?: string;
 }
 
-// One style for every variant; `glass` is kept as an alias for older call sites.
 const wrapper = 'inline-flex flex-wrap items-center gap-0.5 p-0.5 rounded-md bg-surface-alt border border-border';
 const active = 'bg-primary text-on-primary';
 const inactive = 'text-text-secondary hover:text-text hover:bg-surface-hover';

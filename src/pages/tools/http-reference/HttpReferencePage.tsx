@@ -9,11 +9,11 @@ import useUrlOptions from '@hooks/useUrlOptions';
 import { STATUS_CLASSES, searchMimeTypes, searchStatusCodes } from '@lib/http-reference-data';
 
 const CLASS_TONE: Record<number, string> = {
-  1: 'text-sky-600 dark:text-sky-400 bg-sky-500/10',
-  2: 'text-green-600 dark:text-green-400 bg-green-500/10',
-  3: 'text-violet-600 dark:text-violet-400 bg-violet-500/10',
-  4: 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
-  5: 'text-red-600 dark:text-red-400 bg-red-500/10',
+  1: 'text-sky-800 dark:text-sky-300 bg-sky-500/10',
+  2: 'text-green-800 dark:text-green-300 bg-green-500/10',
+  3: 'text-violet-700 dark:text-violet-300 bg-violet-500/10',
+  4: 'text-amber-800 dark:text-amber-300 bg-amber-500/10',
+  5: 'text-red-700 dark:text-red-300 bg-red-500/10',
 };
 
 const schema = {

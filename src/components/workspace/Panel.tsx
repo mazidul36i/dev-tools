@@ -23,11 +23,11 @@ export default function Panel({ title, actions, footer, children, className = ''
       className={`flex flex-col min-w-0 min-h-0 rounded-lg border border-border bg-surface overflow-hidden ${className}`}
     >
       {(titled || actions) && (
-        <header className="flex items-center justify-between gap-2 min-h-10 px-3 py-1 border-b border-border shrink-0">
-          <div id={id} className="shrink-0 text-xs font-semibold uppercase tracking-wider text-text-muted">
+        <header className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-h-10 px-3 py-1.5 border-b border-border shrink-0">
+          <div id={id} className="min-w-0 text-xs font-semibold uppercase tracking-wider text-text-muted">
             {title}
           </div>
-          {actions && <div className="flex flex-wrap items-center justify-end gap-1">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center justify-end gap-1 ml-auto">{actions}</div>}
         </header>
       )}
       <div className={`flex-1 min-h-0 min-w-0 ${bodyClassName}`}>{children}</div>
