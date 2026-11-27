@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -180,6 +180,15 @@ export const tools: ToolDefinition[] = [
     category: 'Converters',
     keywords: ['yml', 'convert', 'docker compose', 'kubernetes', 'config'],
     component: lazy(() => import('@pages/tools/yaml-json/YamlJsonPage')),
+  },
+  {
+    slug: 'json-to-types',
+    title: 'JSON to Types',
+    desc: 'Generate TypeScript, Go, Java, Kotlin, Python or Rust types from sample JSON',
+    icon: Braces, color: 'text-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30',
+    category: 'Converters',
+    keywords: ['typescript interface', 'go struct', 'java class', 'kotlin data class', 'python dataclass', 'rust serde', 'quicktype', 'dto'],
+    component: lazy(() => import('@pages/tools/json-to-types/JsonToTypesPage')),
   },
 ];
 

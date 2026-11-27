@@ -23,7 +23,7 @@ export default function CodeBlock({ code, title, actions, className = '', preCla
           <CopyButton text={code} size="sm" />
         </div>
       </div>
-      <pre className={`flex-1 p-3.5 font-mono text-sm text-text-secondary whitespace-pre-wrap break-words overflow-auto ${preClassName}`}>
+      <pre className={`flex-1 [tab-size:4] p-3.5 font-mono text-sm text-text-secondary whitespace-pre-wrap break-words overflow-auto ${preClassName}`}>
         {code || <span className="text-text-muted">{placeholder}</span>}
       </pre>
     </div>

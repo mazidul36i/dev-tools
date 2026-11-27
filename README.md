@@ -34,6 +34,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Hash Generator | `/tools/hash-generator` | MD5, SHA-1/256/384/512, CRC32 and HMAC for text or files, with checksum comparison |
 | Regex Tester | `/tools/regex-tester` | Live match highlighting, capture/named groups, replace preview, presets and cheat sheet |
 | YAML ↔ JSON | `/tools/yaml-json` | Two-way conversion with anchors, merge keys, multi-document streams and error locations |
+| JSON to Types | `/tools/json-to-types` | TypeScript, Go, Java, Kotlin, Python and Rust types from sample JSON (optional/nullable detection) |
 
 ## Development
 
