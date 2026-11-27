@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -207,6 +207,15 @@ export const tools: ToolDefinition[] = [
     category: 'Text',
     keywords: ['camelcase', 'snake case', 'kebab case', 'pascal case', 'title case', 'uppercase', 'lowercase', 'slug', 'word count', 'character count', 'sort lines', 'remove duplicates'],
     component: lazy(() => import('@pages/tools/text-utils/TextUtilsPage')),
+  },
+  {
+    slug: 'password-generator',
+    title: 'Password & Lorem Ipsum Generator',
+    desc: 'Generate secure random passwords with a strength meter, or lorem ipsum placeholder text',
+    icon: KeyRound, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    category: 'Generators',
+    keywords: ['random password', 'secure', 'entropy', 'passphrase', 'lorem ipsum', 'placeholder text', 'dummy text'],
+    component: lazy(() => import('@pages/tools/password-generator/PasswordGeneratorPage')),
   },
 ];
 
