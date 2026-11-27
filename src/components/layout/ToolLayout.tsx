@@ -1,89 +1,158 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { ChevronDown, Link as LinkIcon, Share2, Star } from 'lucide-react';
 import { type ReactNode } from 'react';
-import BackgroundBlobs from '@components/ui/BackgroundBlobs';
-import ThemeToggleButton from '@components/ui/ThemeToggleButton';
-import Footer from '@components/layout/Footer';
-import SkipLink from '@components/layout/SkipLink';
+import { tools, toolPath } from '../../tools';
+import { useCurrentTool } from '@hooks/useCurrentTool';
+import { useToolPrefs } from '@hooks/useToolPrefs';
+import { useShareRegistry } from '@hooks/useShareInput';
 
 interface ToolLayoutProps {
-  title: string;
+  /** Falls back to the registry title. */
+  title?: string;
   /** Optional longer, keyword-rich title for the browser tab / OG tags. Defaults to `title`. */
   seoTitle?: string;
+  /** One-line description under the title. Falls back to the registry description. */
   tagline?: string;
   metaDescription?: string;
+  /**
+   * `page`: centred, max-width, scrolls (forms, calculators, generators).
+   * `workspace`: full width and, on large screens, fills the viewport (editors, split panes).
+   */
+  variant?: 'page' | 'workspace';
+  /** Extra header actions, rendered before the standard ones. */
+  actions?: ReactNode;
+  /** "About this tool" content, shown in a collapsible section below the tool. */
+  about?: ReactNode;
   children: ReactNode;
 }
 
-export default function ToolLayout({ title, seoTitle, tagline, metaDescription, children }: ToolLayoutProps) {
-  const pageTitle = `${seoTitle || title} | DevTools`;
-  return (
-    <div className="flex flex-col h-dvh relative overflow-hidden bg-[#f5f0ed] dark:bg-gray-950">
-      <SkipLink />
-      <BackgroundBlobs />
+const headerButton =
+  'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring';
 
+/** Frame for a tool page: header with actions, the tool, About, related tools. */
+export default function ToolLayout({ title, seoTitle, tagline, metaDescription, variant = 'page', actions, about, children }: ToolLayoutProps) {
+  const tool = useCurrentTool();
+  const { isFavorite, toggleFavorite } = useToolPrefs();
+  const share = useShareRegistry();
+
+  const heading = tool?.title ?? title ?? 'Tool';
+  const description = tagline ?? tool?.desc;
+  const pageTitle = `${seoTitle || title || heading} | DevTools`;
+  const metaDesc = metaDescription ?? tool?.desc;
+  const fav = tool ? isFavorite(tool.slug) : false;
+  const related = tool ? tools.filter((t) => t.category === tool.category && t.slug !== tool.slug).slice(0, 4) : [];
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(
+      () => toast.success('Link copied'),
+      () => toast.error('Could not copy the link'),
+    );
+  };
+
+  const header = (
+    <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 mb-4 shrink-0">
+      <div className="flex items-start gap-3 min-w-0">
+        {tool && (
+          <span className={`grid place-items-center w-9 h-9 rounded-md shrink-0 ${tool.bg}`}>
+            <tool.icon size={18} aria-hidden="true" className={tool.color} />
+          </span>
+        )}
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-semibold leading-tight tracking-tight text-text">{heading}</h1>
+          {description && <p className="mt-0.5 text-sm text-text-muted max-w-3xl">{description}</p>}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 -mr-1">
+        {actions}
+        {share && (
+          <button type="button" onClick={share} className={headerButton} title="Copy a link that includes your input">
+            <Share2 size={15} aria-hidden="true" />
+            <span className="hidden sm:inline">Share</span>
+            <span className="sr-only sm:hidden">Share link with input</span>
+          </button>
+        )}
+        <button type="button" onClick={copyLink} className={headerButton} title="Copy a link to this tool with the current options">
+          <LinkIcon size={15} aria-hidden="true" />
+          <span className="hidden sm:inline">Copy link</span>
+          <span className="sr-only sm:hidden">Copy link</span>
+        </button>
+        {tool && (
+          <button
+            type="button"
+            onClick={() => toggleFavorite(tool.slug)}
+            aria-pressed={fav}
+            aria-label={fav ? 'Remove from favorites' : 'Add to favorites'}
+            title={fav ? 'Remove from favorites' : 'Add to favorites'}
+            className={`${headerButton} px-2`}
+          >
+            <Star size={16} aria-hidden="true" className={fav ? 'fill-amber-400 text-amber-500' : ''} />
+          </button>
+        )}
+      </div>
+    </header>
+  );
+
+  const footer = (
+    <>
+      {about && (
+        <details className="group mt-6 rounded-lg border border-border bg-surface">
+          <summary className="flex items-center justify-between gap-3 h-11 px-4 rounded-lg text-sm font-medium text-text list-none [&::-webkit-details-marker]:hidden focus-ring">
+            About {heading}
+            <ChevronDown size={16} aria-hidden="true" className="text-text-muted transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="px-4 pb-4 pt-1 text-sm leading-relaxed text-text-secondary border-t border-border">{about}</div>
+        </details>
+      )}
+      {related.length > 0 && (
+        <section aria-labelledby="related-tools" className="mt-6">
+          <h2 id="related-tools" className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+            Related tools
+          </h2>
+          <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {related.map((t) => (
+              <li key={t.slug}>
+                <Link
+                  to={toolPath(t)}
+                  className="flex items-center gap-2.5 h-11 px-3 rounded-md border border-border bg-surface text-sm text-text-secondary hover:text-text hover:border-border-strong hover:bg-surface-hover transition-colors focus-ring"
+                >
+                  <t.icon size={16} aria-hidden="true" className={`shrink-0 ${t.color}`} />
+                  <span className="truncate">{t.title}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+
+  return (
+    <>
       <Helmet>
         <title>{pageTitle}</title>
-        {metaDescription && <meta name="description" content={metaDescription} />}
+        {metaDesc && <meta name="description" content={metaDesc} />}
         <meta property="og:title" content={pageTitle} />
-        {metaDescription && <meta property="og:description" content={metaDescription} />}
+        {metaDesc && <meta property="og:description" content={metaDesc} />}
       </Helmet>
 
-      {/* Floating glassmorphic header */}
-      <motion.header
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="fixed top-2 left-3 right-3 md:left-5 md:right-5 z-50 bg-white/60 dark:bg-gray-900/80 backdrop-blur-2xl rounded-xl border border-white/40 dark:border-gray-700/60 shadow-sm"
-      >
-        <div className="max-w-384 mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/"
-              aria-label="Back to all tools"
-              className="inline-flex items-center gap-1.5 min-h-10 min-w-10 justify-center sm:justify-start -ml-2 px-2 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-900/5 dark:hover:bg-white/10 transition-colors text-sm font-medium focus-ring"
-            >
-              <ArrowLeft size={16} aria-hidden="true" />
-              <span className="hidden sm:inline">Back</span>
-            </Link>
-            <span aria-hidden="true" className="text-gray-300 dark:text-gray-600">|</span>
-            <Link to="/" className="font-bold text-lg text-gray-900 dark:text-white rounded focus-ring">
-              DevTools
-            </Link>
+      {variant === 'workspace' ? (
+        <div className="w-full px-4 sm:px-6 pb-8">
+          {/* On large screens the header + tool fill the viewport; About/Related sit below the fold. */}
+          <div className="flex flex-col pt-5 lg:h-[calc(100dvh-3rem)] lg:min-h-[34rem]">
+            {header}
+            <div className="flex flex-col flex-1 min-h-0">{children}</div>
           </div>
-
-          {/* Breadcrumb-style context only; the page's <h1> is in <main>. */}
-          {title && (
-            <p aria-hidden="true" className="text-sm font-medium text-gray-600 dark:text-gray-300 truncate max-w-xs md:max-w-md hidden md:block">
-              {title}
-            </p>
-          )}
-
-          <ThemeToggleButton />
+          {footer}
         </div>
-      </motion.header>
-
-      {/* Scrollable main content */}
-      <motion.main
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.05 }}
-        id="main-content"
-        tabIndex={-1}
-        className="flex-1 relative z-10 pt-20 pb-2 overflow-y-auto scroll-pt-20 outline-none"
-      >
-        <div className="max-w-384 mx-auto px-3 md:px-5 h-full">
-          <div className="mb-2">
-            <h1 className="text-xl md:text-2xl font-black tracking-tight text-gray-900 dark:text-white">{title}</h1>
-            {tagline && <p className="text-gray-600 dark:text-gray-400 mt-0.5 text-xs md:text-sm">{tagline}</p>}
-          </div>
+      ) : (
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-5 pb-10">
+          {header}
           {children}
+          {footer}
         </div>
-      </motion.main>
-
-      <Footer />
-    </div>
+      )}
+    </>
   );
 }

@@ -7,7 +7,7 @@ import { MotionConfig } from 'framer-motion';
 import { ThemeProvider, useTheme } from '@hooks/useTheme';
 import App from './App';
 import ErrorBoundary from '@components/ErrorBoundary';
-import ScrollToTop from '@components/ScrollToTop';
+import { ToolPrefsProvider } from '@hooks/useToolPrefs';
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import './index.css';
@@ -25,10 +25,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <ThemeProvider>
           {/* Honour the OS "reduce motion" setting for every Framer Motion animation. */}
           <MotionConfig reducedMotion="user">
-            <ErrorBoundary>
-              <ScrollToTop />
-              <App />
-            </ErrorBoundary>
+            <ToolPrefsProvider>
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
+            </ToolPrefsProvider>
           </MotionConfig>
           <ThemedToaster />
         </ThemeProvider>
