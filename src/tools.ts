@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash,
+  ShieldCheck, Clock, Hash, Regex,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -162,6 +162,15 @@ export const tools: ToolDefinition[] = [
     category: 'Encoders & Crypto',
     keywords: ['md5', 'sha1', 'sha256', 'sha512', 'crc32', 'checksum', 'hmac', 'digest'],
     component: lazy(() => import('@pages/tools/hash-generator/HashGeneratorPage')),
+  },
+  {
+    slug: 'regex-tester',
+    title: 'Regex Tester',
+    desc: 'Test JavaScript regular expressions with live highlighting, capture groups and replace preview',
+    icon: Regex, color: 'text-red-500', bg: 'bg-red-100 dark:bg-red-900/30',
+    category: 'Text',
+    keywords: ['regular expression', 'regexp', 'pattern', 'match', 'replace', 'capture group'],
+    component: lazy(() => import('@pages/tools/regex-tester/RegexTesterPage')),
   },
 ];
 
