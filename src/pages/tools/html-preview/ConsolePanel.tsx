@@ -3,10 +3,10 @@ import { ChevronDown, ChevronUp, Ban, Terminal } from 'lucide-react';
 import type { ConsoleEntry, ConsoleLevel } from '@lib/html-preview-utils';
 
 const levelClass: Record<ConsoleLevel, string> = {
-  log: 'text-gray-700 dark:text-gray-300',
-  info: 'text-blue-600 dark:text-blue-400',
-  warn: 'text-amber-700 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-900/20',
-  error: 'text-red-600 dark:text-red-400 bg-red-50/60 dark:bg-red-900/20',
+  log: 'text-text',
+  info: 'text-primary',
+  warn: 'text-warning bg-warning/10',
+  error: 'text-error bg-error/10',
 };
 
 interface ConsolePanelProps {
@@ -26,45 +26,47 @@ export default function ConsolePanel({ entries, open, onToggle, onClear }: Conso
   }, [entries, open]);
 
   return (
-    <div className="shrink-0 border border-white/50 dark:border-gray-700/50 rounded-xl bg-white/30 dark:bg-gray-900/30 overflow-hidden">
+    <div className="shrink-0 border-t border-border bg-surface">
       <div className="flex items-center justify-between px-3 py-1.5">
         <button
+          type="button"
           onClick={onToggle}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring"
+          className="inline-flex items-center gap-1.5 h-7 text-xs font-medium text-text-secondary hover:text-text rounded transition-colors focus-ring"
           aria-expanded={open}
         >
-          <Terminal size={13} />
+          <Terminal size={13} aria-hidden="true" />
           Console
           {entries.length > 0 && (
-            <span className="text-xs text-gray-600 dark:text-gray-400">({entries.length})</span>
+            <span className="text-xs text-text-muted">({entries.length})</span>
           )}
           {errors > 0 && (
-            <span className="text-[10px] px-1.5 rounded-full bg-red-500 text-white">{errors}</span>
+            <span className="text-[11px] px-1.5 rounded-full bg-error/15 text-error" aria-label={`${errors} errors`}>{errors}</span>
           )}
           {warnings > 0 && (
-            <span className="text-[10px] px-1.5 rounded-full bg-amber-500 text-white">{warnings}</span>
+            <span className="text-[11px] px-1.5 rounded-full bg-warning/15 text-warning" aria-label={`${warnings} warnings`}>{warnings}</span>
           )}
-          {open ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+          {open ? <ChevronDown size={13} aria-hidden="true" /> : <ChevronUp size={13} aria-hidden="true" />}
         </button>
         {open && (
           <button
+            type="button"
             onClick={onClear}
-            className="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring"
+            className="inline-flex items-center gap-1 h-7 text-xs text-text-secondary hover:text-text rounded transition-colors focus-ring"
             title="Clear console"
           >
-            <Ban size={11} /> Clear
+            <Ban size={11} aria-hidden="true" /> Clear
           </button>
         )}
       </div>
       {open && (
-        <div ref={listRef} className="max-h-40 overflow-y-auto border-t border-white/50 dark:border-gray-700/50 font-mono text-xs">
+        <div ref={listRef} role="log" aria-label="Console output" className="max-h-40 overflow-y-auto border-t border-border font-mono text-xs bg-surface-alt">
           {entries.length === 0 ? (
-            <p className="px-3 py-2 text-gray-600 dark:text-gray-400">No output yet. Use console.log() in a &lt;script&gt;.</p>
+            <p className="px-3 py-2 text-text-muted">No output yet. Use console.log() in a &lt;script&gt;.</p>
           ) : (
             entries.map((e) => (
               <pre
                 key={e.id}
-                className={`px-3 py-1 whitespace-pre-wrap break-all border-b border-white/30 dark:border-gray-800/60 ${levelClass[e.level]}`}
+                className={`px-3 py-1 whitespace-pre-wrap break-all border-b border-border-light ${levelClass[e.level]}`}
               >
                 {e.text}
               </pre>

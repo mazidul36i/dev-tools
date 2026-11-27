@@ -1,20 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Wifi, WifiOff, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
 import Checkbox from '@components/ui/Checkbox';
-import Tabs from '@components/ui/Tabs';
+import SegmentedControl from '@components/ui/SegmentedControl';
+import Button from '@components/ui/Button';
+import { EmptyState, Panel, ResultRows } from '@components/workspace';
 import useLocalStorage from '@hooks/useLocalStorage';
-import { SecondaryButton } from '@components/ui/Button';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { opt } from '@lib/url-state';
 import { downloadFile } from '@lib/download-utils';
 
-const tabList = [
-  { id: 'history', label: 'Connection History' },
-  { id: 'statistics', label: 'Statistics' },
-];
+const schema = {
+  tab: opt.oneOf(['history', 'statistics'] as const, 'history'),
+  filter: opt.oneOf(['all', 'online', 'offline', 'errors'] as const, 'all'),
+};
 
 interface NetworkStats {
   totalConnections: number;
@@ -55,8 +56,9 @@ export default function NetworkStatusPage() {
     notifications: true, sound: true, autoTest: true,
   });
 
-  const [activeTab, setActiveTab] = useState('history');
-  const [filter, setFilter] = useState('all');
+  const [o, setO] = useUrlOptions(schema);
+  const activeTab = o.tab;
+  const filter = o.filter;
   const [testing, setTesting] = useState(false);
   const [pingResult, setPingResult] = useState('Not tested');
   const [speedResult, setSpeedResult] = useState('Not tested');
@@ -198,159 +200,129 @@ export default function NetworkStatusPage() {
 
   return (
     <ToolLayout
-      title="Network Status Monitor"
-      tagline="Monitor your network connection status in real-time"
+      seoTitle="Network Status Monitor – Online/Offline, Latency & Speed"
+      tagline="Watch your connection status in real time, test latency and log outages"
       metaDescription="Monitor your network connection status in real-time with visual indicators and connection quality metrics."
+      about={
+        <ul className="grid gap-3 md:grid-cols-2">
+          <li><strong className="text-text">How it works.</strong> The browser’s online/offline events and the Network Information API (where supported) report connection changes as they happen.</li>
+          <li><strong className="text-text">Tests.</strong> “Test now” measures a round trip and a small download against public endpoints. It sends no personal data; results are rough indicators.</li>
+          <li><strong className="text-text">Alerts.</strong> Optional browser notifications and a short beep tell you when the connection drops or returns.</li>
+          <li><strong className="text-text">History.</strong> Events and statistics are kept in this browser only, and you can export them as a log file.</li>
+        </ul>
+      }
     >
-      {/* Offline Banner */}
-      <AnimatePresence>
-        {!isOnline && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-            className="mb-6 bg-error text-white rounded-xl p-4 flex items-center gap-3 shadow-card">
-            <WifiOff size={20} /><span className="font-medium">You are offline</span>
-          </motion.div>
+      {!isOnline && (
+        <div role="alert" className="mb-4 flex items-center gap-3 rounded-lg border border-error/40 bg-error/10 p-3 text-error">
+          <WifiOff size={18} aria-hidden="true" /><span className="font-medium">You are offline</span>
+        </div>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-2 mb-4 items-start">
+        <Panel
+          title="Current status"
+          actions={
+            <span role="status" className={`inline-flex items-center gap-2 text-sm font-medium ${isOnline ? 'text-success' : 'text-error'}`}>
+              <span aria-hidden="true" className={`w-2 h-2 rounded-full ${isOnline ? 'bg-success' : 'bg-error'}`} />
+              {isOnline ? 'Online' : 'Offline'}
+            </span>
+          }
+        >
+          <ResultRows
+            labelWidth="sm:w-36"
+            rows={[
+              { label: 'Connection type', value: connInfo.type ?? 'Unknown', copy: false, mono: false },
+              { label: 'Effective type', value: connInfo.effectiveType ?? 'Unknown', copy: false, mono: false },
+              { label: 'Downlink', value: connInfo.downlink ?? 'Unknown', copy: false, mono: false },
+              { label: 'Round-trip time', value: connInfo.rtt ?? 'Unknown', copy: false, mono: false },
+            ]}
+          />
+        </Panel>
+
+        <Panel
+          title="Connection test"
+          actions={<Button size="sm" onClick={runTest} disabled={testing}>{testing ? 'Testing…' : 'Test now'}</Button>}
+        >
+          <ResultRows
+            labelWidth="sm:w-36"
+            rows={[['Ping', pingResult], ['Download speed', speedResult], ['DNS resolution', dnsResult]].map(([label, val]) => ({
+              label,
+              value: String(val),
+              copy: false,
+              mono: false,
+              display: <span className={val === 'Failed' ? 'text-error' : String(val).includes('Testing') ? 'text-warning' : val === 'Not tested' ? 'text-text-muted' : 'text-success'}>{val}</span>,
+            }))}
+          />
+          {testing && (
+            <div className="mt-3 w-full bg-border rounded-full h-1.5 overflow-hidden" role="progressbar" aria-valuenow={testProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Test progress">
+              <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${testProgress}%` }} />
+            </div>
+          )}
+        </Panel>
+
+        <Panel title="Alerts" bodyClassName="p-4 space-y-3">
+          {([['notifications', 'Browser notifications on status changes'], ['sound', 'Sound alerts'], ['autoTest', 'Auto-test every 30 s']] as const).map(([key, label]) => (
+            <Checkbox key={key} checked={settings[key]} onChange={(val) => updateSetting(key, val)} label={label} />
+          ))}
+        </Panel>
+
+        <Panel title="Data" bodyClassName="p-4 flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => { toast('Clear all connection history?', { action: { label: 'Confirm', onClick: () => { setHistory([]); toast.success('Cleared'); } } }); }}><Trash2 size={14} aria-hidden="true" /> Clear history</Button>
+          <Button variant="secondary" size="sm" onClick={handleExport}><Download size={14} aria-hidden="true" /> Export log</Button>
+          <Button variant="secondary" size="sm" onClick={handleReset}><RotateCcw size={14} aria-hidden="true" /> Reset statistics</Button>
+        </Panel>
+      </div>
+
+      <Panel
+        title={activeTab === 'history' ? 'Connection history' : 'Statistics'}
+        bodyClassName="p-4"
+        actions={<SegmentedControl ariaLabel="View" options={[{ id: 'history', label: 'History' }, { id: 'statistics', label: 'Statistics' }]} value={activeTab} onChange={(v) => setO({ tab: v as typeof activeTab })} />}
+      >
+        {activeTab === 'history' && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <select aria-label="Filter events" value={filter} onChange={(e) => setO({ filter: e.target.value as typeof filter })} className="h-8 pl-2.5 pr-8 rounded-md bg-surface-alt border border-border-strong text-sm text-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25">
+                <option value="all">All events</option>
+                <option value="online">Online events</option>
+                <option value="offline">Offline events</option>
+                <option value="errors">Connection errors</option>
+              </select>
+              <Button variant="ghost" size="sm" onClick={updateConnInfo}><RefreshCw size={14} aria-hidden="true" /> Refresh</Button>
+            </div>
+            {filteredHistory.length === 0 ? (
+              <EmptyState icon={Wifi} title="No events recorded yet" />
+            ) : (
+              <ul className="space-y-1.5 max-h-80 overflow-y-auto">
+                {filteredHistory.map((e, i) => (
+                  <li key={i} className={`flex items-center justify-between gap-3 p-2.5 rounded-md text-sm border ${e.type === 'online' ? 'bg-success/10 border-success/25' : 'bg-error/10 border-error/25'}`}>
+                    <span className="flex items-center gap-2">
+                      {e.type === 'online' ? <Wifi size={14} aria-hidden="true" className="text-success" /> : <WifiOff size={14} aria-hidden="true" className="text-error" />}
+                      <span className={e.type === 'online' ? 'text-success' : 'text-error'}>{e.message}</span>
+                    </span>
+                    <span className="text-xs text-text-muted">{e.time}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
-      </AnimatePresence>
 
-      <Card>
-        <div className="p-6 space-y-6">
-          <div className="grid md:grid-cols-2 gap-5">
-            {/* Current Status */}
-            <div className="bg-surface-alt rounded-lg border border-border p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-text-secondary">Current Status</h3>
-                <div className={`flex items-center gap-2 text-sm font-medium ${isOnline ? 'text-success' : 'text-error'}`}>
-                  <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-success animate-pulse' : 'bg-error'}`} />
-                  {isOnline ? 'Online' : 'Offline'}
-                </div>
-              </div>
-              <div className="space-y-2.5 text-sm">
-                {Object.entries({ 'Connection Type': connInfo.type, 'Effective Type': connInfo.effectiveType, Downlink: connInfo.downlink, RTT: connInfo.rtt, 'Last Updated': new Date().toLocaleTimeString() }).map(([k, v]) => (
-                  <div key={k} className="flex justify-between"><span className="text-text-muted">{k}:</span><span className="font-medium text-text-secondary">{v}</span></div>
-                ))}
-              </div>
-            </div>
-
-            {/* Connection Test */}
-            <div className="bg-surface-alt rounded-lg border border-border p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-text-secondary">Connection Test</h3>
-                <button onClick={runTest} disabled={testing} className="px-4 py-1.5 bg-primary text-on-primary rounded-lg text-sm font-medium hover:bg-primary-hover transition-all duration-200 disabled:opacity-50">
-                  {testing ? 'Testing...' : 'Test Now'}
-                </button>
-              </div>
-              <div className="space-y-2.5 text-sm">
-                {[['Ping Test', pingResult], ['Speed Test', speedResult], ['DNS Resolution', dnsResult]].map(([label, val]) => (
-                  <div key={label} className="flex justify-between"><span className="text-text-muted">{label}:</span>
-                    <span className={`font-medium ${val === 'Failed' ? 'text-error' : String(val).includes('Testing') ? 'text-warning' : 'text-success'}`}>{val}</span>
-                  </div>
-                ))}
-              </div>
-              {testing && (
-                <div className="mt-3 w-full bg-border rounded-full h-1.5 overflow-hidden">
-                  <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${testProgress}%` }} />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Settings */}
-          <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-surface-alt rounded-lg border border-border p-5">
-              <h3 className="font-medium text-text-secondary mb-3">Notification Settings</h3>
-              <div className="space-y-3">
-                {([['notifications', 'Enable status notifications'], ['sound', 'Enable sound alerts'], ['autoTest', 'Auto-test every 30s']] as const).map(([key, label]) => (
-                  <Checkbox key={key} checked={settings[key]} onChange={(val) => updateSetting(key, val)} label={label} />
-                ))}
-              </div>
-            </div>
-            <div className="bg-surface-alt rounded-lg border border-border p-5">
-              <h3 className="font-medium text-text-secondary mb-3">Actions</h3>
-              <div className="flex flex-wrap gap-2">
-                <SecondaryButton onClick={() => { toast('Clear all connection history?', { action: { label: 'Confirm', onClick: () => { setHistory([]); toast.success('Cleared'); } } }); }}><Trash2 size={14} /> Clear History</SecondaryButton>
-                <SecondaryButton onClick={handleExport}><Download size={14} /> Export Log</SecondaryButton>
-                <SecondaryButton onClick={handleReset}><RotateCcw size={14} /> Reset</SecondaryButton>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* History/Statistics */}
-      <Card>
-        <Tabs tabs={tabList} activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="p-6">
-          {activeTab === 'history' && (
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary/20">
-                  <option value="all">All Events</option>
-                  <option value="online">Online Events</option>
-                  <option value="offline">Offline Events</option>
-                  <option value="errors">Connection Errors</option>
-                </select>
-                <SecondaryButton onClick={updateConnInfo}><RefreshCw size={14} /> Refresh</SecondaryButton>
-              </div>
-              {filteredHistory.length === 0 ? (
-                <p className="text-sm text-text-muted italic py-8 text-center">No events recorded yet.</p>
-              ) : (
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {filteredHistory.map((e, i) => (
-                    <div key={i} className={`flex items-center justify-between p-3 rounded-lg text-sm border ${e.type === 'online' ? 'bg-success/5 border-success/20' : 'bg-error/5 border-error/20'}`}>
-                      <div className="flex items-center gap-2">
-                        {e.type === 'online' ? <Wifi size={14} className="text-success" /> : <WifiOff size={14} className="text-error" />}
-                        <span className={e.type === 'online' ? 'text-success' : 'text-error'}>{e.message}</span>
-                      </div>
-                      <span className="text-xs text-text-muted">{e.time}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'statistics' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  [uptimePercent + '%', 'Uptime'],
-                  [stats.totalDisconnections, 'Disconnections'],
-                  [avgConnTime + 's', 'Avg Connection Time'],
-                  [(stats.longestOfflineTime / 1000).toFixed(0) + 's', 'Longest Offline'],
-                ].map(([val, label]) => (
-                  <div key={label} className="bg-surface-alt rounded-lg border border-border p-4 text-center">
-                    <div className="text-2xl font-bold text-primary">{val}</div>
-                    <div className="text-xs text-text-muted mt-1">{label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="bg-surface-alt rounded-lg border border-border p-5">
-                <h3 className="font-medium text-text-secondary mb-2">Connection Timeline</h3>
-                <p className="text-sm text-text-muted italic">Data will be visualized as events are recorded.</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      <InfoCard title="About Network Monitoring">
-          <p className="text-text-muted leading-relaxed mb-5">
-            This tool monitors your network connection using the browser's Network Information API and online/offline event listeners.
-          </p>
-          <div className="grid md:grid-cols-2 gap-4">
+        {activeTab === 'statistics' && (
+          <dl className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              ['🌐 Real-time Monitoring', 'Continuously monitors your connection and provides instant feedback.'],
-              ['📊 Connection Metrics', 'Displays type, speed, and round-trip time when available.'],
-              ['🔔 Smart Notifications', 'Get notified on status changes with visual and audio alerts.'],
-              ['📈 Historical Data', 'Track history and view statistics about uptime and quality.'],
-            ].map(([title, desc]) => (
-              <div key={title} className="bg-surface-alt rounded-lg p-4 border border-border">
-                <h3 className="font-medium text-text-secondary mb-1">{title}</h3>
-                <p className="text-sm text-text-muted">{desc}</p>
+              [uptimePercent + '%', 'Uptime'],
+              [stats.totalDisconnections, 'Disconnections'],
+              [avgConnTime + 's', 'Avg connection time'],
+              [(stats.longestOfflineTime / 1000).toFixed(0) + 's', 'Longest offline'],
+            ].map(([val, label]) => (
+              <div key={label} className="flex flex-col-reverse rounded-md border border-border bg-surface-alt p-4 text-center">
+                <dt className="mt-1 text-xs text-text-muted">{label}</dt>
+                <dd className="text-2xl font-semibold text-text tabular-nums">{val}</dd>
               </div>
             ))}
-          </div>
-      </InfoCard>
+          </dl>
+        )}
+      </Panel>
     </ToolLayout>
   );
 }

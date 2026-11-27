@@ -1,24 +1,16 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
-import {
-  Play,
-  Download,
-  Upload,
-  Eraser,
-  ExternalLink,
-  Maximize2,
-  X,
-  WandSparkles,
-  RotateCw,
-} from 'lucide-react';
+import { Play, Download, ExternalLink, Maximize2, X, WandSparkles, RotateCw } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import Button, { SecondaryButton } from '@components/ui/Button';
+import Button from '@components/ui/Button';
 import CopyButton from '@components/ui/CopyButton';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import ResizablePanels from '@components/ui/ResizablePanels';
+import { EditorPanel, Panel, RunButton, SplitPane, Toolbar, ToolbarDivider, ToolbarSpacer, useRunShortcut } from '@components/workspace';
 import useLocalStorage from '@hooks/useLocalStorage';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
+import { opt } from '@lib/url-state';
 import { downloadFile } from '@lib/download-utils';
 import {
   buildSrcDoc,
@@ -52,35 +44,46 @@ const backgroundOptions = [
   { id: 'checker', label: 'Grid' },
 ];
 
-const editorClass =
-  'w-full h-full flex-1 p-4 bg-white/30 dark:bg-gray-900/30 border border-white/50 dark:border-gray-700/50 rounded-xl font-mono text-sm leading-relaxed text-gray-900 dark:text-gray-100 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/15 dark:focus:ring-white/15 focus:border-transparent transition-all';
-const selectClass =
-  'border border-white/60 dark:border-gray-700/60 rounded-lg px-2.5 py-1.5 text-xs bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-200 focus-ring';
-const labelClass = 'block text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide';
-const linkBtnClass =
-  'inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors focus-ring';
-const divider = <div className="hidden sm:block w-px h-6 bg-gray-300/50 dark:bg-gray-600/50 mx-0.5" />;
+const actionBtn =
+  'inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring';
+
+const schema = {
+  mode: opt.oneOf(['live', 'manual'] as const, 'live'),
+  layout: opt.oneOf(['split', 'stacked', 'preview'] as const, 'split'),
+  vp: opt.oneOf(VIEWPORTS.map((v) => v.id) as [string, ...string[]], 'fit'),
+  bg: opt.oneOf(['white', 'dark', 'checker'] as const, 'white'),
+  reset: opt.bool(false),
+  js: opt.bool(true),
+};
 
 const escapeAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
 export default function HtmlPreviewPage() {
   const [code, setCode] = useLocalStorage('html-preview:code', TEMPLATES[0].code);
-  const [mode, setMode] = useLocalStorage<RenderMode>('html-preview:mode', 'live');
-  const [layout, setLayout] = useLocalStorage<LayoutMode>('html-preview:layout', 'split');
-  const [viewportId, setViewportId] = useLocalStorage('html-preview:viewport', 'fit');
-  const [background, setBackground] = useLocalStorage<PreviewBackground>('html-preview:background', 'white');
-  const [cssReset, setCssReset] = useLocalStorage('html-preview:css-reset', false);
-  const [allowScripts, setAllowScripts] = useLocalStorage('html-preview:scripts', true);
+  const [o, setO] = useUrlOptions(schema, {
+    persist: {
+      mode: 'html-preview:mode',
+      layout: 'html-preview:layout',
+      vp: 'html-preview:viewport',
+      bg: 'html-preview:background',
+      reset: 'html-preview:css-reset',
+      js: 'html-preview:scripts',
+    },
+  });
+  const mode = o.mode as RenderMode;
+  const layout = o.layout as LayoutMode;
+  const viewportId = o.vp;
+  const background = o.bg as PreviewBackground;
+  const cssReset = o.reset;
+  const allowScripts = o.js;
   const [consoleOpen, setConsoleOpen] = useLocalStorage('html-preview:console-open', true);
 
   const [renderedCode, setRenderedCode] = useState(code);
   const [reloadKey, setReloadKey] = useState(0);
   const [logs, setLogs] = useState<ConsoleEntry[]>([]);
   const [fullscreen, setFullscreen] = useState(false);
-  const [isDragOver, setIsDragOver] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const logId = useRef(0);
 
   const viewport = VIEWPORTS.find((v) => v.id === viewportId) ?? VIEWPORTS[0];
@@ -122,19 +125,24 @@ export default function HtmlPreviewPage() {
     setReloadKey((k) => k + 1);
   }, [code]);
 
-  // Keyboard shortcuts: Ctrl/Cmd+Enter runs, Esc exits fullscreen.
+  useRunShortcut(run);
+
+  // Esc leaves fullscreen.
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        run();
-      } else if (e.key === 'Escape' && fullscreen) {
-        setFullscreen(false);
-      }
-    };
+    if (!fullscreen) return;
+    const handler = (e: KeyboardEvent) => e.key === 'Escape' && setFullscreen(false);
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [run, fullscreen]);
+  }, [fullscreen]);
+
+  // Shared code never runs on its own: it opens in "On click" mode with an empty preview.
+  useShareInput({ code }, (d) => {
+    if (d.code === undefined) return;
+    setO({ mode: 'manual' });
+    setCode(d.code);
+    setRenderedCode('');
+    toast.info('Shared code loaded. Review it, then press Run.');
+  }, { enabled: code.trim().length > 0 });
 
   const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== 'Tab' || e.shiftKey) return;
@@ -200,85 +208,55 @@ export default function HtmlPreviewPage() {
     [setCode],
   );
 
-  const lineCount = code ? code.split('\n').length : 0;
-
   const editorPane = (
-    <div className="flex flex-col min-h-0 h-full gap-2">
-      <div className="flex items-center justify-between">
-        <label htmlFor="html-editor" className={labelClass}>
-          HTML / CSS / JS
-        </label>
-        <div className="flex items-center gap-3">
-          <button onClick={() => fileInputRef.current?.click()} className={linkBtnClass}>
-            <Upload size={11} /> Upload
-          </button>
-          <button onClick={handleFormat} className={linkBtnClass}>
-            <WandSparkles size={11} /> Format
-          </button>
-          <button onClick={handleClear} className={linkBtnClass}>
-            <Eraser size={11} /> Clear
-          </button>
-        </div>
-      </div>
-      <div
-        className={`flex-1 min-h-48 flex flex-col ${isDragOver ? 'ring-2 ring-blue-400 rounded-xl' : ''}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragOver(true);
-        }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setIsDragOver(false);
-          const file = e.dataTransfer.files[0];
-          if (file) handleFile(file);
-        }}
-      >
-        <textarea
-          id="html-editor"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={handleEditorKeyDown}
-          spellCheck={false}
-          autoCapitalize="off"
-          autoCorrect="off"
-          placeholder="Type or paste HTML here, or drop an .html file…"
-          className={editorClass}
-        />
-      </div>
-      <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
-        <span>
-          {lineCount} lines · {code.length.toLocaleString()} chars
-        </span>
-        <span>Ctrl/⌘ + Enter to run · Tab to indent</span>
-      </div>
-    </div>
+    <EditorPanel
+      label="HTML / CSS / JS"
+      value={code}
+      onChange={setCode}
+      placeholder="Type or paste HTML here, or drop an .html file…"
+      fileAccept=".html,.htm,.txt,.svg,text/html"
+      onFile={handleFile}
+      className="flex-1 min-h-64"
+      status="Tab indents"
+      textareaProps={{ onKeyDown: handleEditorKeyDown }}
+      actions={
+        <button type="button" onClick={handleFormat} className={actionBtn}>
+          <WandSparkles size={13} aria-hidden="true" /> Format
+        </button>
+      }
+    />
   );
 
   const previewPane = (
-    <div className="flex flex-col min-h-0 h-full gap-2">
-      <div className="flex items-center justify-between gap-2">
-        <span className={`${labelClass} inline-flex items-center gap-1.5`}>
+    <Panel
+      title={
+        <span className="inline-flex items-center gap-1.5">
           Preview
           {isDirty && (
-            <span className="inline-flex items-center gap-1 normal-case tracking-normal text-amber-600 dark:text-amber-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> not rendered
+            <span className="inline-flex items-center gap-1 normal-case tracking-normal font-normal text-warning">
+              <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-warning" /> not rendered
             </span>
           )}
         </span>
-        <div className="flex items-center gap-3">
-          <button onClick={run} className={linkBtnClass} title="Reload preview">
-            <RotateCw size={11} /> Reload
+      }
+      className="flex-1 min-h-80"
+      bodyClassName="flex flex-col"
+      actions={
+        <>
+          <button type="button" onClick={run} className={actionBtn} title="Reload preview">
+            <RotateCw size={13} aria-hidden="true" /> Reload
           </button>
-          <button onClick={() => setFullscreen(true)} className={linkBtnClass} title="Fullscreen preview">
-            <Maximize2 size={11} /> Fullscreen
+          <button type="button" onClick={() => setFullscreen(true)} className={actionBtn} title="Fullscreen preview">
+            <Maximize2 size={13} aria-hidden="true" /> Fullscreen
           </button>
-        </div>
-      </div>
+          <button type="button" onClick={handleOpenInTab} className={actionBtn} title="Open the preview in a new tab">
+            <ExternalLink size={13} aria-hidden="true" /> New tab
+          </button>
+        </>
+      }
+    >
       {fullscreen ? (
-        <div className="flex-1 min-h-48 grid place-items-center rounded-xl border border-dashed border-gray-300 dark:border-gray-700 text-xs text-gray-400">
-          Showing in fullscreen
-        </div>
+        <div className="flex-1 min-h-48 grid place-items-center text-xs text-text-muted">Showing in fullscreen</div>
       ) : (
         <PreviewFrame
           iframeRef={iframeRef}
@@ -291,142 +269,66 @@ export default function HtmlPreviewPage() {
         />
       )}
       {allowScripts && (
-        <ConsolePanel
-          entries={logs}
-          open={consoleOpen}
-          onToggle={() => setConsoleOpen((v) => !v)}
-          onClear={() => setLogs([])}
-        />
+        <ConsolePanel entries={logs} open={consoleOpen} onToggle={() => setConsoleOpen((v) => !v)} onClear={() => setLogs([])} />
       )}
-    </div>
+    </Panel>
   );
 
   return (
     <ToolLayout
-      title="HTML Preview"
       seoTitle="HTML Preview – Online HTML Editor & Viewer"
-      tagline="Online HTML editor & viewer with live preview, device sizes and a console"
+      tagline="Edit HTML, CSS and JavaScript with a sandboxed live preview, device sizes and a console"
       metaDescription="Free online HTML editor with live preview. Write, run and test HTML, CSS and JavaScript in a sandboxed viewer with responsive device sizes and a built-in console."
+      variant="workspace"
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Sandboxed.</strong> The preview runs in a sandboxed frame with a separate origin, so code can’t read this site’s storage or cookies.</li>
+          <li><strong className="text-text">Live or on click.</strong> Live re-renders after you pause typing; On click waits for Run (Ctrl/⌘+Enter). Shared links always open in On click mode.</li>
+          <li><strong className="text-text">Console.</strong> console.log, warnings, errors and uncaught exceptions from your scripts appear under the preview.</li>
+        </ul>
+      }
     >
-      <Card hover={false} className="lg:h-[calc(100vh-210px)] lg:min-h-152 flex flex-col">
-        {/* Toolbar */}
-        <div className="shrink-0 px-4 pt-3 pb-0 flex flex-wrap items-center gap-2">
-          <SegmentedControl
-            options={modeOptions}
-            value={mode}
-            onChange={(v) => setMode(v as RenderMode)}
-            variant="glass"
-          />
-          <Button size="sm" onClick={run} title="Run (Ctrl/⌘ + Enter)" className="relative">
-            <Play size={13} /> Run
-            {isDirty && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white dark:ring-gray-800" />}
-          </Button>
+      <Toolbar>
+        <SegmentedControl ariaLabel="Render mode" options={modeOptions} value={mode} onChange={(v) => setO({ mode: v as RenderMode })} />
+        <span className="relative">
+          <RunButton onClick={run}><Play size={13} aria-hidden="true" /> Run</RunButton>
+          {isDirty && <span aria-hidden="true" className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-warning ring-2 ring-bg" />}
+        </span>
+        <ToolbarDivider />
+        <select value="" onChange={(e) => handleTemplate(e.target.value)} aria-label="Load template" className="h-7 pl-2 pr-7 rounded-md bg-surface-alt border border-border-strong text-xs text-text focus:outline-none focus:border-primary">
+          <option value="" disabled>Templates…</option>
+          {TEMPLATES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
+        <SegmentedControl ariaLabel="Viewport" options={VIEWPORTS.map((v) => ({ id: v.id, label: v.label }))} value={viewport.id} onChange={(v) => setO({ vp: v })} />
+        <SegmentedControl ariaLabel="Layout" options={layoutOptions} value={layout} onChange={(v) => setO({ layout: v as LayoutMode })} className="hidden md:inline-flex" />
+        <SegmentedControl ariaLabel="Preview background" options={backgroundOptions} value={background} onChange={(v) => setO({ bg: v as PreviewBackground })} />
+        <Checkbox checked={allowScripts} onChange={(v) => setO({ js: v })} label="JavaScript" className="text-xs" />
+        <Checkbox checked={cssReset} onChange={(v) => setO({ reset: v })} label="CSS reset" className="text-xs" />
+        <ToolbarSpacer />
+        <CopyButton text={code} label="Copy" size="sm" />
+        <Button variant="secondary" size="sm" onClick={handleDownload}><Download size={13} aria-hidden="true" /> .html</Button>
+      </Toolbar>
 
-          {divider}
-
-          <select
-            value=""
-            onChange={(e) => handleTemplate(e.target.value)}
-            className={selectClass}
-            aria-label="Load template"
-          >
-            <option value="" disabled>
-              Templates…
-            </option>
-            {TEMPLATES.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          <SegmentedControl
-            options={VIEWPORTS.map((v) => ({ id: v.id, label: v.label }))}
-            value={viewport.id}
-            onChange={setViewportId}
-            variant="glass"
-          />
-          <SegmentedControl
-            options={layoutOptions}
-            value={layout}
-            onChange={(v) => setLayout(v as LayoutMode)}
-            variant="glass"
-            className="hidden md:flex"
-          />
-          <SegmentedControl
-            options={backgroundOptions}
-            value={background}
-            onChange={(v) => setBackground(v as PreviewBackground)}
-            variant="glass"
-          />
-
-          <Checkbox
-            checked={allowScripts}
-            onChange={setAllowScripts}
-            label="JavaScript"
-            className="text-xs text-gray-500 dark:text-gray-400 gap-1.5"
-          />
-          <Checkbox
-            checked={cssReset}
-            onChange={setCssReset}
-            label="CSS reset"
-            className="text-xs text-gray-500 dark:text-gray-400 gap-1.5"
-          />
-
-          {divider}
-
-          <CopyButton text={code} label="Copy" size="sm" />
-          <SecondaryButton onClick={handleDownload} title="Download .html">
-            <Download size={14} />
-          </SecondaryButton>
-          <SecondaryButton onClick={handleOpenInTab} title="Open preview in new tab">
-            <ExternalLink size={14} />
-          </SecondaryButton>
+      {layout === 'split' ? (
+        <SplitPane storageKey="html-preview" left={editorPane} right={previewPane} />
+      ) : layout === 'stacked' ? (
+        <div className="flex flex-col flex-1 min-h-0 gap-3">
+          {editorPane}
+          {previewPane}
         </div>
+      ) : (
+        <div className="flex flex-col flex-1 min-h-0">{previewPane}</div>
+      )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".html,.htm,.txt,.svg,text/html"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-            e.target.value = '';
-          }}
-        />
-
-        {/* Panels */}
-        <div className="p-4 flex-1 min-h-0 flex flex-col">
-          {layout === 'split' ? (
-            <ResizablePanels left={editorPane} right={previewPane} />
-          ) : layout === 'stacked' ? (
-            <div className="flex flex-col flex-1 min-h-0 gap-3">
-              <div className="flex-1 min-h-0 flex flex-col">{editorPane}</div>
-              <div className="flex-1 min-h-0 flex flex-col">{previewPane}</div>
-            </div>
-          ) : (
-            previewPane
-          )}
-        </div>
-      </Card>
-
-      {/* Fullscreen preview overlay */}
       {fullscreen && (
-        <div className="fixed inset-0 z-100 flex flex-col bg-gray-100 dark:bg-gray-950 p-3 gap-2">
+        <div role="dialog" aria-modal="true" aria-label="Fullscreen preview" className="fixed inset-0 z-100 flex flex-col bg-bg p-3 gap-2">
           <div className="flex items-center justify-between">
-            <span className={labelClass}>Preview · {viewport.label}</span>
-            <SecondaryButton onClick={() => setFullscreen(false)} title="Exit fullscreen (Esc)">
-              <X size={14} /> Close
-            </SecondaryButton>
+            <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Preview · {viewport.label}</span>
+            <Button variant="secondary" size="sm" onClick={() => setFullscreen(false)} title="Exit fullscreen (Esc)" autoFocus>
+              <X size={14} aria-hidden="true" /> Close
+            </Button>
           </div>
-          <PreviewFrame
-            iframeRef={iframeRef}
-            srcDoc={srcDoc}
-            allowScripts={allowScripts}
-            width={viewport.width}
-            background={background}
-            reloadKey={reloadKey}
-          />
+          <PreviewFrame iframeRef={iframeRef} srcDoc={srcDoc} allowScripts={allowScripts} width={viewport.width} background={background} reloadKey={reloadKey} className="rounded-md border border-border" />
         </div>
       )}
     </ToolLayout>
