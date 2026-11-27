@@ -4,16 +4,16 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'bg-gradient-to-r from-primary to-accent text-on-primary hover:opacity-90 shadow-soft hover:shadow-card',
-  secondary: 'bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30',
-  ghost: 'text-text-muted hover:bg-surface-hover hover:text-text',
-  danger: 'bg-error/10 text-error border border-error/20 hover:bg-error/20',
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover',
+  secondary: 'bg-surface text-text border border-border-strong hover:bg-surface-hover',
+  ghost: 'text-text-secondary hover:bg-surface-hover hover:text-text',
+  danger: 'text-error border border-error/40 hover:bg-error/10',
 };
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'text-xs px-3 py-1.5 gap-1',
-  md: 'text-sm px-4 py-2 gap-1.5',
-  lg: 'text-sm px-5 py-2.5 gap-2',
+  sm: 'h-7 px-2.5 text-xs gap-1.5',
+  md: 'h-8 px-3 text-sm gap-1.5',
+  lg: 'h-9 px-4 text-sm gap-2',
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -23,11 +23,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
 }
 
-export default function Button({ children, variant = 'primary', size = 'md', className = '', ...props }: ButtonProps) {
+export default function Button({ children, variant = 'primary', size = 'md', className = '', type = 'button', ...props }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200
-        active:scale-[0.97] focus-ring
+      type={type}
+      className={`inline-flex items-center justify-center shrink-0 whitespace-nowrap rounded-md font-medium transition-colors focus-ring
         disabled:opacity-50 disabled:pointer-events-none
         ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
@@ -44,7 +44,7 @@ interface ConvenienceButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
 }
 
 export function PrimaryButton({ children, className = '', ...props }: ConvenienceButtonProps) {
-  return <Button variant="primary" size="lg" className={className} {...props}>{children}</Button>;
+  return <Button variant="primary" size="md" className={className} {...props}>{children}</Button>;
 }
 
 export function SecondaryButton({ children, className = '', ...props }: ConvenienceButtonProps) {

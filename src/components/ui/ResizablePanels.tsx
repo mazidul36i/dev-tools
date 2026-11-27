@@ -97,7 +97,7 @@ export default function ResizablePanels({
         className="hidden lg:flex items-center justify-center w-3 shrink-0 cursor-col-resize touch-none group rounded focus-ring"
         title="Drag to resize · double-click to reset"
       >
-        <div className="w-0.5 h-8 rounded-full bg-gray-300 dark:bg-gray-600 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 group-active:bg-primary group-focus-visible:bg-primary transition-colors" />
+        <div className="w-0.5 h-8 rounded-full bg-border-strong group-hover:bg-text-muted group-active:bg-primary group-focus-visible:bg-primary transition-colors" />
       </div>
 
       {/* Gap for mobile (stacked view) */}

@@ -39,7 +39,7 @@ export default function Tabs({ tabs, activeTab, onTabChange, ariaLabel }: TabsPr
   };
 
   return (
-    <div role="tablist" aria-label={ariaLabel} onKeyDown={onKeyDown} className="flex p-1.5 bg-surface-alt/80 border-b border-border">
+    <div role="tablist" aria-label={ariaLabel} onKeyDown={onKeyDown} className="flex gap-1 px-2 border-b border-border overflow-x-auto">
       {tabs.map((tab, i) => {
         const selected = activeTab === tab.id;
         return (
@@ -51,17 +51,18 @@ export default function Tabs({ tabs, activeTab, onTabChange, ariaLabel }: TabsPr
             aria-selected={selected}
             tabIndex={selected ? 0 : -1}
             onClick={() => onTabChange(tab.id)}
-            className={`relative flex-1 py-2.5 px-4 text-sm font-medium cursor-pointer transition-colors duration-200 rounded-lg focus-ring
-              ${selected ? 'text-text' : 'text-text-muted hover:text-text-secondary'}`}
+            className={`relative shrink-0 h-10 px-3 text-sm font-medium whitespace-nowrap transition-colors rounded-t-md focus-ring
+              ${selected ? 'text-text' : 'text-text-muted hover:text-text'}`}
           >
+            {tab.label}
             {selected && (
-              <motion.div
+              <motion.span
                 layoutId={indicatorId}
-                className="absolute inset-0 bg-surface rounded-lg shadow-soft border border-border"
-                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                aria-hidden="true"
+                className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-primary"
+                transition={{ type: 'spring', stiffness: 500, damping: 40 }}
               />
             )}
-            <span className="relative z-10">{tab.label}</span>
           </button>
         );
       })}

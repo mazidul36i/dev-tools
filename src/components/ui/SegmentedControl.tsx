@@ -9,32 +9,22 @@ interface SegmentedControlProps {
   options: SegmentedControlOption[];
   value: string;
   onChange: (id: string) => void;
+  /** @deprecated Both variants now render the same; kept so older call sites compile. */
   variant?: SegmentedVariant;
   className?: string;
   /** Accessible name for the group, e.g. "Encoding". */
   ariaLabel?: string;
 }
 
-const styles: Record<SegmentedVariant, { active: string; inactive: string; wrapper: string }> = {
-  default: {
-    active: 'bg-primary text-on-primary shadow-soft',
-    inactive: 'bg-surface-alt text-text-secondary border border-border hover:bg-surface-hover',
-    wrapper: 'flex gap-2 flex-wrap',
-  },
-  glass: {
-    active: 'bg-gray-900 dark:bg-white text-white dark:text-gray-900',
-    inactive: 'bg-white/50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/60',
-    // No overflow-hidden: it would clip the focus outline of the end buttons.
-    wrapper: 'flex rounded-lg border border-white/60 dark:border-gray-700/60 [&>button:first-child]:rounded-l-[7px] [&>button:last-child]:rounded-r-[7px]',
-  },
-};
+// One style for every variant; `glass` is kept as an alias for older call sites.
+const wrapper = 'inline-flex flex-wrap items-center gap-0.5 p-0.5 rounded-md bg-surface-alt border border-border';
+const active = 'bg-primary text-on-primary';
+const inactive = 'text-text-secondary hover:text-text hover:bg-surface-hover';
 
 /** A row of mutually exclusive toggle buttons; the selected one has aria-pressed. */
-export default function SegmentedControl({ options, value, onChange, variant = 'default', className = '', ariaLabel }: SegmentedControlProps) {
-  const s = styles[variant];
-
+export default function SegmentedControl({ options, value, onChange, className = '', ariaLabel }: SegmentedControlProps) {
   return (
-    <div role="group" aria-label={ariaLabel} className={`${s.wrapper} ${className}`}>
+    <div role="group" aria-label={ariaLabel} className={`${wrapper} ${className}`}>
       {options.map((opt) => {
         const selected = value === opt.id;
         return (
@@ -43,9 +33,9 @@ export default function SegmentedControl({ options, value, onChange, variant = '
             type="button"
             aria-pressed={selected}
             onClick={() => onChange(opt.id)}
-            className={`px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-ring focus-visible:relative focus-visible:z-10 ${
-              variant === 'default' ? 'px-4 py-2 text-sm rounded-lg' : ''
-            } ${selected ? s.active : s.inactive}`}
+            className={`h-7 px-2.5 rounded-[5px] text-xs font-medium whitespace-nowrap transition-colors focus-ring focus-visible:relative focus-visible:z-10 ${
+              selected ? active : inactive
+            }`}
           >
             {opt.label}
           </button>

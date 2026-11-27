@@ -1,22 +1,20 @@
-import { motion } from 'framer-motion';
 import { type ReactNode } from 'react';
 
 interface CardProps {
   children: ReactNode;
   className?: string;
+  /** Adds a hover state, for cards that are links or buttons. */
   hover?: boolean;
 }
 
-export default function Card({ children, className = '', hover = true }: CardProps) {
+/** Solid panel with a hairline border. */
+export default function Card({ children, className = '', hover = false }: CardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className={`bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-gray-700/60 overflow-hidden mb-3
-        ${hover ? 'hover:border-white/80 dark:hover:border-gray-600 hover:shadow-lg hover:bg-white/70 dark:hover:bg-gray-800/70 transition-all duration-300' : ''} ${className}`}
+    <div
+      className={`bg-surface rounded-lg border border-border overflow-hidden mb-4
+        ${hover ? 'hover:border-border-strong hover:bg-surface-hover transition-colors' : ''} ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

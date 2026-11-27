@@ -34,8 +34,8 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
   };
 
   const sizeClasses = size === 'sm'
-    ? 'text-xs px-3 py-1.5'
-    : 'text-sm px-4 py-2';
+    ? 'h-7 text-xs px-2.5'
+    : 'h-8 text-sm px-3';
 
   return (
     <button
@@ -43,9 +43,8 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
       onClick={handleCopy}
       aria-label={iconOnly ? (copied ? 'Copied' : 'Copy to clipboard') : undefined}
       title={iconOnly ? 'Copy to clipboard' : undefined}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-all duration-200
-        bg-surface text-text-secondary border border-border hover:bg-surface-hover hover:border-primary/30
-        active:scale-[0.97] focus-ring
+      className={`inline-flex items-center justify-center shrink-0 gap-1.5 rounded-md font-medium whitespace-nowrap transition-colors
+        bg-surface text-text border border-border-strong hover:bg-surface-hover focus-ring
         ${sizeClasses} ${className}`}
     >
       <AnimatePresence mode="wait" initial={false}>

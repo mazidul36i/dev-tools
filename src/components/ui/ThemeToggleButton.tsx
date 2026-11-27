@@ -14,8 +14,8 @@ interface ThemeToggleButtonProps {
 }
 
 export default function ThemeToggleButton({
-  className = 'inline-flex items-center justify-center w-10 h-10 rounded-lg text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-900/5 dark:hover:bg-white/10 transition-colors focus-ring',
-  size = 18,
+  className = 'inline-flex items-center justify-center w-8 h-8 rounded-md text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring',
+  size = 16,
 }: ThemeToggleButtonProps) {
   const { theme, toggleTheme } = useTheme();
   const ThemeIcon = themeIcons[theme];

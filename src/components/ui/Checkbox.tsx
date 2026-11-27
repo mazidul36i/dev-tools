@@ -12,7 +12,7 @@ export default function Checkbox({ checked, onChange, label, className = '' }: C
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="accent-primary w-4 h-4"
+        className="accent-primary w-4 h-4 shrink-0 rounded"
       />
       {label}
     </label>

@@ -47,10 +47,10 @@ export default function FileDropZone({
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
       }}
       onDrop={(e) => { e.preventDefault(); setDragging(false); emit(e.dataTransfer.files); }}
-      className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-all duration-200
+      className={`border border-dashed rounded-md text-center cursor-pointer transition-colors
         focus-ring
         ${compact ? 'p-4 flex items-center justify-center gap-3' : 'p-8'}
-        ${dragging ? 'border-primary bg-primary/5' : 'border-border bg-surface-alt hover:border-primary/40 hover:bg-primary/5'}
+        ${dragging ? 'border-primary bg-primary-subtle' : 'border-border-strong bg-surface-alt hover:border-primary hover:bg-primary-subtle'}
         ${className}`}
     >
       <Upload className={`${compact ? 'w-5 h-5' : 'w-9 h-9 mx-auto mb-3'} transition-colors ${dragging ? 'text-primary' : 'text-text-muted'}`} />

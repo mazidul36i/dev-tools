@@ -109,7 +109,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 			>
 				{nodeKey !== null && (
 					<>
-						<HighlightText text={`"${nodeKey}"`} className="text-primary font-medium" />
+						<HighlightText text={`"${nodeKey}"`} className="text-code-key font-medium" />
 						<span className="mx-1 text-text-muted">:</span>
 					</>
 				)}
@@ -147,7 +147,7 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 					<>
 						<HighlightText
 							text={typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"`}
-							className="text-primary font-medium"
+							className="text-code-key font-medium"
 						/>
 						<span className="mx-1 text-text-muted">:</span>
 					</>
@@ -194,10 +194,10 @@ interface ValueSpanProps {
 }
 
 const ValueSpan = memo(function ValueSpan({ value }: ValueSpanProps) {
-	if (typeof value === 'string') return <HighlightText text={`"${value}"`} className="text-success" />;
-	if (typeof value === 'number') return <HighlightText text={String(value)} className="text-accent" />;
-	if (typeof value === 'boolean') return <HighlightText text={String(value)} className="text-warning" />;
-	if (value === null) return <span className="text-text-muted italic">null</span>;
+	if (typeof value === 'string') return <HighlightText text={`"${value}"`} className="text-code-string" />;
+	if (typeof value === 'number') return <HighlightText text={String(value)} className="text-code-number" />;
+	if (typeof value === 'boolean') return <HighlightText text={String(value)} className="text-code-bool" />;
+	if (value === null) return <span className="text-code-null italic">null</span>;
 	return <span>{String(value)}</span>;
 });
 
