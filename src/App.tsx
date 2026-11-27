@@ -1,4 +1,4 @@
-import {Routes, Route} from 'react-router-dom';
+import {Routes, Route, Navigate, useLocation, useParams} from 'react-router-dom';
 import {lazy, Suspense} from 'react';
 import Spinner from '@components/ui/Spinner';
 
@@ -7,12 +7,20 @@ const HomePage = lazy(() => import('@pages/HomePage'));
 const ToolRoute = lazy(() => import('@pages/ToolRoute'));
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
+/** Old links used /tools/:slug; send them to /:slug, keeping query and hash. */
+function LegacyToolRedirect() {
+  const {slug} = useParams();
+  const {search, hash} = useLocation();
+  return <Navigate to={{pathname: `/${slug}`, search, hash}} replace/>;
+}
+
 export default function App() {
   return (
     <Suspense fallback={<Spinner/>}>
       <Routes>
         <Route path="/" element={<HomePage/>}/>
-        <Route path="/tools/:slug" element={<ToolRoute/>}/>
+        <Route path="/:slug" element={<ToolRoute/>}/>
+        <Route path="/tools/:slug" element={<LegacyToolRedirect/>}/>
         <Route path="*" element={<NotFoundPage/>}/>
       </Routes>
     </Suspense>

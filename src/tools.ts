@@ -25,7 +25,7 @@ export const toolCategories: ToolCategory[] = [
 ];
 
 export interface ToolDefinition {
-  /** URL segment under `/tools/`. */
+  /** URL path segment: the tool is served at `/<slug>`. */
   slug: string;
   title: string;
   desc: string;
@@ -309,4 +309,4 @@ export const tools: ToolDefinition[] = [
   },
 ];
 
-export const toolPath = (tool: Pick<ToolDefinition, 'slug'>) => `/tools/${tool.slug}`;
+export const toolPath = (tool: Pick<ToolDefinition, 'slug'>) => `/${tool.slug}`;

@@ -8,6 +8,12 @@ describe('tool registry', () => {
     for (const slug of slugs) expect(slug).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
   });
 
+  it('does not shadow other top-level routes', () => {
+    // Tools live at /<slug>, next to these app routes.
+    const reserved = ['tools', 'index.html', 'icon.png', 'icon.svg', 'assets'];
+    for (const t of tools) expect(reserved).not.toContain(t.slug);
+  });
+
   it('uses only known categories', () => {
     for (const t of tools) expect(toolCategories).toContain(t.category);
   });
