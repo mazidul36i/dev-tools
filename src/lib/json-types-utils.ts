@@ -1,6 +1,8 @@
 // Infers a structural type from sample JSON and renders it as type
 // definitions for several languages.
 
+import { splitWords as words } from './text-utils';
+
 type Prim = 'string' | 'integer' | 'number' | 'boolean' | 'null';
 
 interface Shape {
@@ -48,15 +50,6 @@ function addValue(shape: Shape, value: unknown) {
 }
 
 // ── Naming ──────────────────────────────────────────────────────────────
-
-function words(key: string): string[] {
-  return key
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-    .split(/[^A-Za-z0-9]+/)
-    .filter(Boolean)
-    .map((w) => w.toLowerCase());
-}
 
 const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
 

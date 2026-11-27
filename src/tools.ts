@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -198,6 +198,15 @@ export const tools: ToolDefinition[] = [
     category: 'Text',
     keywords: ['compare', 'difference', 'diff checker', 'patch', 'merge', 'changes'],
     component: lazy(() => import('@pages/tools/text-diff/TextDiffPage')),
+  },
+  {
+    slug: 'text-utils',
+    title: 'Case Converter & Text Utils',
+    desc: 'Convert between camelCase, snake_case, kebab-case and more; sort, dedupe and count lines and words',
+    icon: CaseSensitive, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-900/30',
+    category: 'Text',
+    keywords: ['camelcase', 'snake case', 'kebab case', 'pascal case', 'title case', 'uppercase', 'lowercase', 'slug', 'word count', 'character count', 'sort lines', 'remove duplicates'],
+    component: lazy(() => import('@pages/tools/text-utils/TextUtilsPage')),
   },
 ];
 
