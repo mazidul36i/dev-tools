@@ -39,6 +39,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Text Diff | `/tools/text-diff` | Side-by-side / inline diff with word or character highlights, ignore options and unified patch |
 | Case Converter & Text Utils | `/tools/text-utils` | 13 case styles, line sort/dedupe/trim/number, slugify, and live character/word/byte counts |
 | Password & Lorem Ipsum Generator | `/tools/password-generator` | Crypto-random passwords with entropy/strength meter; lorem ipsum words, sentences or paragraphs |
+| Number Base Converter | `/tools/base-converter` | Binary/octal/decimal/hex/base 2–36 with BigInt precision and two's complement views |
 
 ## Development
 

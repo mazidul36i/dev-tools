@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -216,6 +216,15 @@ export const tools: ToolDefinition[] = [
     category: 'Generators',
     keywords: ['random password', 'secure', 'entropy', 'passphrase', 'lorem ipsum', 'placeholder text', 'dummy text'],
     component: lazy(() => import('@pages/tools/password-generator/PasswordGeneratorPage')),
+  },
+  {
+    slug: 'base-converter',
+    title: 'Number Base Converter',
+    desc: 'Convert integers between binary, octal, decimal, hex and any base 2–36, with two’s complement',
+    icon: Binary, color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-200 dark:bg-slate-700/40',
+    category: 'Converters',
+    keywords: ['binary', 'octal', 'decimal', 'hexadecimal', 'hex to decimal', 'radix', 'twos complement', 'bigint'],
+    component: lazy(() => import('@pages/tools/base-converter/BaseConverterPage')),
   },
 ];
 
