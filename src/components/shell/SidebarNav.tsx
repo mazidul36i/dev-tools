@@ -6,6 +6,7 @@ import { filterTools } from '@lib/tool-search';
 import { useToolPrefs } from '@hooks/useToolPrefs';
 import useLocalStorage from '@hooks/useLocalStorage';
 import { useShell } from './ShellContext';
+import { useCurrentToolSlug } from './useCurrentToolSlug';
 
 const MAX_RECENT_SHOWN = 5;
 const bySlug = new Map(tools.map((t) => [t.slug, t]));
@@ -23,11 +24,13 @@ const SidebarNav = forwardRef<HTMLInputElement, SidebarNavProps>(function Sideba
   const { toggleSidebar, openShortcuts } = useShell();
   const [filter, setFilter] = useState('');
   const [closed, setClosed] = useLocalStorage<string[]>('devtools:sidebar-closed', []);
+  const currentSlug = useCurrentToolSlug();
 
   const results = useMemo(() => (filter.trim() ? filterTools(tools, filter, 'All') : null), [filter]);
   const favTools = favorites.map((s) => bySlug.get(s)).filter(Boolean) as ToolDefinition[];
   const recentTools = recent
-    .filter((s) => !favorites.includes(s))
+    // The open tool is already highlighted in its category.
+    .filter((s) => !favorites.includes(s) && s !== currentSlug)
     .slice(0, MAX_RECENT_SHOWN)
     .map((s) => bySlug.get(s))
     .filter(Boolean) as ToolDefinition[];
