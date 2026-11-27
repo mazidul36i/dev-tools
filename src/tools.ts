@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole, Network, BookOpen,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -270,6 +270,15 @@ export const tools: ToolDefinition[] = [
     category: 'Web & Network',
     keywords: ['subnet', 'ip calculator', 'netmask', 'ipv4', 'ipv6', 'cidr', 'network address', 'broadcast'],
     component: lazy(() => import('@pages/tools/cidr-calculator/CidrCalculatorPage')),
+  },
+  {
+    slug: 'http-reference',
+    title: 'HTTP Status Codes & MIME Types',
+    desc: 'Searchable reference of HTTP status codes and Content-Type values by file extension',
+    icon: BookOpen, color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-100 dark:bg-amber-900/30',
+    category: 'Web & Network',
+    keywords: ['404', '500', 'response code', 'content type', 'mime', 'media type', 'http error'],
+    component: lazy(() => import('@pages/tools/http-reference/HttpReferencePage')),
   },
 ];
 
