@@ -103,10 +103,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: 'uuid-generator',
     title: 'UUID Generator',
-    desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options',
+    desc: 'Generate random v4 or time-ordered v7 UUIDs in bulk, with formatting options, and inspect any UUID',
     icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30',
     category: 'Generators',
-    keywords: ['guid', 'unique id', 'random'],
+    keywords: ['guid', 'unique id', 'random', 'uuidv7', 'v7', 'ulid'],
     component: lazy(() => import('@pages/tools/uuid-generator/UuidGeneratorPage')),
   },
   {
