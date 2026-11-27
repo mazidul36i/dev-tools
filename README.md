@@ -15,6 +15,7 @@ A collection of free, browser-based web developer utilities built with **React +
 - **Recharts** — Charts for Network Status statistics
 - **yaml** — YAML parsing / serialisation for YAML ↔ JSON
 - **diff** (jsdiff) — Myers diff for Text Diff
+- **sql-formatter** — dialect-aware SQL formatting
 
 ## Available Tools
 
@@ -40,6 +41,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | Case Converter & Text Utils | `/tools/text-utils` | 13 case styles, line sort/dedupe/trim/number, slugify, and live character/word/byte counts |
 | Password & Lorem Ipsum Generator | `/tools/password-generator` | Crypto-random passwords with entropy/strength meter; lorem ipsum words, sentences or paragraphs |
 | Number Base Converter | `/tools/base-converter` | Binary/octal/decimal/hex/base 2–36 with BigInt precision and two's complement views |
+| SQL Formatter | `/tools/sql-formatter` | Format (16 dialects, keyword case, tabular layouts) or minify SQL |
 
 ## Development
 

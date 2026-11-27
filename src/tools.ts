@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -225,6 +225,15 @@ export const tools: ToolDefinition[] = [
     category: 'Converters',
     keywords: ['binary', 'octal', 'decimal', 'hexadecimal', 'hex to decimal', 'radix', 'twos complement', 'bigint'],
     component: lazy(() => import('@pages/tools/base-converter/BaseConverterPage')),
+  },
+  {
+    slug: 'sql-formatter',
+    title: 'SQL Formatter',
+    desc: 'Format or minify SQL for MySQL, PostgreSQL, SQL Server, Oracle, BigQuery and more',
+    icon: Database, color: 'text-cyan-600', bg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    category: 'Formatters',
+    keywords: ['sql beautifier', 'pretty print', 'mysql', 'postgres', 't-sql', 'query', 'minify sql'],
+    component: lazy(() => import('@pages/tools/sql-formatter/SqlFormatterPage')),
   },
 ];
 
