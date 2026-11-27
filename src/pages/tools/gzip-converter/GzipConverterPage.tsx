@@ -1,92 +1,87 @@
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import ToolIO from '@components/ui/ToolIO';
-import { PrimaryButton } from '@components/ui/Button';
+import SegmentedControl from '@components/ui/SegmentedControl';
+import Button from '@components/ui/Button';
+import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarSpacer } from '@components/workspace';
 import { compressGzip, decompressGzip } from '@lib/gzip-utils';
+import { formatBytes } from '@lib/image-utils';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
+
+const schema = { dir: opt.oneOf(['compress', 'decompress'] as const, 'compress') };
 
 export default function GzipConverterPage() {
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState('');
+  const [o, setO] = useUrlOptions(schema);
+  const deferred = useDeferredValue(input);
+  const compress = o.dir === 'compress';
 
-  const handleCompress = useCallback(() => {
-    if (!input) { toast.error('Please enter text to compress'); return; }
+  const { output, error } = useMemo(() => {
+    if (!deferred) return { output: '', error: null };
     try {
-      const result = compressGzip(input);
-      setOutput(result);
-      toast.success('Compressed successfully!');
+      return { output: compress ? compressGzip(deferred) : decompressGzip(deferred), error: null };
     } catch (e) {
-      toast.error('Compression error: ' + (e instanceof Error ? e.message : String(e)));
+      return { output: '', error: e instanceof Error ? e.message : String(e) };
     }
-  }, [input]);
+  }, [deferred, compress]);
 
-  const handleDecompress = useCallback(() => {
-    if (!input) { toast.error('Please enter base64-encoded gzip data to decompress'); return; }
-    try {
-      const result = decompressGzip(input);
-      setOutput(result);
-      toast.success('Decompressed successfully!');
-    } catch (e) {
-      toast.error('Decompression error: ' + (e instanceof Error ? e.message : String(e)));
-    }
-  }, [input]);
+  useShareInput({ input }, (d) => d.input !== undefined && setInput(d.input), { enabled: input.length > 0 });
 
-  const handleSwap = useCallback(() => { setInput(output); setOutput(input); }, [input, output]);
+  // Compressed size is the decoded Base64 length.
+  const ratio = useMemo(() => {
+    if (!compress || !output || !deferred) return null;
+    const raw = new TextEncoder().encode(deferred).length;
+    const gz = Math.floor((output.length * 3) / 4) - (output.endsWith('==') ? 2 : output.endsWith('=') ? 1 : 0);
+    return `${formatBytes(raw)} → ${formatBytes(gz)} gzip (${Math.round((gz / raw) * 100)}%)`;
+  }, [compress, output, deferred]);
 
   return (
     <ToolLayout
-      title="Gzip Converter"
-      tagline="Compress and decompress data using Gzip (Base64 encoded)"
+      seoTitle="Gzip Compress & Decompress (Base64)"
+      tagline="Gzip text to Base64, or gunzip Base64 back to text with partial recovery of damaged data"
       metaDescription="Compress text to gzip (base64-encoded) or decompress base64-encoded gzip data back to text. Supports partial recovery for corrupted data."
+      variant="workspace"
+      about={
+        <ul className="grid gap-3 md:grid-cols-2">
+          <li><strong className="text-text">Compress</strong> gzips the UTF-8 text and shows the bytes as Base64 (it starts with <code>H4sI</code>), handy for logs, headers and JSON fields.</li>
+          <li><strong className="text-text">Decompress</strong> takes that Base64 back to text. If the data is truncated or damaged it tries a raw inflate to recover as much as possible.</li>
+        </ul>
+      }
     >
-      <Card>
-        <div className="p-6">
-          <ToolIO
-            input={input}
-            onInputChange={setInput}
-            output={output}
-            onSwap={handleSwap}
-            inputPlaceholder="Enter plain text to compress, or base64-encoded gzip data (H4sIA...) to decompress..."
-            downloadName="gzip-output.txt"
-            actions={
-              <>
-                <PrimaryButton onClick={handleCompress}>Compress (Gzip)</PrimaryButton>
-                <PrimaryButton onClick={handleDecompress}>Decompress (Gunzip)</PrimaryButton>
-              </>
-            }
+      <Toolbar>
+        <SegmentedControl ariaLabel="Direction" options={[{ id: 'compress', label: 'Compress' }, { id: 'decompress', label: 'Decompress' }]} value={o.dir} onChange={(v) => setO({ dir: v as typeof o.dir })} />
+        <ToolbarSpacer />
+        <Button variant="secondary" size="sm" disabled={!output} onClick={() => { setInput(output); setO({ dir: compress ? 'decompress' : 'compress' }); }}>
+          <ArrowLeftRight size={14} aria-hidden="true" /> Swap
+        </Button>
+      </Toolbar>
+      <SplitPane
+        storageKey="gzip"
+        left={
+          <EditorPanel
+            label={compress ? 'Text' : 'Base64 gzip'}
+            value={input}
+            onChange={setInput}
+            placeholder={compress ? 'Text to compress' : 'Base64-encoded gzip, usually starting with H4sI…'}
+            fileAccept="text/*,.txt,.b64,.json"
+            className="flex-1"
           />
-        </div>
-      </Card>
-
-      <InfoCard title="About Gzip Compression">
-        <div className="grid md:grid-cols-2 gap-5">
-          <div className="bg-surface-alt rounded-lg p-5 border border-border">
-            <h3 className="font-medium text-text-secondary mb-2">Compress (Text → Base64 Gzip)</h3>
-            <p className="text-sm text-text-muted mb-3">
-              Compresses plain text using the gzip algorithm and outputs the result as a base64-encoded string.
-              Useful for transmitting compressed data over text-based protocols.
-            </p>
-            <div className="bg-surface rounded p-3 text-xs font-mono space-y-1 border border-border">
-              <div><span className="text-text-muted">Input:</span> <span className="text-text-secondary">Hello World</span></div>
-              <div><span className="text-text-muted">Output:</span> <span className="text-primary">H4sIAAAAAAAAA...</span></div>
-            </div>
-          </div>
-          <div className="bg-surface-alt rounded-lg p-5 border border-border">
-            <h3 className="font-medium text-text-secondary mb-2">Decompress (Base64 Gzip → Text)</h3>
-            <p className="text-sm text-text-muted mb-3">
-              Takes a base64-encoded gzip string (typically starting with H4sI) and decompresses it back to the original text.
-              Includes partial recovery for corrupted or truncated data.
-            </p>
-            <div className="bg-surface rounded p-3 text-xs font-mono space-y-1 border border-border">
-              <div><span className="text-text-muted">Input:</span> <span className="text-text-secondary">H4sIAAAAAAAAA...</span></div>
-              <div><span className="text-text-muted">Output:</span> <span className="text-primary">Hello World</span></div>
-            </div>
-          </div>
-        </div>
-      </InfoCard>
+        }
+        right={
+          <OutputPanel
+            label={compress ? 'Base64 gzip' : 'Text'}
+            value={output}
+            error={error}
+            errorTitle={compress ? 'Could not compress' : 'Could not decompress'}
+            status={ratio}
+            downloadName={compress ? 'compressed.b64.txt' : 'decompressed.txt'}
+            onUseAsInput={() => setInput(output)}
+            className="flex-1"
+          />
+        }
+      />
     </ToolLayout>
   );
 }
-

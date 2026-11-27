@@ -76,10 +76,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: 'url-parser',
     title: 'URL Parser',
-    desc: 'Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.',
+    desc: 'Break a URL into its parts, edit decoded query parameters, and percent-encode or decode text',
     icon: Link2, color: 'text-violet-500', bg: 'bg-violet-100 dark:bg-violet-900/30',
     category: 'Encoders & Crypto',
-    keywords: ['url encode', 'url decode', 'percent encoding'],
+    keywords: ['url encode', 'url decode', 'percent encoding', 'query string', 'query params', 'parse url', 'hostname'],
     component: lazy(() => import('@pages/tools/UrlParserPage')),
   },
   {

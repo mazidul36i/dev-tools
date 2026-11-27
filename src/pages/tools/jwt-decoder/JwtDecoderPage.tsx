@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Clipboard, Eraser, KeyRound, ShieldCheck, ShieldAlert, ShieldQuestion, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import { Clipboard, Eraser, KeyRound, ShieldCheck, ShieldAlert, ShieldQuestion, Sparkles, Clock } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
 import CodeBlock from '@components/ui/CodeBlock';
 import Badge from '@components/ui/Badge';
 import Checkbox from '@components/ui/Checkbox';
-import { SmallButton } from '@components/ui/Button';
-import { TextAreaInput } from '@components/ui/TextArea';
+import { EmptyState, ErrorNotice, Panel } from '@components/workspace';
 import {
   CLAIM_DESCRIPTIONS, claimDate, decodeJwt, getTokenStatus, isAsymmetricAlgorithm, isHmacAlgorithm,
   secretBytes, signHmacJwt, verifyJwt, type DecodedJwt,
@@ -102,131 +99,118 @@ export default function JwtDecoderPage() {
 
   return (
     <ToolLayout
-      title="JWT Decoder"
       seoTitle="JWT Decoder & Verifier – Decode JSON Web Tokens Online"
-      tagline="Decode, inspect and verify JSON Web Tokens — entirely in your browser"
+      tagline="Decode, inspect and verify JSON Web Tokens, entirely in your browser"
       metaDescription="Decode JWT header and payload, see expiry in human time, and verify HS256/384/512, RS256, PS256 and ES256 signatures with a secret or public key. Nothing leaves your browser."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Structure.</strong> A JWT is three base64url parts joined by dots: a header (algorithm, type), a payload (claims) and a signature over the first two.</li>
+          <li><strong className="text-text">Decoding ≠ trusting.</strong> Anyone can read a JWT; the payload is only encoded, not encrypted. Only a valid signature proves who issued it and that it wasn’t modified.</li>
+          <li><strong className="text-text">Private by design.</strong> Decoding and verification run locally with the Web Crypto API. Tokens, secrets and keys are never sent, stored or put in links.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <div className="p-6 space-y-5">
-          <div>
-            <label htmlFor="jwt-input" className="block text-sm font-medium text-text-secondary mb-2">Encoded token:</label>
-            <TextAreaInput
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
+        <div className="space-y-4 min-w-0">
+          <Panel
+            title={<label htmlFor="jwt-input">Encoded token</label>}
+            bodyClassName="p-3"
+            actions={
+              <>
+                <button type="button" onClick={handlePaste} className={action}><Clipboard size={13} aria-hidden="true" /> Paste</button>
+                <button type="button" onClick={handleSample} className={action}><Sparkles size={13} aria-hidden="true" /> Sample</button>
+                <button type="button" onClick={() => setToken('')} disabled={!token} className={action}><Eraser size={13} aria-hidden="true" /> Clear</button>
+              </>
+            }
+          >
+            <textarea
               id="jwt-input"
               value={token}
               onChange={(e) => setToken(e.target.value)}
-              placeholder="Paste a JWT (eyJhbGciOi...) — a leading 'Bearer ' is ignored"
+              placeholder="Paste a JWT (eyJhbGciOi…). A leading 'Bearer ' is ignored."
               spellCheck={false}
-              className="min-h-28!"
+              autoComplete="off"
+              className="w-full min-h-40 p-2.5 rounded-md bg-surface-alt border border-border-strong font-mono text-[13px] leading-relaxed text-text break-all resize-y
+                placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25"
             />
-            <div className="flex flex-wrap gap-2 mt-2">
-              <SmallButton onClick={() => setToken('')}><Eraser size={12} /> Clear</SmallButton>
-              <SmallButton onClick={handlePaste}><Clipboard size={12} /> Paste</SmallButton>
-              <SmallButton onClick={handleSample}><Sparkles size={12} /> Load sample</SmallButton>
-            </div>
-          </div>
-
-          {result.error && (
-            <div className="flex items-start gap-2 p-3.5 rounded-lg border border-error/30 bg-error/5 text-error text-sm">
-              <AlertCircle size={16} className="shrink-0 mt-0.5" />
-              {result.error}
-            </div>
-          )}
+            {decoded && (
+              <div className="mt-3 p-2.5 rounded-md border border-border bg-surface-alt font-mono text-xs break-all leading-relaxed" aria-label="Token parts">
+                <span className="text-rose-600 dark:text-rose-400">{decoded.parts[0]}</span>
+                <span className="text-text-muted">.</span>
+                <span className="text-violet-600 dark:text-violet-400">{decoded.parts[1]}</span>
+                <span className="text-text-muted">.</span>
+                <span className="text-sky-700 dark:text-sky-400">{decoded.parts[2] || '(no signature)'}</span>
+              </div>
+            )}
+          </Panel>
 
           {decoded && (
-            <>
-              {/* Colour-coded token */}
-              <div className="p-3.5 rounded-lg border border-border bg-surface-alt font-mono text-xs break-all leading-relaxed">
-                <span className="text-rose-500">{decoded.parts[0]}</span>
-                <span className="text-text-muted">.</span>
-                <span className="text-violet-500">{decoded.parts[1]}</span>
-                <span className="text-text-muted">.</span>
-                <span className="text-sky-500">{decoded.parts[2] || '(no signature)'}</span>
-              </div>
+            <Panel
+              title={<span className="inline-flex items-center gap-1.5"><KeyRound size={13} aria-hidden="true" /> Verify signature</span>}
+              bodyClassName="p-3 space-y-3"
+            >
+              {isHmac || isAsym ? (
+                <>
+                  <textarea
+                    value={key}
+                    onChange={(e) => setKey(e.target.value)}
+                    aria-label={isHmac ? 'Shared secret' : 'Public key'}
+                    placeholder={isHmac ? 'Shared secret used to sign the token' : 'Public key: PEM (-----BEGIN PUBLIC KEY-----) or one JWK object'}
+                    spellCheck={false}
+                    autoComplete="off"
+                    className="w-full min-h-20 p-2.5 rounded-md bg-surface-alt border border-border-strong font-mono text-[13px] text-text resize-y
+                      placeholder:text-text-muted focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25"
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {isHmac ? <Checkbox checked={secretIsBase64} onChange={setSecretIsBase64} label="Secret is Base64" className="text-xs" /> : <span />}
+                    <span role="status"><VerifyBadge state={verify} /></span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-text-muted">
+                  {alg === 'none'
+                    ? 'This token is unsigned (alg "none"): anyone can create it, so never trust it.'
+                    : `Signature verification for "${String(alg)}" is not supported. Supported: HS256/384/512, RS256/384/512, PS256/384/512, ES256/384/512.`}
+                </p>
+              )}
+            </Panel>
+          )}
+        </div>
 
-              {/* Status */}
-              <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-4 min-w-0">
+          {!token.trim() && (
+            <EmptyState icon={ShieldCheck} title="Paste a token to decode it" className="rounded-lg border border-dashed border-border bg-surface">
+              Or load a signed sample to see how verification works.
+            </EmptyState>
+          )}
+          {result.error && <ErrorNotice title="Not a valid JWT">{result.error}</ErrorNotice>}
+          {decoded && (
+            <>
+              <div className="flex flex-wrap items-center gap-2" role="status">
                 <Badge tone="primary">alg: {String(alg ?? 'unknown')}</Badge>
-                {status?.state === 'expired' && (
-                  <Badge tone="error"><Clock size={12} /> Expired {formatRelative(status.expiredAt, now)}</Badge>
-                )}
-                {status?.state === 'not-yet-valid' && (
-                  <Badge tone="warning"><Clock size={12} /> Not valid until {status.validFrom.toLocaleString()}</Badge>
-                )}
+                {status?.state === 'expired' && <Badge tone="error"><Clock size={12} aria-hidden="true" /> Expired {formatRelative(status.expiredAt, now)}</Badge>}
+                {status?.state === 'not-yet-valid' && <Badge tone="warning"><Clock size={12} aria-hidden="true" /> Not valid until {status.validFrom.toLocaleString()}</Badge>}
                 {status?.state === 'valid' && (
                   <Badge tone="success">
-                    <Clock size={12} />
-                    {status.expiresAt
-                      ? `Valid · expires in ${formatDuration(status.expiresAt.getTime() - now)}`
-                      : 'Valid · no expiry (exp) set'}
+                    <Clock size={12} aria-hidden="true" />
+                    {status.expiresAt ? `Valid · expires in ${formatDuration(status.expiresAt.getTime() - now)}` : 'Valid · no expiry (exp) set'}
                   </Badge>
                 )}
               </div>
-
-              <div className="grid lg:grid-cols-2 gap-4">
-                <CodeBlock
-                  title={<span className="text-rose-500">Header</span>}
-                  code={JSON.stringify(decoded.header, null, 2)}
-                  preClassName="max-h-96"
-                />
-                <CodeBlock
-                  title={<span className="text-violet-500">Payload</span>}
-                  code={JSON.stringify(decoded.payload, null, 2)}
-                  preClassName="max-h-96"
-                />
+              <div className="grid gap-4 xl:grid-cols-2">
+                <CodeBlock title={<span className="text-rose-600 dark:text-rose-400">Header</span>} code={JSON.stringify(decoded.header, null, 2)} preClassName="max-h-96" />
+                <CodeBlock title={<span className="text-violet-600 dark:text-violet-400">Payload</span>} code={JSON.stringify(decoded.payload, null, 2)} preClassName="max-h-96" />
               </div>
             </>
           )}
-        </div>
-      </Card>
-
-      {decoded && (
-        <Card hover={false}>
-          <div className="p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <KeyRound size={16} className="text-sky-500" />
-              <h2 className="font-semibold text-text">Verify signature</h2>
-            </div>
-            {isHmac || isAsym ? (
-              <>
-                <TextAreaInput
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  placeholder={isHmac
-                    ? 'Enter the shared secret used to sign the token'
-                    : 'Paste the public key: PEM (-----BEGIN PUBLIC KEY-----) or a single JWK object'}
-                  spellCheck={false}
-                  className="min-h-20!"
-                />
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  {isHmac ? (
-                    <Checkbox checked={secretIsBase64} onChange={setSecretIsBase64} label="Secret is base64 encoded" />
-                  ) : <span />}
-                  <VerifyBadge state={verify} />
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-text-muted">
-                {alg === 'none'
-                  ? 'This token is unsigned (alg "none") — anyone can create it, so never trust it.'
-                  : `Signature verification for "${String(alg)}" is not supported. Supported: HS256/384/512, RS256/384/512, PS256/384/512, ES256/384/512.`}
-              </p>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {claims.length > 0 && (
-        <Card hover={false}>
-          <div className="p-6">
-            <h2 className="font-semibold text-text mb-4">Claims</h2>
-            <div className="overflow-x-auto">
+          {claims.length > 0 && (
+            <Panel title="Claims" bodyClassName="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-text-muted border-b border-border">
-                    <th className="py-2 pr-4 font-medium">Claim</th>
-                    <th className="py-2 pr-4 font-medium">Value</th>
-                    <th className="py-2 font-medium hidden md:table-cell">Meaning</th>
+                  <tr className="text-left text-xs text-text-muted border-b border-border">
+                    <th scope="col" className="px-3 py-2 font-medium">Claim</th>
+                    <th scope="col" className="px-3 py-2 font-medium">Value</th>
+                    <th scope="col" className="px-3 py-2 font-medium hidden md:table-cell">Meaning</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,55 +218,39 @@ export default function JwtDecoderPage() {
                     const date = TIME_CLAIMS.has(name) ? claimDate(value) : null;
                     return (
                       <tr key={name} className="border-b border-border last:border-0 align-top">
-                        <td className="py-2 pr-4 font-mono text-violet-500 whitespace-nowrap">{name}</td>
-                        <td className="py-2 pr-4 font-mono text-text-secondary break-all">
+                        <td className="px-3 py-2 font-mono text-[13px] text-violet-600 dark:text-violet-400 whitespace-nowrap">{name}</td>
+                        <td className="px-3 py-2 font-mono text-[13px] text-text break-all">
                           {formatClaimValue(value)}
-                          {date && (
-                            <div className="font-sans text-xs text-text-muted mt-0.5">
-                              {date.toLocaleString()} · {formatRelative(date, now)}
-                            </div>
-                          )}
+                          {date && <div className="font-sans text-xs text-text-muted mt-0.5">{date.toLocaleString()} · {formatRelative(date, now)}</div>}
                         </td>
-                        <td className="py-2 text-text-muted hidden md:table-cell">{CLAIM_DESCRIPTIONS[name] ?? '—'}</td>
+                        <td className="px-3 py-2 text-text-muted hidden md:table-cell">{CLAIM_DESCRIPTIONS[name] ?? '—'}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      <InfoCard title="About JSON Web Tokens">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'Structure', d: 'A JWT is three base64url parts joined by dots: a header (algorithm, type), a payload (claims) and a signature over the first two.' },
-            { t: 'Decoding ≠ trusting', d: 'Anyone can read a JWT — the payload is only encoded, not encrypted. Only a valid signature proves the token was issued by the key holder and not modified.' },
-            { t: 'Private by design', d: 'Decoding and verification happen locally with the Web Crypto API. Tokens, secrets and keys are never sent anywhere or stored.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
+            </Panel>
+          )}
         </div>
-      </InfoCard>
+      </div>
     </ToolLayout>
   );
 }
 
+const action =
+  'inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring disabled:opacity-40 disabled:pointer-events-none';
+
 function VerifyBadge({ state }: { state: VerifyState }) {
   switch (state.kind) {
     case 'idle':
-      return <Badge><ShieldQuestion size={12} /> Enter a key to verify</Badge>;
+      return <Badge><ShieldQuestion size={12} aria-hidden="true" /> Enter a key to verify</Badge>;
     case 'checking':
-      return <Badge><ShieldQuestion size={12} /> Checking…</Badge>;
+      return <Badge><ShieldQuestion size={12} aria-hidden="true" /> Checking…</Badge>;
     case 'valid':
-      return <Badge tone="success"><ShieldCheck size={12} /> Signature verified</Badge>;
+      return <Badge tone="success"><ShieldCheck size={12} aria-hidden="true" /> Signature verified</Badge>;
     case 'invalid':
-      return <Badge tone="error"><ShieldAlert size={12} /> Invalid signature</Badge>;
+      return <Badge tone="error"><ShieldAlert size={12} aria-hidden="true" /> Invalid signature</Badge>;
     case 'error':
-      return <Badge tone="error"><ShieldAlert size={12} /> {state.message}</Badge>;
+      return <Badge tone="error"><ShieldAlert size={12} aria-hidden="true" /> {state.message}</Badge>;
   }
 }
