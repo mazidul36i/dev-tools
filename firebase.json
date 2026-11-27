@@ -16,6 +16,11 @@
         "source": "https://gs-devtools.firebaseapp.com/**",
         "destination": "https://devtools.mazidul.com/:splat",
         "type": 301
+      },
+      {
+        "source": "/tools/:slug",
+        "destination": "/:slug",
+        "type": 301
       }
     ],
     "rewrites": [

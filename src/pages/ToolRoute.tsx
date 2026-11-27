@@ -5,7 +5,7 @@ import { tools } from '../tools';
 const NotFoundPage = lazy(() => import('@pages/NotFoundPage'));
 
 /**
- * Renders the tool for /tools/:slug. Lazy-loaded from App so the registry
+ * Renders the tool for /:slug. Lazy-loaded from App so the registry
  * (and its icons) stays out of the initial bundle.
  */
 export default function ToolRoute() {

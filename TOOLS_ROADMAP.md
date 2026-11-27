@@ -44,71 +44,71 @@ Every existing tool touches the same places:
 
 ## Phase 1: Quick wins (no new dependencies, high everyday use)
 
-### Task 1.1 ✅ — JWT Decoder — `/tools/jwt-decoder`
+### Task 1.1 ✅ — JWT Decoder — `/jwt-decoder`
 - Decode header & payload into pretty JSON (reuse `HighlightedOutput`), show `exp`/`iat`/`nbf` as human dates with an "expired / valid for X" badge.
 - Optional HS256/384/512 signature verification with a user-entered secret via WebCrypto.
 
-### Task 1.2 ✅ — Hash Generator — `/tools/hash-generator`
+### Task 1.2 ✅ — Hash Generator — `/hash-generator`
 - SHA-1/256/384/512 via `crypto.subtle.digest`, for text and dropped files; HMAC mode with a key.
 - MD5 needs a tiny inline implementation (not in WebCrypto) — show it but label it "not secure".
 
-### Task 1.3 ✅ — Unix Timestamp Converter — `/tools/timestamp-converter`
+### Task 1.3 ✅ — Unix Timestamp Converter — `/timestamp-converter`
 - Live "now" clock; seconds ↔ milliseconds auto-detect; convert to ISO 8601, UTC, local, relative ("3 hours ago"); date picker → timestamp. All via `Intl`/`Date`.
 
-### Task 1.4 ✅ — Regex Tester — `/tools/regex-tester`
+### Task 1.4 ✅ — Regex Tester — `/regex-tester`
 - Pattern + flags (`g i m s u y`), live match highlighting, capture-group table, replace preview, a small cheat-sheet in the `InfoCard`.
 
-### Task 1.5 ✅ — Case Converter & Text Utilities — `/tools/text-utils`
+### Task 1.5 ✅ — Case Converter & Text Utilities — `/text-utils`
 - camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE, Title Case, slugify; sort/dedupe/trim lines; character/word/line/byte counts.
 
-### Task 1.6 ✅ — Password & Lorem Ipsum Generator — `/tools/password-generator`
+### Task 1.6 ✅ — Password & Lorem Ipsum Generator — `/password-generator`
 - `crypto.getRandomValues`, length & character-set options, entropy/strength meter, bulk generation. Lorem ipsum as a second tab (or a separate tool).
 
-### Task 1.7 ✅ — Number Base Converter — `/tools/base-converter`
+### Task 1.7 ✅ — Number Base Converter — `/base-converter`
 - Binary / octal / decimal / hex / custom base, using `BigInt` for big numbers; bit-length and two's-complement view.
 
 ---
 
 ## Phase 2: Format converters & formatters (small, well-known deps)
 
-### Task 2.1 ✅ — YAML ↔ JSON — `/tools/yaml-json` — dep: `yaml`
+### Task 2.1 ✅ — YAML ↔ JSON — `/yaml-json` — dep: `yaml`
 - Two-way conversion with error line numbers; reuse JSON indent options.
 
-### Task 2.2 ✅ — JSON → Types — `/tools/json-to-types` — no dep
+### Task 2.2 ✅ — JSON → Types — `/json-to-types` — no dep
 - Generate TypeScript interfaces, Go structs, Java classes / Kotlin data classes, Python dataclasses from sample JSON. Natural inverse of the existing "Java DTO → JSON" tab; builds on `src/lib/json-utils.ts`.
 
-### Task 2.3 ✅ — Text Diff — `/tools/text-diff` — dep: `diff`
+### Task 2.3 ✅ — Text Diff — `/text-diff` — dep: `diff`
 - Side-by-side and inline views, word/line granularity, ignore whitespace/case. Reuse `ResizablePanels`.
 
-### Task 2.4 ✅ — SQL Formatter — `/tools/sql-formatter` — dep: `sql-formatter`
+### Task 2.4 ✅ — SQL Formatter — `/sql-formatter` — dep: `sql-formatter`
 - Dialect selector shared with CSV to SQL (MySQL, PostgreSQL, SQLite…), keyword case, indent, minify.
 
-### Task 2.5 ✅ — Markdown Preview — `/tools/markdown-preview` — deps: `marked`, `dompurify`
+### Task 2.5 ✅ — Markdown Preview — `/markdown-preview` — deps: `marked`, `dompurify`
 - Live split view reusing `PreviewFrame` from HTML Preview; export rendered HTML.
 
-### Task 2.6 ✅ — Cron Expression Helper — `/tools/cron-parser` — dep: `cronstrue` (or hand-written)
+### Task 2.6 ✅ — Cron Expression Helper — `/cron-parser` — dep: `cronstrue` (or hand-written)
 - Plain-English description, next 10 run times in local/UTC, a field-by-field builder.
 
 ---
 
 ## Phase 3: Richer / visual tools
 
-### Task 3.1 ✅ — QR Code Generator & Reader — `/tools/qr-code` — dep: `qrcode` (+ `jsqr` fallback)
+### Task 3.1 ✅ — QR Code Generator & Reader — `/qr-code` — dep: `qrcode` (+ `jsqr` fallback)
 - Generate (size, error-correction, colours, PNG/SVG download); read from image/paste/camera via `BarcodeDetector` where supported.
 
-### Task 3.2 ✅ — Image Compressor & Converter — `/tools/image-converter` — no dep
+### Task 3.2 ✅ — Image Compressor & Converter — `/image-converter` — no dep
 - Canvas-based resize, quality slider, PNG/JPEG/WebP output, before/after size; also "image ↔ Base64 data URI" (pairs with Encoder/Decoder).
 
-### Task 3.3 ✅ — CSS Gradient & Box-Shadow Generator — `/tools/css-generator` — no dep
+### Task 3.3 ✅ — CSS Gradient & Box-Shadow Generator — `/css-generator` — no dep
 - Visual editors with live preview and copyable CSS/Tailwind output; reuse `color-utils.ts` and the Color Picker's palette.
 
-### Task 3.4 ✅ — Subnet / CIDR Calculator — `/tools/cidr-calculator` — no dep
+### Task 3.4 ✅ — Subnet / CIDR Calculator — `/cidr-calculator` — no dep
 - Network/broadcast address, host range, mask, host count; IPv4 first, IPv6 later. Fits next to Network Status.
 
-### Task 3.5 ✅ — Chmod Calculator — `/tools/chmod-calculator` — no dep
+### Task 3.5 ✅ — Chmod Calculator — `/chmod-calculator` — no dep
 - Checkbox grid ↔ octal ↔ symbolic (`rwxr-xr-x`).
 
-### Task 3.6 ✅ — HTTP Status Codes & MIME Reference — `/tools/http-reference` — no dep
+### Task 3.6 ✅ — HTTP Status Codes & MIME Reference — `/http-reference` — no dep
 - Searchable static tables with short explanations.
 
 ---
@@ -125,4 +125,4 @@ Every existing tool touches the same places:
 
 - All listed tools were built; small, well-known dependencies were used where noted (`yaml`, `diff`, `sql-formatter`, `marked` + `dompurify`, `cronstrue`, `qrcode` + `jsqr`) and are only loaded by their own lazy page.
 - Vitest was added in Phase 0 and runs in the PR workflow.
-- Tool routing is a single `/tools/:slug` route resolved from `src/tools.ts`, loaded lazily so the registry and its icons stay out of the first-load bundle.
+- Tool routing is a single `/:slug` route (old `/tools/:slug` links redirect) resolved from `src/tools.ts`, loaded lazily so the registry and its icons stay out of the first-load bundle.

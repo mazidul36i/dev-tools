@@ -24,35 +24,35 @@ A collection of free, browser-based web developer utilities built with **React +
 
 | Tool | Route | Description |
 |------|-------|-------------|
-| JSON Formatter | `/tools/json-formatter` | Format, minify, stringify/parse JSON + Java DTO to JSON |
-| Image to Text | `/tools/image-to-text` | OCR-based text extraction from images |
-| Encoder/Decoder | `/tools/encoder-decoder` | Base64, URL, HTML, Hex encoding/decoding |
-| URL Parser | `/tools/url-parser` | URL encode/decode |
-| Color Picker | `/tools/color-picker` | HEX/RGB/HSL picker with palette management |
-| Network Status | `/tools/network-status` | Real-time network monitoring with history |
-| UUID Generator | `/tools/uuid-generator` | v4 and time-based UUIDs with formatting options |
-| Gzip Converter | `/tools/gzip-converter` | Gzip compress / decompress (Base64) with partial recovery |
-| CSV to SQL | `/tools/csv-to-sql` | CSV to `CREATE TABLE` / `INSERT` for MySQL, PostgreSQL and SQLite |
-| HTML Preview | `/tools/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
-| JWT Decoder | `/tools/jwt-decoder` | Decode JWTs, show expiry, verify HS/RS/PS/ES signatures with a secret or public key |
-| Unix Timestamp Converter | `/tools/timestamp-converter` | Epoch (s/ms/µs/ns) ↔ ISO 8601, RFC 2822 and any time zone, with a live clock |
-| Hash Generator | `/tools/hash-generator` | MD5, SHA-1/256/384/512, CRC32 and HMAC for text or files, with checksum comparison |
-| Regex Tester | `/tools/regex-tester` | Live match highlighting, capture/named groups, replace preview, presets and cheat sheet |
-| YAML ↔ JSON | `/tools/yaml-json` | Two-way conversion with anchors, merge keys, multi-document streams and error locations |
-| JSON to Types | `/tools/json-to-types` | TypeScript, Go, Java, Kotlin, Python and Rust types from sample JSON (optional/nullable detection) |
-| Text Diff | `/tools/text-diff` | Side-by-side / inline diff with word or character highlights, ignore options and unified patch |
-| Case Converter & Text Utils | `/tools/text-utils` | 13 case styles, line sort/dedupe/trim/number, slugify, and live character/word/byte counts |
-| Password & Lorem Ipsum Generator | `/tools/password-generator` | Crypto-random passwords with entropy/strength meter; lorem ipsum words, sentences or paragraphs |
-| Number Base Converter | `/tools/base-converter` | Binary/octal/decimal/hex/base 2–36 with BigInt precision and two's complement views |
-| SQL Formatter | `/tools/sql-formatter` | Format (16 dialects, keyword case, tabular layouts) or minify SQL |
-| Markdown Preview | `/tools/markdown-preview` | GFM editor with sanitised live preview, light/dark, TOC copy and .md/.html export |
-| Cron Expression Helper | `/tools/cron-parser` | Plain-English cron descriptions, per-field editor, presets/macros and next run times |
-| Chmod Calculator | `/tools/chmod-calculator` | Permission checkboxes ↔ octal ↔ symbolic, special bits, chmod expressions and commands |
-| Subnet / CIDR Calculator | `/tools/cidr-calculator` | IPv4/IPv6 network, broadcast, host range, masks; subnet splitting and range → CIDR |
-| HTTP Status Codes & MIME Types | `/tools/http-reference` | Searchable status code (1xx–5xx) and Content-Type reference |
-| CSS Gradient & Shadow Generator | `/tools/css-generator` | Visual linear/radial/conic gradients and layered box shadows with CSS + Tailwind output |
-| Image Compressor & Converter | `/tools/image-converter` | Bulk compress/resize/convert to WebP, AVIF, JPEG, PNG; image ↔ Base64 data URI |
-| QR Code Generator & Reader | `/tools/qr-code` | QR codes for text/URL, Wi-Fi, email, phone, SMS, vCard (PNG/SVG); decode from image or camera |
+| JSON Formatter | `/json-formatter` | Format, minify, stringify/parse JSON + Java DTO to JSON |
+| Image to Text | `/image-to-text` | OCR-based text extraction from images |
+| Encoder/Decoder | `/encoder-decoder` | Base64, URL, HTML, Hex encoding/decoding |
+| URL Parser | `/url-parser` | URL encode/decode |
+| Color Picker | `/color-picker` | HEX/RGB/HSL picker with palette management |
+| Network Status | `/network-status` | Real-time network monitoring with history |
+| UUID Generator | `/uuid-generator` | v4 and time-based UUIDs with formatting options |
+| Gzip Converter | `/gzip-converter` | Gzip compress / decompress (Base64) with partial recovery |
+| CSV to SQL | `/csv-to-sql` | CSV to `CREATE TABLE` / `INSERT` for MySQL, PostgreSQL and SQLite |
+| HTML Preview | `/html-preview` | Online HTML editor & viewer with live/on-click rendering, device sizes and console |
+| JWT Decoder | `/jwt-decoder` | Decode JWTs, show expiry, verify HS/RS/PS/ES signatures with a secret or public key |
+| Unix Timestamp Converter | `/timestamp-converter` | Epoch (s/ms/µs/ns) ↔ ISO 8601, RFC 2822 and any time zone, with a live clock |
+| Hash Generator | `/hash-generator` | MD5, SHA-1/256/384/512, CRC32 and HMAC for text or files, with checksum comparison |
+| Regex Tester | `/regex-tester` | Live match highlighting, capture/named groups, replace preview, presets and cheat sheet |
+| YAML ↔ JSON | `/yaml-json` | Two-way conversion with anchors, merge keys, multi-document streams and error locations |
+| JSON to Types | `/json-to-types` | TypeScript, Go, Java, Kotlin, Python and Rust types from sample JSON (optional/nullable detection) |
+| Text Diff | `/text-diff` | Side-by-side / inline diff with word or character highlights, ignore options and unified patch |
+| Case Converter & Text Utils | `/text-utils` | 13 case styles, line sort/dedupe/trim/number, slugify, and live character/word/byte counts |
+| Password & Lorem Ipsum Generator | `/password-generator` | Crypto-random passwords with entropy/strength meter; lorem ipsum words, sentences or paragraphs |
+| Number Base Converter | `/base-converter` | Binary/octal/decimal/hex/base 2–36 with BigInt precision and two's complement views |
+| SQL Formatter | `/sql-formatter` | Format (16 dialects, keyword case, tabular layouts) or minify SQL |
+| Markdown Preview | `/markdown-preview` | GFM editor with sanitised live preview, light/dark, TOC copy and .md/.html export |
+| Cron Expression Helper | `/cron-parser` | Plain-English cron descriptions, per-field editor, presets/macros and next run times |
+| Chmod Calculator | `/chmod-calculator` | Permission checkboxes ↔ octal ↔ symbolic, special bits, chmod expressions and commands |
+| Subnet / CIDR Calculator | `/cidr-calculator` | IPv4/IPv6 network, broadcast, host range, masks; subnet splitting and range → CIDR |
+| HTTP Status Codes & MIME Types | `/http-reference` | Searchable status code (1xx–5xx) and Content-Type reference |
+| CSS Gradient & Shadow Generator | `/css-generator` | Visual linear/radial/conic gradients and layered box shadows with CSS + Tailwind output |
+| Image Compressor & Converter | `/image-converter` | Bulk compress/resize/convert to WebP, AVIF, JPEG, PNG; image ↔ Base64 data URI |
+| QR Code Generator & Reader | `/qr-code` | QR codes for text/URL, Wi-Fi, email, phone, SMS, vCard (PNG/SVG); decode from image or camera |
 
 ## Development
 
@@ -99,7 +99,7 @@ Builds and deploys to Firebase Hosting.
 ```
 src/
 ├── main.tsx                    # Entry point
-├── App.tsx                     # Routes (/tools/:slug resolved via tools.ts)
+├── App.tsx                     # Routes (/:slug resolved via tools.ts)
 ├── tools.ts                    # Tool registry: metadata, category, lazy page
 ├── index.css                   # Tailwind imports + theme
 ├── components/
