@@ -15,3 +15,6 @@ firebase-debug.log
 # Environment files
 .env*
 .npmrc
+
+# Python bytecode (e.g. from .claude/skills scripts)
+__pycache__/
