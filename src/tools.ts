@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer, LockKeyhole,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -252,6 +252,15 @@ export const tools: ToolDefinition[] = [
     category: 'Generators',
     keywords: ['crontab', 'schedule', 'cron job', 'next run', 'cron generator', 'cron explain'],
     component: lazy(() => import('@pages/tools/cron-parser/CronParserPage')),
+  },
+  {
+    slug: 'chmod-calculator',
+    title: 'Chmod Calculator',
+    desc: 'Convert Unix file permissions between checkboxes, octal (755) and symbolic (rwxr-xr-x)',
+    icon: LockKeyhole, color: 'text-stone-600 dark:text-stone-300', bg: 'bg-stone-200 dark:bg-stone-700/40',
+    category: 'Web & Network',
+    keywords: ['linux permissions', 'unix', 'file mode', 'rwx', '755', '644', 'setuid', 'sticky bit'],
+    component: lazy(() => import('@pages/tools/chmod-calculator/ChmodCalculatorPage')),
   },
 ];
 

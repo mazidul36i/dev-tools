@@ -46,6 +46,7 @@ A collection of free, browser-based web developer utilities built with **React +
 | SQL Formatter | `/tools/sql-formatter` | Format (16 dialects, keyword case, tabular layouts) or minify SQL |
 | Markdown Preview | `/tools/markdown-preview` | GFM editor with sanitised live preview, light/dark, TOC copy and .md/.html export |
 | Cron Expression Helper | `/tools/cron-parser` | Plain-English cron descriptions, per-field editor, presets/macros and next run times |
+| Chmod Calculator | `/tools/chmod-calculator` | Permission checkboxes ↔ octal ↔ symbolic, special bits, chmod expressions and commands |
 
 ## Development
 
