@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -234,6 +234,15 @@ export const tools: ToolDefinition[] = [
     category: 'Formatters',
     keywords: ['sql beautifier', 'pretty print', 'mysql', 'postgres', 't-sql', 'query', 'minify sql'],
     component: lazy(() => import('@pages/tools/sql-formatter/SqlFormatterPage')),
+  },
+  {
+    slug: 'markdown-preview',
+    title: 'Markdown Preview',
+    desc: 'Write GitHub-flavoured markdown with a live, sanitised preview and HTML export',
+    icon: FileText, color: 'text-gray-700 dark:text-gray-200', bg: 'bg-gray-200 dark:bg-gray-700/40',
+    category: 'Formatters',
+    keywords: ['md', 'readme', 'editor', 'gfm', 'markdown to html', 'live preview'],
+    component: lazy(() => import('@pages/tools/markdown-preview/MarkdownPreviewPage')),
   },
 ];
 
