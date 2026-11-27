@@ -1,7 +1,7 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import {
   FileJson2, Image, RefreshCw, Link2, Palette, Wifi, Fingerprint, FileArchive, Table, Code2,
-  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText,
+  ShieldCheck, Clock, Hash, Regex, FileCode2, Braces, GitCompare, CaseSensitive, KeyRound, Binary, Database, FileText, Timer,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -243,6 +243,15 @@ export const tools: ToolDefinition[] = [
     category: 'Formatters',
     keywords: ['md', 'readme', 'editor', 'gfm', 'markdown to html', 'live preview'],
     component: lazy(() => import('@pages/tools/markdown-preview/MarkdownPreviewPage')),
+  },
+  {
+    slug: 'cron-parser',
+    title: 'Cron Expression Helper',
+    desc: 'Explain cron schedules in plain English, edit fields and preview the next run times',
+    icon: Timer, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-900/30',
+    category: 'Generators',
+    keywords: ['crontab', 'schedule', 'cron job', 'next run', 'cron generator', 'cron explain'],
+    component: lazy(() => import('@pages/tools/cron-parser/CronParserPage')),
   },
 ];
 
