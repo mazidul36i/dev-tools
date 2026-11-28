@@ -1,5 +1,3 @@
-import { deflate, inflate } from 'pako';
-
 /*
  * Tool options <-> URL query string, and compressed "share" payloads for the
  * URL hash. Options are small and safe to show in a URL; user input only goes
@@ -106,17 +104,23 @@ function fromBase64Url(s: string): Uint8Array {
   return out;
 }
 
+// pako is only needed when a share link is created or opened, so it loads on demand
+// instead of sitting in the main bundle.
+const loadPako = () => import('pako');
+
 /** Compresses string fields into a URL-safe token ("1.<base64url>"). */
-export function encodeShare(data: Record<string, string>): string {
+export async function encodeShare(data: Record<string, string>): Promise<string> {
+  const { deflate } = await loadPako();
   const json = JSON.stringify(data);
   return `${SHARE_VERSION}.${toBase64Url(deflate(new TextEncoder().encode(json)))}`;
 }
 
 /** Inverse of encodeShare; null for anything malformed. Only string fields survive. */
-export function decodeShare(token: string): Record<string, string> | null {
+export async function decodeShare(token: string): Promise<Record<string, string> | null> {
   try {
     const [version, body] = token.split('.', 2);
     if (version !== SHARE_VERSION || !body) return null;
+    const { inflate } = await loadPako();
     const json = new TextDecoder().decode(inflate(fromBase64Url(body)));
     const parsed: unknown = JSON.parse(json);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;

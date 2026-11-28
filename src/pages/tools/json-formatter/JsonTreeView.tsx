@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useContext, createContext, useMemo, useRef, memo } from 'react';
 import { ChevronRight, Copy } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 // Context to broadcast expand/collapse signals + search query
@@ -141,13 +140,9 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 					className="flex items-center rounded text-left select-none cursor-pointer disabled:cursor-default focus-ring"
 				>
 					{entries.length > 0 && (
-						<motion.span
-							animate={{ rotate: collapsed ? 0 : 90 }}
-							transition={{ duration: 0.15 }}
-							className="inline-flex mr-1 text-text-muted"
-						>
+						<span className={`inline-flex mr-1 text-text-muted motion-safe:transition-transform ${collapsed ? '' : 'rotate-90'}`}>
 							<ChevronRight size={14} aria-hidden="true" />
-						</motion.span>
+						</span>
 					)}
 					{nodeKey !== null && (
 						<>
@@ -174,14 +169,8 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 					<Copy size={11} aria-hidden="true" />
 				</button>
 			</div>
-			<AnimatePresence initial={false}>
-				{!collapsed && entries.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, height: 0 }}
-						animate={{ opacity: 1, height: 'auto' }}
-						exit={{ opacity: 0, height: 0 }}
-						transition={{ duration: 0.15 }}
-					>
+			{!collapsed && entries.length > 0 && (
+					<div>
 						{entries.map(([k, v]) => {
 							const childPath = isArray ? `${currentPath}[${k}]` : `${currentPath}.${k}`;
 							return (
@@ -191,9 +180,8 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 						<div style={{ paddingLeft: 20 }}>
 							<span className="text-text-muted py-0.5">{bracket[1]}</span>
 						</div>
-					</motion.div>
+					</div>
 				)}
-			</AnimatePresence>
 		</div>
 	);
 });

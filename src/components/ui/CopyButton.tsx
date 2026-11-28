@@ -1,7 +1,6 @@
 import { Copy, Check } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface CopyButtonProps {
   text: string;
@@ -47,17 +46,10 @@ export default function CopyButton({ text, label = 'Copy', size = 'default', cla
         bg-surface text-text border border-border-strong hover:bg-surface-hover focus-ring
         ${sizeClasses} ${className}`}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        {copied ? (
-          <motion.span key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="inline-flex">
-            <Check size={size === 'sm' ? 13 : 15} className="text-success" />
-          </motion.span>
-        ) : (
-          <motion.span key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ duration: 0.15 }} className="inline-flex">
-            <Copy size={size === 'sm' ? 13 : 15} />
-          </motion.span>
-        )}
-      </AnimatePresence>
+      {/* The key remounts the icon so the pop-in plays on each swap (skipped with reduced motion). */}
+      <span key={copied ? 'check' : 'copy'} aria-hidden="true" className="inline-flex motion-safe:animate-pop">
+        {copied ? <Check size={size === 'sm' ? 13 : 15} className="text-success" /> : <Copy size={size === 'sm' ? 13 : 15} />}
+      </span>
       {!iconOnly && (copied ? 'Copied!' : label)}
     </button>
   );

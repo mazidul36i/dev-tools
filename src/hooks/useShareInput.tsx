@@ -62,20 +62,26 @@ export function useShareInput(fields: Record<string, string>, apply: (data: Reco
   useEffect(() => {
     const token = shareTokenFromHash(location.hash);
     if (!token) return;
-    const data = decodeShare(token);
+    let cancelled = false;
     navigate({ pathname: location.pathname, search: location.search, hash: '' }, { replace: true });
-    if (data) {
-      applyRef.current(data);
-      toast.success('Loaded the shared input');
-    } else {
-      toast.error('This share link is damaged or from a newer version');
-    }
+    decodeShare(token).then((data) => {
+      if (cancelled) return;
+      if (data) {
+        applyRef.current(data);
+        toast.success('Loaded the shared input');
+      } else {
+        toast.error('This share link is damaged or from a newer version');
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
     // Only on first load of the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const share = useCallback(() => {
-    const token = encodeShare(fieldsRef.current);
+  const share = useCallback(async () => {
+    const token = await encodeShare(fieldsRef.current);
     if (token.length > MAX_SHARE_LENGTH) {
       toast.error('The input is too large to share in a link. Copy it instead.');
       return;

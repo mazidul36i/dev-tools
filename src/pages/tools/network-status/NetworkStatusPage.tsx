@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Wifi, WifiOff, Trash2, Download, RotateCcw, RefreshCw } from 'lucide-react';
-import { motion } from 'framer-motion';
 import ToolLayout from '@components/layout/ToolLayout';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
@@ -255,7 +254,7 @@ export default function NetworkStatusPage() {
           />
           {testing && (
             <div className="mt-3 w-full bg-border rounded-full h-1.5 overflow-hidden" role="progressbar" aria-valuenow={testProgress} aria-valuemin={0} aria-valuemax={100} aria-label="Test progress">
-              <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${testProgress}%` }} />
+              <div className="h-full bg-primary rounded-full motion-safe:transition-[width] duration-300" style={{ width: `${testProgress}%` }} />
             </div>
           )}
         </Panel>

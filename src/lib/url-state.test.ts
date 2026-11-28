@@ -45,29 +45,30 @@ describe('option schemas', () => {
 });
 
 describe('share payloads', () => {
-  it('round-trips unicode and multiple fields', () => {
+  it('round-trips unicode and multiple fields', async () => {
     const data = { input: '{"emoji":"🚀","text":"naïve — ✓"}\n\tindent', other: '' };
-    const token = encodeShare(data);
+    const token = await encodeShare(data);
     expect(token).toMatch(/^1\.[A-Za-z0-9_-]+$/);
-    expect(decodeShare(token)).toEqual(data);
+    expect(await decodeShare(token)).toEqual(data);
   });
 
-  it('compresses repetitive input well below the cap', () => {
-    const token = encodeShare({ input: JSON.stringify(Array.from({ length: 500 }, (_, i) => ({ id: i, name: 'item' }))) });
+  it('compresses repetitive input well below the cap', async () => {
+    const token = await encodeShare({ input: JSON.stringify(Array.from({ length: 500 }, (_, i) => ({ id: i, name: 'item' }))) });
     expect(token.length).toBeLessThan(MAX_SHARE_LENGTH);
   });
 
-  it('rejects malformed tokens', () => {
-    expect(decodeShare('')).toBeNull();
-    expect(decodeShare('2.abc')).toBeNull();
-    expect(decodeShare('1.!!!')).toBeNull();
-    expect(decodeShare('1.' + encodeShare({ a: 'b' }).slice(2, 6))).toBeNull();
+  it('rejects malformed tokens', async () => {
+    expect(await decodeShare('')).toBeNull();
+    expect(await decodeShare('2.abc')).toBeNull();
+    expect(await decodeShare('1.!!!')).toBeNull();
+    expect(await decodeShare('1.' + (await encodeShare({ a: 'b' })).slice(2, 6))).toBeNull();
   });
 
-  it('drops non-string fields', () => {
+  it('drops non-string fields', async () => {
     // A hand-crafted payload with a number must not reach a text input as a number.
-    const token = encodeShare({ a: 'ok' });
-    expect(decodeShare(token)).toEqual({ a: 'ok' });
+    const { deflate } = await import('pako');
+    const body = Buffer.from(deflate(new TextEncoder().encode('{"a":"ok","n":3,"o":{"x":1}}'))).toString('base64url');
+    expect(await decodeShare(`1.${body}`)).toEqual({ a: 'ok' });
   });
 
   it('reads the token from a hash', () => {

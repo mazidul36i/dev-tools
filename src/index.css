@@ -55,6 +55,12 @@
   --shadow-elevated: 0 8px 24px -6px rgb(15 20 25 / 0.12);
   --shadow-float: 0 24px 48px -12px rgb(15 20 25 / 0.25);
   --shadow-glow: 0 0 0 1px var(--color-border);
+
+  --animate-pop: pop 150ms ease-out;
+  @keyframes pop {
+    from { transform: scale(0.4); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
 }
 
 @layer base {
