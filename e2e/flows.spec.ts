@@ -130,6 +130,26 @@ test.describe('URL state and share links', () => {
   });
 });
 
+test.describe('saved drafts', () => {
+  test('a shared Markdown link keeps the previous document and can restore it', async ({ page }) => {
+    await open(page, '/markdown-preview');
+    const editor = page.getByLabel('Markdown', { exact: true });
+    await editor.fill('# Shared from a teammate');
+    await page.getByRole('button', { name: /^Share/ }).click();
+    await expect.poll(() => clipboard(page)).toMatch(/#s=1\./);
+    const link = await clipboard(page);
+
+    // The user's own work, saved in this browser.
+    await editor.fill('# My own notes');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('markdown-preview:doc'))).toContain('My own notes');
+
+    await open(page, link);
+    await expect(editor).toHaveValue('# Shared from a teammate');
+    await page.getByRole('button', { name: 'Restore my document' }).click();
+    await expect(editor).toHaveValue('# My own notes');
+  });
+});
+
 test.describe('mobile navigation', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
 

@@ -11,6 +11,7 @@ import useLocalStorage from '@hooks/useLocalStorage';
 import useUrlOptions from '@hooks/useUrlOptions';
 import { useShareInput } from '@hooks/useShareInput';
 import { opt } from '@lib/url-state';
+import { backupDraft, readBackup } from '@lib/draft-backup';
 import { downloadFile } from '@lib/download-utils';
 import {
   buildSrcDoc,
@@ -47,6 +48,8 @@ const backgroundOptions = [
 const actionBtn =
   'inline-flex items-center gap-1 h-7 px-2 rounded-md text-xs text-text-secondary hover:text-text hover:bg-surface-hover transition-colors focus-ring';
 
+const CODE_KEY = 'html-preview:code';
+
 const schema = {
   mode: opt.oneOf(['live', 'manual'] as const, 'live'),
   layout: opt.oneOf(['split', 'stacked', 'preview'] as const, 'split'),
@@ -59,7 +62,7 @@ const schema = {
 const escapeAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 
 export default function HtmlPreviewPage() {
-  const [code, setCode] = useLocalStorage('html-preview:code', TEMPLATES[0].code);
+  const [code, setCode] = useLocalStorage(CODE_KEY, TEMPLATES[0].code);
   const [o, setO] = useUrlOptions(schema, {
     persist: {
       mode: 'html-preview:mode',
@@ -136,12 +139,20 @@ export default function HtmlPreviewPage() {
   }, [fullscreen]);
 
   // Shared code never runs on its own: it opens in "On click" mode with an empty preview.
+  // The user's own code is backed up first so the link can't silently destroy it.
   useShareInput({ code }, (d) => {
     if (d.code === undefined) return;
+    const saved = backupDraft(localStorage, CODE_KEY, code, d.code, TEMPLATES.map((t) => t.code));
     setO({ mode: 'manual' });
     setCode(d.code);
     setRenderedCode('');
-    toast.info('Shared code loaded. Review it, then press Run.');
+    toast.info('Shared code loaded. Review it, then press Run.', saved ? {
+      description: 'Your previous code was kept.',
+      duration: 15000,
+      // Restored code also waits for Run, like everything in "On click" mode.
+      action: { label: 'Restore my code', onClick: () => { setCode(readBackup(localStorage, CODE_KEY) ?? ''); setRenderedCode(''); } },
+    } : undefined);
+    return 'handled';
   }, { enabled: code.trim().length > 0 });
 
   const handleEditorKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

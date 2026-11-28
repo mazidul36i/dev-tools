@@ -8,6 +8,7 @@ import CopyButton from '@components/ui/CopyButton';
 import SegmentedControl from '@components/ui/SegmentedControl';
 import { EditorPanel, Panel, SplitPane, Toolbar, ToolbarDivider } from '@components/workspace';
 import { opt } from '@lib/url-state';
+import { backupDraft, readBackup } from '@lib/draft-backup';
 import useUrlOptions from '@hooks/useUrlOptions';
 import { useShareInput } from '@hooks/useShareInput';
 import PreviewFrame from '@pages/tools/html-preview/PreviewFrame';
@@ -48,6 +49,8 @@ Inline \`code\`, [links](https://example.com) and images work too.
 Made with ❤️
 `;
 
+const DOC_KEY = 'markdown-preview:doc';
+
 const schema = {
   view: opt.oneOf(['split', 'editor', 'preview'] as const, 'split'),
   theme: opt.oneOf(['auto', 'light', 'dark'] as const, 'auto'),
@@ -60,7 +63,7 @@ const action =
 
 export default function MarkdownPreviewPage() {
   const { isDark } = useTheme();
-  const [markdown, setMarkdown] = useLocalStorage('markdown-preview:doc', SAMPLE);
+  const [markdown, setMarkdown] = useLocalStorage(DOC_KEY, SAMPLE);
   const [o, setO] = useUrlOptions(schema);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const previewTheme = o.theme === 'auto' ? (isDark ? 'dark' : 'light') : o.theme;
@@ -73,7 +76,19 @@ export default function MarkdownPreviewPage() {
   const srcDoc = useMemo(() => buildMarkdownDocument(html, { theme: previewTheme }), [html, previewTheme]);
   const words = useMemo(() => deferred.match(/[\p{L}\p{N}]+/gu)?.length ?? 0, [deferred]);
 
-  useShareInput({ markdown }, (d) => d.markdown !== undefined && setMarkdown(d.markdown), { enabled: markdown.length > 0 });
+  useShareInput({ markdown }, (d) => {
+    if (d.markdown === undefined) return;
+    // Keep the user's own document; a shared link must not silently destroy it.
+    const saved = backupDraft(localStorage, DOC_KEY, markdown, d.markdown, [SAMPLE]);
+    setMarkdown(d.markdown);
+    if (!saved) return;
+    toast.success('Loaded the shared document', {
+      description: 'Your previous document was kept.',
+      duration: 15000,
+      action: { label: 'Restore my document', onClick: () => setMarkdown(readBackup(localStorage, DOC_KEY) ?? '') },
+    });
+    return 'handled';
+  }, { enabled: markdown.length > 0 });
 
   const copyToc = useCallback(async () => {
     const toc = extractToc(markdown);

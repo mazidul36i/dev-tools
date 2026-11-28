@@ -45,10 +45,11 @@ interface ShareInputOptions {
  * Lets the user share their input: registers a "Copy share link" action that
  * puts `fields` (compressed) into the URL hash, and on load applies a shared
  * payload once through `apply`, then removes it from the address bar.
+ * `apply` can return 'handled' when it shows its own message.
  *
  * Never pass secrets (keys, tokens, passwords) in `fields`.
  */
-export function useShareInput(fields: Record<string, string>, apply: (data: Record<string, string>) => void, { enabled = true }: ShareInputOptions = {}) {
+export function useShareInput(fields: Record<string, string>, apply: (data: Record<string, string>) => unknown, { enabled = true }: ShareInputOptions = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const fieldsRef = useRef(fields);
@@ -58,27 +59,28 @@ export function useShareInput(fields: Record<string, string>, apply: (data: Reco
     applyRef.current = apply;
   });
 
-  // Apply an incoming payload once.
+  // Apply an incoming payload: on first load, and when a share link is pasted
+  // into a tab that already shows this tool (only the hash changes then).
   useEffect(() => {
     const token = shareTokenFromHash(location.hash);
     if (!token) return;
     let cancelled = false;
-    navigate({ pathname: location.pathname, search: location.search, hash: '' }, { replace: true });
     decodeShare(token).then((data) => {
       if (cancelled) return;
       if (data) {
-        applyRef.current(data);
-        toast.success('Loaded the shared input');
+        if (applyRef.current(data) !== 'handled') toast.success('Loaded the shared input');
       } else {
         toast.error('This share link is damaged or from a newer version');
       }
+      // Clear the payload from the address bar (and history) once applied.
+      navigate({ pathname: location.pathname, search: location.search, hash: '' }, { replace: true });
     });
     return () => {
       cancelled = true;
     };
-    // Only on first load of the page.
+    // Keyed on the hash only; pathname/search are read for the clean-up navigation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.hash]);
 
   const share = useCallback(async () => {
     const token = await encodeShare(fieldsRef.current);
