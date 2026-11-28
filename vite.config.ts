@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -10,9 +11,12 @@ export default defineConfig({
       '@components': path.resolve(__dirname, './src/components'),
       '@pages': path.resolve(__dirname, './src/pages'),
       '@lib': path.resolve(__dirname, './src/lib'),
-      '@assets': path.resolve(__dirname, './src/assets'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
     }
-  }
+  },
+  test: {
+    // Unit tests only; the Playwright specs in e2e/ run with `npm run e2e`.
+    include: ['src/**/*.test.ts'],
+  },
 });
 

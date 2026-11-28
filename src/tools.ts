@@ -57,7 +57,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     slug: 'image-to-text',
-    title: 'Image to Text Convert',
+    title: 'Image to Text (OCR)',
     desc: 'Extract text from images using OCR technology. Supports multiple formats with drag & drop, paste, or upload.',
     icon: Image, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-900/30',
     category: 'Images',
@@ -76,10 +76,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: 'url-parser',
     title: 'URL Parser',
-    desc: 'Encode and decode URLs with a modern interface. Handle complex URLs with special characters safely.',
+    desc: 'Break a URL into its parts, edit decoded query parameters, and percent-encode or decode text',
     icon: Link2, color: 'text-violet-500', bg: 'bg-violet-100 dark:bg-violet-900/30',
     category: 'Encoders & Crypto',
-    keywords: ['url encode', 'url decode', 'percent encoding'],
+    keywords: ['url encode', 'url decode', 'percent encoding', 'query string', 'query params', 'parse url', 'hostname'],
     component: lazy(() => import('@pages/tools/UrlParserPage')),
   },
   {
@@ -103,10 +103,10 @@ export const tools: ToolDefinition[] = [
   {
     slug: 'uuid-generator',
     title: 'UUID Generator',
-    desc: 'Generate universally unique identifiers (v4 random & v1-like time-based) with customizable formatting options',
+    desc: 'Generate random v4 or time-ordered v7 UUIDs in bulk, with formatting options, and inspect any UUID',
     icon: Fingerprint, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-900/30',
     category: 'Generators',
-    keywords: ['guid', 'unique id', 'random'],
+    keywords: ['guid', 'unique id', 'random', 'uuidv7', 'v7', 'ulid'],
     component: lazy(() => import('@pages/tools/uuid-generator/UuidGeneratorPage')),
   },
   {

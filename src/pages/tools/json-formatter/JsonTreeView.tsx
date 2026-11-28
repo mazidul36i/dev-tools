@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect, useContext, createContext, useMemo, useRef, memo } from 'react';
 import { ChevronRight, Copy } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 // Context to broadcast expand/collapse signals + search query
@@ -109,17 +108,19 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 			>
 				{nodeKey !== null && (
 					<>
-						<HighlightText text={`"${nodeKey}"`} className="text-primary font-medium" />
+						<HighlightText text={`"${nodeKey}"`} className="text-code-key font-medium" />
 						<span className="mx-1 text-text-muted">:</span>
 					</>
 				)}
 				<ValueSpan value={value} />
 				<button
+					type="button"
 					onClick={copyValue}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
+					className="ml-2 rounded opacity-0 group-hover/node:opacity-70 focus-visible:opacity-100 hover:opacity-100! transition-opacity focus-ring"
 					title="Copy value"
+					aria-label="Copy value"
 				>
-					<Copy size={11} />
+					<Copy size={11} aria-hidden="true" />
 				</button>
 			</div>
 		);
@@ -130,49 +131,46 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 
 	return (
 		<div style={{ paddingLeft: 20 }}>
-			<div
-				className={`flex items-center py-0.5 cursor-pointer select-none group/node ${keyMatches ? 'bg-amber-100/50 dark:bg-amber-900/20 rounded' : ''}`}
-				onClick={toggle}
-			>
-				{entries.length > 0 && (
-					<motion.span
-						animate={{ rotate: collapsed ? 0 : 90 }}
-						transition={{ duration: 0.15 }}
-						className="inline-flex mr-1 text-text-muted"
-					>
-						<ChevronRight size={14} />
-					</motion.span>
-				)}
-				{nodeKey !== null && (
-					<>
-						<HighlightText
-							text={typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"`}
-							className="text-primary font-medium"
-						/>
-						<span className="mx-1 text-text-muted">:</span>
-					</>
-				)}
-				<span className="text-text-muted">{bracket[0]}</span>
-				{collapsed && entries.length > 0 && (
-					<span className="text-text-muted italic ml-1">...{bracket[1]}</span>
-				)}
-				{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
+			<div className={`flex items-center py-0.5 rounded group/node ${keyMatches ? 'bg-amber-100/50 dark:bg-amber-900/20' : ''}`}>
 				<button
-					onClick={copyValue}
-					className="ml-2 opacity-0 group-hover/node:opacity-60 hover:opacity-100! transition-opacity"
-					title="Copy value"
+					type="button"
+					onClick={toggle}
+					disabled={entries.length === 0}
+					aria-expanded={entries.length > 0 ? !collapsed : undefined}
+					className="flex items-center rounded text-left select-none cursor-pointer disabled:cursor-default focus-ring"
 				>
-					<Copy size={11} />
+					{entries.length > 0 && (
+						<span className={`inline-flex mr-1 text-text-muted motion-safe:transition-transform ${collapsed ? '' : 'rotate-90'}`}>
+							<ChevronRight size={14} aria-hidden="true" />
+						</span>
+					)}
+					{nodeKey !== null && (
+						<>
+							<HighlightText
+								text={typeof nodeKey === 'number' ? nodeKey : `"${nodeKey}"`}
+								className="text-code-key font-medium"
+							/>
+							<span className="mx-1 text-text-muted">:</span>
+						</>
+					)}
+					<span className="text-text-muted">{bracket[0]}</span>
+					{collapsed && entries.length > 0 && (
+						<span className="text-text-muted italic ml-1">...{bracket[1]}</span>
+					)}
+					{entries.length === 0 && <span className="text-text-muted">{bracket[1]}</span>}
+				</button>
+				<button
+					type="button"
+					onClick={copyValue}
+					className="ml-2 rounded opacity-0 group-hover/node:opacity-70 focus-visible:opacity-100 hover:opacity-100! transition-opacity focus-ring"
+					title="Copy value"
+					aria-label="Copy value"
+				>
+					<Copy size={11} aria-hidden="true" />
 				</button>
 			</div>
-			<AnimatePresence initial={false}>
-				{!collapsed && entries.length > 0 && (
-					<motion.div
-						initial={{ opacity: 0, height: 0 }}
-						animate={{ opacity: 1, height: 'auto' }}
-						exit={{ opacity: 0, height: 0 }}
-						transition={{ duration: 0.15 }}
-					>
+			{!collapsed && entries.length > 0 && (
+					<div>
 						{entries.map(([k, v]) => {
 							const childPath = isArray ? `${currentPath}[${k}]` : `${currentPath}.${k}`;
 							return (
@@ -182,9 +180,8 @@ const JsonTreeNode = memo(function JsonTreeNode({ nodeKey, value, depth = 0, pat
 						<div style={{ paddingLeft: 20 }}>
 							<span className="text-text-muted py-0.5">{bracket[1]}</span>
 						</div>
-					</motion.div>
+					</div>
 				)}
-			</AnimatePresence>
 		</div>
 	);
 });
@@ -194,10 +191,10 @@ interface ValueSpanProps {
 }
 
 const ValueSpan = memo(function ValueSpan({ value }: ValueSpanProps) {
-	if (typeof value === 'string') return <HighlightText text={`"${value}"`} className="text-success" />;
-	if (typeof value === 'number') return <HighlightText text={String(value)} className="text-accent" />;
-	if (typeof value === 'boolean') return <HighlightText text={String(value)} className="text-warning" />;
-	if (value === null) return <span className="text-text-muted italic">null</span>;
+	if (typeof value === 'string') return <HighlightText text={`"${value}"`} className="text-code-string" />;
+	if (typeof value === 'number') return <HighlightText text={String(value)} className="text-code-number" />;
+	if (typeof value === 'boolean') return <HighlightText text={String(value)} className="text-code-bool" />;
+	if (value === null) return <span className="text-code-null italic">null</span>;
 	return <span>{String(value)}</span>;
 });
 

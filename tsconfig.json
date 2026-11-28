@@ -28,11 +28,10 @@
       "@components/*": ["src/components/*"],
       "@pages/*": ["src/pages/*"],
       "@lib/*": ["src/lib/*"],
-      "@assets/*": ["src/assets/*"],
       "@hooks/*": ["src/hooks/*"]
     }
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "e2e", "playwright.config.ts", "vite-env.d.ts"]
 }
 
 

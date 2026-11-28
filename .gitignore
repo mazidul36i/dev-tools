@@ -5,6 +5,10 @@ node_modules
 dist
 .cache
 
+# Playwright
+playwright-report/
+test-results/
+
 # Firebase
 .firebase/
 firebase-debug.log

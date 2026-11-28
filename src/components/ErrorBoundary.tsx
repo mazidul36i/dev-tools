@@ -26,18 +26,19 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-5 text-center">
-          <h1 className="text-5xl font-bold text-text mb-4">Oops!</h1>
-          <p className="text-xl text-text-secondary mb-2">Something went wrong.</p>
-          <p className="text-sm text-text-muted mb-8 max-w-md">{this.state.error?.message}</p>
+        <div className="flex flex-col flex-1 items-center justify-center min-h-[60vh] px-5 text-center">
+          <h1 className="text-2xl font-semibold text-text mb-2">Something went wrong</h1>
+          <p className="text-sm text-text-secondary mb-1">This page hit an unexpected error. Other tools still work.</p>
+          <p className="font-mono text-xs text-text-muted mb-6 max-w-md break-words">{this.state.error?.message}</p>
           <button
+            type="button"
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/';
             }}
-            className="px-5 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-all duration-200 active:scale-[0.97]"
+            className="h-9 px-4 bg-primary text-on-primary rounded-md text-sm font-medium hover:bg-primary-hover transition-colors focus-ring"
           >
-            Back to Home
+            Back to all tools
           </button>
         </div>
       );

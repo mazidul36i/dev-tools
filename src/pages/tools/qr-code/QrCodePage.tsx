@@ -2,19 +2,20 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import jsQR from 'jsqr';
 import { toast } from 'sonner';
-import { AlertCircle, Camera, CameraOff, Download, ExternalLink } from 'lucide-react';
+import { Camera, CameraOff, Download, ExternalLink, QrCode } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import Tabs from '@components/ui/Tabs';
 import Badge from '@components/ui/Badge';
 import Checkbox from '@components/ui/Checkbox';
 import CodeBlock from '@components/ui/CodeBlock';
 import FileDropZone from '@components/ui/FileDropZone';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import { PrimaryButton, SecondaryButton } from '@components/ui/Button';
+import Button from '@components/ui/Button';
 import { Field, SelectInput, TextInput } from '@components/ui/Input';
 import { TextAreaInput } from '@components/ui/TextArea';
+import { EmptyState, ErrorNotice, Panel, Toolbar } from '@components/workspace';
+import { opt, type OptionValues } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
 import {
   describePayload, emailPayload, phonePayload, smsPayload, vcardPayload, wifiPayload, type WifiOptions,
 } from '@lib/qr-utils';
@@ -32,6 +33,24 @@ const kindOptions: { id: Kind; label: string }[] = [
   { id: 'contact', label: 'Contact' },
 ];
 
+const KINDS = ['text', 'wifi', 'email', 'phone', 'sms', 'contact'] as const;
+
+// Only appearance and the kind of code go in the URL. Wi-Fi passwords and
+// contact details stay in memory; plain text can be shared on request.
+const schema = {
+  tab: opt.oneOf(['generate', 'read'] as const, 'generate'),
+  kind: opt.oneOf(KINDS, 'text'),
+  ecc: opt.oneOf(['L', 'M', 'Q', 'H'] as const, 'M'),
+  size: opt.num(320, { min: 128, max: 1024 }),
+  margin: opt.num(2, { min: 0, max: 10 }),
+  fg: opt.str('111827', 8),
+  bg: opt.str('ffffff', 8),
+  clear: opt.bool(false),
+};
+type Opts = OptionValues<typeof schema>;
+type SetOpts = (patch: Partial<Opts>) => void;
+const hexColor = (v: string, fallback: string) => (/^[0-9a-f]{6}$/i.test(v) ? `#${v}` : fallback);
+
 const eccOptions = [
   { id: 'L', label: 'L 7%' },
   { id: 'M', label: 'M 15%' },
@@ -39,20 +58,20 @@ const eccOptions = [
   { id: 'H', label: 'H 30%' },
 ];
 
-function GeneratorPanel() {
-  const [kind, setKind] = useState<Kind>('text');
+function GeneratorPanel({ o, setO }: { o: Opts; setO: SetOpts }) {
+  const kind = o.kind as Kind;
+  const ecc = o.ecc;
+  const size = o.size;
+  const margin = o.margin;
+  const dark = hexColor(o.fg, '#111827');
+  const light = hexColor(o.bg, '#ffffff');
+  const transparent = o.clear;
   const [text, setText] = useState('https://example.com');
   const [wifi, setWifi] = useState<WifiOptions>({ ssid: '', password: '', security: 'WPA', hidden: false });
   const [email, setEmail] = useState({ to: '', subject: '', body: '' });
   const [phone, setPhone] = useState('');
   const [sms, setSms] = useState({ number: '', message: '' });
   const [contact, setContact] = useState({ firstName: '', lastName: '', organization: '', title: '', phone: '', email: '', url: '' });
-  const [ecc, setEcc] = useState<'L' | 'M' | 'Q' | 'H'>('M');
-  const [size, setSize] = useState(320);
-  const [margin, setMargin] = useState(2);
-  const [dark, setDark] = useState('#111827');
-  const [light, setLight] = useState('#ffffff');
-  const [transparent, setTransparent] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [svg, setSvg] = useState('');
@@ -67,6 +86,13 @@ function GeneratorPanel() {
       case 'contact': return contact.firstName ? vcardPayload(contact) : '';
     }
   }, [kind, text, wifi, email, phone, sms, contact]);
+
+  useShareInput({ text }, (d) => {
+    if (d.text !== undefined) {
+      setText(d.text);
+      setO({ kind: 'text' });
+    }
+  }, { enabled: kind === 'text' && text.length > 0 });
 
   const color = useMemo(() => ({ dark, light: transparent ? '#0000' : light }), [dark, light, transparent]);
 
@@ -114,9 +140,9 @@ function GeneratorPanel() {
   );
 
   return (
-    <div className="p-6 grid lg:grid-cols-[1fr_360px] gap-6">
-      <div className="space-y-5 min-w-0">
-        <SegmentedControl options={kindOptions} value={kind} onChange={(v) => setKind(v as Kind)} />
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_22rem] gap-4 items-start">
+      <Panel title="Content" bodyClassName="p-4 space-y-5 min-w-0">
+        <SegmentedControl ariaLabel="Content type" options={kindOptions} value={kind} onChange={(v) => setO({ kind: v as Kind })} />
 
         {kind === 'text' && (
           <TextAreaInput value={text} onChange={(e) => setText(e.target.value)} placeholder="Text or URL to encode" aria-label="Content" className="min-h-32!" />
@@ -132,7 +158,7 @@ function GeneratorPanel() {
                 options={[{ value: 'WPA', label: 'WPA / WPA2 / WPA3' }, { value: 'WEP', label: 'WEP' }, { value: 'nopass', label: 'None (open)' }]}
               />
             </Field>
-            {wifi.security !== 'nopass' && input('Password', wifi.password ?? '', (v) => setWifi((w) => ({ ...w, password: v })))}
+            {wifi.security !== 'nopass' && input('Password', wifi.password ?? '', (v) => setWifi((w) => ({ ...w, password: v })), { type: 'password', autoComplete: 'off' })}
             <Checkbox checked={!!wifi.hidden} onChange={(v) => setWifi((w) => ({ ...w, hidden: v }))} label="Hidden network" className="self-end pb-2" />
           </div>
         )}
@@ -162,48 +188,51 @@ function GeneratorPanel() {
           </div>
         )}
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-4 border-t border-border">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-text-secondary">Error correction:</span>
-            <SegmentedControl options={eccOptions} value={ecc} onChange={(v) => setEcc(v as typeof ecc)} variant="glass" />
+            <span className="text-sm text-text-secondary">Error correction</span>
+            <SegmentedControl ariaLabel="Error correction" options={eccOptions} value={ecc} onChange={(v) => setO({ ecc: v as typeof ecc })} />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label={`Size: ${size}px`} htmlFor="qr-size">
-              <input id="qr-size" type="range" min={128} max={1024} step={16} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-full accent-primary" />
+              <input id="qr-size" type="range" min={128} max={1024} step={16} value={size} onChange={(e) => setO({ size: Number(e.target.value) })} className="w-full accent-primary" />
             </Field>
             <Field label={`Quiet zone: ${margin} modules`} htmlFor="qr-margin">
-              <input id="qr-margin" type="range" min={0} max={10} value={margin} onChange={(e) => setMargin(Number(e.target.value))} className="w-full accent-primary" />
+              <input id="qr-margin" type="range" min={0} max={10} value={margin} onChange={(e) => setO({ margin: Number(e.target.value) })} className="w-full accent-primary" />
             </Field>
           </div>
           <div className="flex flex-wrap items-center gap-5">
             <label className="flex items-center gap-2 text-sm text-text-secondary">
-              <input type="color" value={dark} onChange={(e) => setDark(e.target.value)} className="w-9 h-9 rounded-md border border-border p-0.5 cursor-pointer" /> Foreground
+              <input type="color" value={dark} onChange={(e) => setO({ fg: e.target.value.slice(1) })} className="w-9 h-9 rounded-md border border-border-strong p-0.5 cursor-pointer" /> Foreground
             </label>
             <label className="flex items-center gap-2 text-sm text-text-secondary">
-              <input type="color" value={light} disabled={transparent} onChange={(e) => setLight(e.target.value)} className="w-9 h-9 rounded-md border border-border p-0.5 cursor-pointer disabled:opacity-40" /> Background
+              <input type="color" value={light} disabled={transparent} onChange={(e) => setO({ bg: e.target.value.slice(1) })} className="w-9 h-9 rounded-md border border-border-strong p-0.5 cursor-pointer disabled:opacity-40" /> Background
             </label>
-            <Checkbox checked={transparent} onChange={setTransparent} label="Transparent background" />
+            <Checkbox checked={transparent} onChange={(v) => setO({ clear: v })} label="Transparent background" />
           </div>
         </div>
 
         {kind !== 'text' && payload && <CodeBlock title="Encoded content" code={payload} preClassName="max-h-40 text-xs!" />}
-      </div>
+      </Panel>
 
-      <div className="space-y-4">
-        <div className="rounded-xl border border-border bg-surface-alt p-4 flex items-center justify-center aspect-square">
+      <Panel
+        title="QR code"
+        bodyClassName="p-4 space-y-3"
+        footer={<span>{payload.length} characters · test with a phone before printing</span>}
+      >
+        <div className="rounded-md border border-border bg-surface-alt p-4 flex items-center justify-center aspect-square">
           {error ? (
-            <p className="text-sm text-error flex gap-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}</p>
+            <ErrorNotice title="Can’t make this QR code">{error}</ErrorNotice>
           ) : !payload ? (
-            <p className="text-sm text-text-muted text-center">Fill in the form to generate a QR code.</p>
+            <EmptyState icon={QrCode} title="Fill in the form to generate a QR code" />
           ) : null}
-          <canvas ref={canvasRef} className={`max-w-full h-auto ${error || !payload ? 'hidden' : ''}`} style={{ imageRendering: 'pixelated' }} />
+          <canvas ref={canvasRef} role="img" aria-label="Generated QR code" className={`max-w-full h-auto ${error || !payload ? 'hidden' : ''}`} style={{ imageRendering: 'pixelated' }} />
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <PrimaryButton onClick={downloadPng} disabled={!payload || !!error}><Download size={15} /> PNG</PrimaryButton>
-          <SecondaryButton onClick={downloadSvg} disabled={!svg}><Download size={15} /> SVG</SecondaryButton>
+          <Button onClick={downloadPng} disabled={!payload || !!error}><Download size={15} aria-hidden="true" /> PNG</Button>
+          <Button variant="secondary" onClick={downloadSvg} disabled={!svg}><Download size={15} aria-hidden="true" /> SVG</Button>
         </div>
-        <p className="text-xs text-text-muted">{payload.length} characters. Test the code with your phone before printing it.</p>
-      </div>
+      </Panel>
     </div>
   );
 }
@@ -299,32 +328,28 @@ function ReaderPanel() {
   const isUrl = result && /^https?:\/\//i.test(result.text);
 
   return (
-    <div className="p-6 grid lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
+    <div className="grid lg:grid-cols-2 gap-4 items-start">
+      <Panel title="Image or camera" bodyClassName="p-4 space-y-4">
         <FileDropZone accept="image/*" onFiles={(f) => decodeFile(f[0])} title="Drop a QR code image, click to browse, or paste" hint="Screenshots and photos work. Decoding happens on your device." />
         <div className="flex items-center gap-3">
           {scanning ? (
-            <SecondaryButton onClick={stopCamera}><CameraOff size={15} /> Stop camera</SecondaryButton>
+            <Button variant="secondary" onClick={stopCamera}><CameraOff size={15} aria-hidden="true" /> Stop camera</Button>
           ) : (
-            <SecondaryButton onClick={startCamera}><Camera size={15} /> Scan with camera</SecondaryButton>
+            <Button variant="secondary" onClick={startCamera}><Camera size={15} aria-hidden="true" /> Scan with camera</Button>
           )}
         </div>
-        <video ref={videoRef} muted playsInline className={`w-full rounded-xl border border-border bg-black ${scanning ? '' : 'hidden'}`} />
-      </div>
-      <div className="space-y-4">
-        {error && (
-          <div className="flex items-start gap-2 p-3 rounded-lg border border-error/30 bg-error/5 text-error text-sm">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
-          </div>
-        )}
+        <video ref={videoRef} muted playsInline aria-label="Camera preview" className={`w-full rounded-md border border-border bg-black ${scanning ? '' : 'hidden'}`} />
+      </Panel>
+      <Panel title="Decoded" bodyClassName="p-4 space-y-4">
+        {error && <ErrorNotice>{error}</ErrorNotice>}
         {result ? (
           <>
             <div className="flex items-center gap-3">
               {result.preview && <img src={result.preview} alt="" className="w-16 h-16 object-contain rounded-md border border-border bg-white" />}
               <Badge tone="success">{describePayload(result.text)}</Badge>
               {isUrl && (
-                <a href={result.text} target="_blank" rel="noopener noreferrer nofollow" className="ml-auto inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                  Open link <ExternalLink size={13} />
+                <a href={result.text} target="_blank" rel="noopener noreferrer nofollow" className="ml-auto inline-flex items-center gap-1 rounded text-sm text-primary hover:underline focus-ring">
+                  Open link <ExternalLink size={13} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span>
                 </a>
               )}
             </div>
@@ -332,41 +357,32 @@ function ReaderPanel() {
             {isUrl && <p className="text-xs text-text-muted">Check the address before opening links from QR codes you don’t trust.</p>}
           </>
         ) : !error && (
-          <p className="text-sm text-text-muted">The decoded content will appear here.</p>
+          <EmptyState icon={QrCode} title="The decoded content appears here" />
         )}
-      </div>
+      </Panel>
     </div>
   );
 }
 
 export default function QrCodePage() {
-  const [tab, setTab] = useState(() => (new URLSearchParams(window.location.search).get('tab') === 'read' ? 'read' : 'generate'));
+  const [o, setO] = useUrlOptions(schema);
   return (
     <ToolLayout
-      title="QR Code Generator & Reader"
       seoTitle="QR Code Generator & Scanner – Wi-Fi, URL, vCard (PNG & SVG)"
-      tagline="Create QR codes for links, Wi-Fi, contacts and more — or decode one from an image or your camera"
+      tagline="Create QR codes for links, Wi-Fi, contacts and more, or decode one from an image or your camera"
       metaDescription="Free QR code generator for URLs, text, Wi-Fi, email, phone, SMS and vCard contacts with colours, error correction, PNG and SVG download. Also reads QR codes from images or your camera, privately in your browser."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Error correction.</strong> Higher levels survive damage or a logo over the middle (use H for that) at the cost of a denser code. M is a good default.</li>
+          <li><strong className="text-text">Contrast &amp; quiet zone.</strong> Keep a dark foreground on a light background and leave at least 2 modules of margin so phones can find the code.</li>
+          <li><strong className="text-text">Wi-Fi codes</strong> let phone cameras join a network directly, handy for guests. Passwords and contact details are never put in links.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <Tabs tabs={[{ id: 'generate', label: 'Generate' }, { id: 'read', label: 'Read / scan' }]} activeTab={tab} onTabChange={setTab} />
-        {tab === 'generate' ? <GeneratorPanel /> : <ReaderPanel />}
-      </Card>
-
-      <InfoCard title="QR Code Tips">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'Error correction', d: 'Higher levels survive damage, dirt or a logo placed over the middle (use H for that), at the cost of a denser code. M is a good default.' },
-            { t: 'Contrast & quiet zone', d: 'Keep a dark foreground on a light background and leave a margin of at least 2 modules around the code so phones can find it.' },
-            { t: 'Wi-Fi codes', d: 'Phone cameras on iOS and Android join the network directly from a Wi-Fi code — handy for guest networks. Nothing you type here leaves your browser.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
-        </div>
-      </InfoCard>
+      <Toolbar>
+        <SegmentedControl ariaLabel="Mode" options={[{ id: 'generate', label: 'Generate' }, { id: 'read', label: 'Read / scan' }]} value={o.tab} onChange={(v) => setO({ tab: v as Opts['tab'] })} />
+      </Toolbar>
+      {o.tab === 'generate' ? <GeneratorPanel o={o} setO={setO} /> : <ReaderPanel />}
     </ToolLayout>
   );
 }

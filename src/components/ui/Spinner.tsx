@@ -6,10 +6,10 @@ interface SpinnerProps {
 
 export default function Spinner({ className = '' }: SpinnerProps) {
   return (
-    <div className={`flex items-center justify-center min-h-screen ${className}`}>
-      <div className="flex flex-col items-center gap-3">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        <span className="text-sm text-text-muted">Loading...</span>
+    <div className={`flex flex-1 items-center justify-center min-h-[40vh] ${className}`}>
+      <div role="status" className="flex flex-col items-center gap-3">
+        <Loader2 aria-hidden="true" className="w-8 h-8 text-primary animate-spin" />
+        <span className="text-sm text-text-muted">Loading…</span>
       </div>
     </div>
   );

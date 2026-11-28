@@ -1,153 +1,125 @@
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
-import { ArrowUpDown, Clipboard, Download, Eraser } from 'lucide-react';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import CopyButton from '@components/ui/CopyButton';
-import { PrimaryButton, SecondaryButton, SmallButton } from '@components/ui/Button';
-import { TextAreaInput, TextAreaOutput } from '@components/ui/TextArea';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
+import Button from '@components/ui/Button';
+import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarDivider, ToolbarSpacer } from '@components/workspace';
 import * as enc from '@lib/encoder-utils';
-import { downloadFile } from '@lib/download-utils';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
 
-const modes = [
-  { id: 'base64', label: 'Base64' },
-  { id: 'url', label: 'URL' },
-  { id: 'html', label: 'HTML' },
-  { id: 'hex', label: 'Hex' },
-];
+const MODES = ['base64', 'url', 'html', 'hex'] as const;
+type Mode = (typeof MODES)[number];
+
+const schema = {
+  mode: opt.oneOf(MODES, 'base64'),
+  dir: opt.oneOf(['encode', 'decode'] as const, 'encode'),
+  urlSafe: opt.bool(false),
+  noPad: opt.bool(false),
+  component: opt.bool(true),
+  upper: opt.bool(false),
+  prefix: opt.bool(false),
+};
+
+const modeLabels: Record<Mode, string> = { base64: 'Base64', url: 'URL', html: 'HTML entities', hex: 'Hex' };
+const extensions: Record<Mode, string> = { base64: 'b64', url: 'txt', html: 'html', hex: 'hex' };
 
 export default function EncoderDecoderPage() {
-  const [mode, setMode] = useState('base64');
   const [input, setInput] = useState('');
-  const [output, setOutput] = useState('');
-  const [urlSafe, setUrlSafe] = useState(false);
-  const [noPadding, setNoPadding] = useState(false);
-  const [urlComponent, setUrlComponent] = useState(false);
-  const [hexUpper, setHexUpper] = useState(false);
-  const [hexPrefix, setHexPrefix] = useState(false);
+  const [o, setO] = useUrlOptions(schema);
+  const deferred = useDeferredValue(input);
 
-  const handleEncode = useCallback(() => {
-    if (!input) { toast.error('Please enter text to encode'); return; }
+  const { output, error } = useMemo(() => {
+    if (!deferred) return { output: '', error: null };
     try {
-      let result = '';
-      switch (mode) {
-        case 'base64': result = enc.encodeBase64(input, urlSafe, noPadding); break;
-        case 'url': result = enc.encodeURL(input, urlComponent); break;
-        case 'html': result = enc.encodeHTML(input); break;
-        case 'hex': result = enc.encodeHex(input, hexUpper, hexPrefix); break;
+      const encode = o.dir === 'encode';
+      let out: string;
+      switch (o.mode) {
+        case 'base64': out = encode ? enc.encodeBase64(deferred, o.urlSafe, o.noPad) : enc.decodeBase64(deferred, o.urlSafe, o.noPad); break;
+        case 'url': out = encode ? enc.encodeURL(deferred, o.component) : enc.decodeURL(deferred, o.component); break;
+        case 'html': out = encode ? enc.encodeHTML(deferred) : enc.decodeHTML(deferred); break;
+        case 'hex': out = encode ? enc.encodeHex(deferred, o.upper, o.prefix) : enc.decodeHex(deferred); break;
       }
-      setOutput(result);
-      toast.success('Encoded!');
-    } catch (e) { toast.error('Encode error: ' + (e instanceof Error ? e.message : String(e))); }
-  }, [input, mode, urlSafe, noPadding, urlComponent, hexUpper, hexPrefix]);
+      return { output: out, error: null };
+    } catch (e) {
+      return { output: '', error: e instanceof Error ? e.message : String(e) };
+    }
+  }, [deferred, o]);
 
-  const handleDecode = useCallback(() => {
-    if (!input) { toast.error('Please enter text to decode'); return; }
-    try {
-      let result = '';
-      switch (mode) {
-        case 'base64': result = enc.decodeBase64(input, urlSafe, noPadding); break;
-        case 'url': result = enc.decodeURL(input, urlComponent); break;
-        case 'html': result = enc.decodeHTML(input); break;
-        case 'hex': result = enc.decodeHex(input); break;
-      }
-      setOutput(result);
-      toast.success('Decoded!');
-    } catch (e) { toast.error('Decode error: ' + (e instanceof Error ? e.message : String(e))); }
-  }, [input, mode, urlSafe, noPadding, urlComponent]);
+  useShareInput({ input }, (d) => d.input !== undefined && setInput(d.input), { enabled: input.length > 0 });
 
-  const handleSwap = useCallback(() => { setInput(output); setOutput(input); }, [input, output]);
-  const handlePaste = useCallback(async () => {
-    try { setInput(await navigator.clipboard.readText()); } catch { toast.error('Unable to paste'); }
-  }, []);
-  const handleDownload = useCallback(() => {
-    if (!output) { toast.error('No content to download'); return; }
-    const ext = ({ base64: '.b64', html: '.html', hex: '.hex', url: '.txt' } as Record<string, string>)[mode] || '.txt';
-    downloadFile(output, `encoded${ext}`);
-  }, [output, mode]);
+  const swap = () => {
+    setInput(output);
+    setO({ dir: o.dir === 'encode' ? 'decode' : 'encode' });
+  };
+
+  const encoding = o.dir === 'encode';
 
   return (
     <ToolLayout
-      title="Encoder/Decoder Tool"
-      tagline="Convert data between various encoding formats"
-      metaDescription="Encode and decode data in various formats including Base64, URL, HTML, and Hex."
+      seoTitle="Base64, URL, HTML & Hex Encoder / Decoder"
+      tagline="Encode or decode Base64, URL percent-encoding, HTML entities and hex. Results update as you type."
+      metaDescription="Encode and decode Base64 (standard and URL-safe), URL percent-encoding, HTML entities and hex in your browser. UTF-8 aware."
+      variant="workspace"
+      about={
+        <ul className="grid gap-3 md:grid-cols-2">
+          <li><strong className="text-text">Base64</strong> turns bytes into text for e-mail, data URIs and JSON. URL-safe Base64 swaps <code>+/</code> for <code>-_</code>; decoding accepts either.</li>
+          <li><strong className="text-text">URL</strong> percent-encodes characters that aren’t allowed in URLs. “Component” also encodes <code>/ ? &amp; =</code>, which you want for a single query value.</li>
+          <li><strong className="text-text">HTML entities</strong> escape <code>&lt; &gt; &amp; " '</code> so text renders literally. Decoding never runs markup from the input.</li>
+          <li><strong className="text-text">Hex</strong> shows each UTF-8 byte as two digits. Decoding ignores spaces, colons and <code>0x</code> prefixes.</li>
+        </ul>
+      }
     >
-      <Card>
-        <div className="p-6 space-y-6">
-          {/* Mode Selector */}
-          <SegmentedControl options={modes} value={mode} onChange={setMode} />
-
-          {/* Input */}
-          <div>
-            <label htmlFor="encoder-input" className="block text-sm font-medium text-text-secondary mb-2">Input:</label>
-            <TextAreaInput id="encoder-input" value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter text to encode or decode..." />
-            <div className="flex gap-2 mt-2">
-              <SmallButton onClick={() => setInput('')}><Eraser size={12} /> Clear</SmallButton>
-              <SmallButton onClick={handlePaste}><Clipboard size={12} /> Paste</SmallButton>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <PrimaryButton onClick={handleEncode}>Encode</PrimaryButton>
-            <PrimaryButton onClick={handleDecode}>Decode</PrimaryButton>
-            <SecondaryButton onClick={handleSwap} title="Swap input and output"><ArrowUpDown size={15} /> Swap</SecondaryButton>
-          </div>
-
-          {/* Output */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Output:</label>
-            <TextAreaOutput value={output} placeholder="Result will appear here..." />
-            <div className="flex gap-2 mt-2">
-              <CopyButton text={output} label="Copy" size="sm" />
-              <SmallButton onClick={handleDownload}><Download size={12} /> Download</SmallButton>
-            </div>
-          </div>
-
-          {/* Options */}
-          <div className="bg-surface-alt rounded-lg border border-border p-4">
-            {mode === 'base64' && (
-              <div className="flex flex-wrap gap-5">
-                <Checkbox checked={urlSafe} onChange={setUrlSafe} label="URL-safe Base64" />
-                <Checkbox checked={noPadding} onChange={setNoPadding} label="No padding (=)" />
-              </div>
-            )}
-            {mode === 'url' && (
-              <Checkbox checked={urlComponent} onChange={setUrlComponent} label="Encode/decode URI Component" />
-            )}
-            {mode === 'hex' && (
-              <div className="flex flex-wrap gap-5">
-                <Checkbox checked={hexUpper} onChange={setHexUpper} label="Uppercase hex" />
-                <Checkbox checked={hexPrefix} onChange={setHexPrefix} label="Add 0x prefix" />
-              </div>
-            )}
-            {mode === 'html' && <p className="text-sm text-text-muted">No additional options for HTML encoding.</p>}
-          </div>
-        </div>
-      </Card>
-
-      <InfoCard title="About Encoding/Decoding">
-          <div className="grid md:grid-cols-2 gap-5">
-            {[
-              { t: 'Base64 Encoding', d: 'Binary-to-text encoding scheme. Used for emails, embedding images in CSS, and data transmission.', ex: ['Hello World', 'SGVsbG8gV29ybGQ='] },
-              { t: 'URL Encoding', d: 'Converts unsafe ASCII characters for use in URLs using percent-encoding.', ex: ['Hello World!', 'Hello%20World%21'] },
-              { t: 'HTML Encoding', d: 'Converts characters to HTML entities to prevent XSS and ensure correct rendering.', ex: ['<script>', '&lt;script&gt;'] },
-              { t: 'Hex Encoding', d: 'Represents data as hexadecimal digits. Used in color codes and binary protocols.', ex: ['Hello', '48656c6c6f'] },
-            ].map(({ t, d, ex }) => (
-              <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-                <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-                <p className="text-sm text-text-muted mb-3">{d}</p>
-                <div className="bg-surface rounded p-3 text-xs font-mono space-y-1 border border-border">
-                  <div><span className="text-text-muted">Original:</span> <span className="text-text-secondary">{ex[0]}</span></div>
-                  <div><span className="text-text-muted">Encoded:</span> <span className="text-primary">{ex[1]}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
-      </InfoCard>
+      <Toolbar>
+        <SegmentedControl ariaLabel="Encoding" options={MODES.map((m) => ({ id: m, label: modeLabels[m] }))} value={o.mode} onChange={(v) => setO({ mode: v as Mode })} />
+        <SegmentedControl ariaLabel="Direction" options={[{ id: 'encode', label: 'Encode' }, { id: 'decode', label: 'Decode' }]} value={o.dir} onChange={(v) => setO({ dir: v as 'encode' | 'decode' })} />
+        {(o.mode === 'base64' || o.mode === 'url' || (o.mode === 'hex' && encoding)) && <ToolbarDivider />}
+        {o.mode === 'base64' && encoding && (
+          <>
+            <Checkbox checked={o.urlSafe} onChange={(v) => setO({ urlSafe: v })} label="URL-safe (-_)" className="text-xs" />
+            <Checkbox checked={o.noPad} onChange={(v) => setO({ noPad: v })} label="No padding" className="text-xs" />
+          </>
+        )}
+        {o.mode === 'base64' && !encoding && <span className="text-xs text-text-muted">Accepts standard and URL-safe input, with or without padding</span>}
+        {o.mode === 'url' && <Checkbox checked={o.component} onChange={(v) => setO({ component: v })} label="Component (encode / ? & = too)" className="text-xs" />}
+        {o.mode === 'hex' && encoding && (
+          <>
+            <Checkbox checked={o.upper} onChange={(v) => setO({ upper: v })} label="Uppercase" className="text-xs" />
+            <Checkbox checked={o.prefix} onChange={(v) => setO({ prefix: v })} label="0x prefix" className="text-xs" />
+          </>
+        )}
+        <ToolbarSpacer />
+        <Button variant="secondary" size="sm" onClick={swap} disabled={!output} title="Use the output as input and flip the direction">
+          <ArrowLeftRight size={14} aria-hidden="true" /> Swap
+        </Button>
+      </Toolbar>
+      <SplitPane
+        storageKey="encoder-decoder"
+        left={
+          <EditorPanel
+            label={encoding ? 'Text' : `${modeLabels[o.mode]} input`}
+            value={input}
+            onChange={setInput}
+            placeholder={encoding ? 'Type or paste text to encode' : `Paste ${modeLabels[o.mode]} to decode`}
+            fileAccept="text/*,.txt,.b64,.hex,.html"
+            className="flex-1"
+          />
+        }
+        right={
+          <OutputPanel
+            label={encoding ? `${modeLabels[o.mode]}` : 'Decoded text'}
+            value={output}
+            error={error}
+            errorTitle={`Could not ${o.dir} this input`}
+            placeholder="Result appears here"
+            downloadName={`${encoding ? 'encoded' : 'decoded'}.${encoding ? extensions[o.mode] : 'txt'}`}
+            onUseAsInput={() => setInput(output)}
+            className="flex-1"
+          />
+        }
+      />
     </ToolLayout>
   );
 }

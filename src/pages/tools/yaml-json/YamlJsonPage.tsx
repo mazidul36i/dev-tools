@@ -1,23 +1,14 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { ArrowLeftRight } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import ToolIO from '@components/ui/ToolIO';
 import SegmentedControl from '@components/ui/SegmentedControl';
 import Checkbox from '@components/ui/Checkbox';
-import { SecondaryButton } from '@components/ui/Button';
+import Button from '@components/ui/Button';
+import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarDivider, ToolbarSelect, ToolbarSpacer } from '@components/workspace';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
 import { jsonToYaml, yamlToJson } from '@lib/yaml-utils';
-
-type Mode = 'yaml2json' | 'json2yaml';
-
-const modeOptions = [
-  { id: 'yaml2json', label: 'YAML → JSON' },
-  { id: 'json2yaml', label: 'JSON → YAML' },
-];
-const indentOptions = [
-  { id: '2', label: '2 spaces' },
-  { id: '4', label: '4 spaces' },
-];
 
 const SAMPLE_YAML = `# docker-compose style example
 version: "3.9"
@@ -46,88 +37,93 @@ const SAMPLE_JSON = JSON.stringify({
   keywords: ['json', 'yaml'],
 }, null, 2);
 
+const schema = {
+  mode: opt.oneOf(['yaml2json', 'json2yaml'] as const, 'yaml2json'),
+  indent: opt.oneOf(['2', '4'] as const, '2'),
+  sort: opt.bool(false),
+  split: opt.bool(false),
+};
+
 export default function YamlJsonPage() {
-  const [mode, setMode] = useState<Mode>('yaml2json');
+  const [o, setO] = useUrlOptions(schema);
   const [input, setInput] = useState(SAMPLE_YAML);
-  const [indent, setIndent] = useState('2');
-  const [sortKeys, setSortKeys] = useState(false);
-  const [splitArray, setSplitArray] = useState(false);
+  const deferred = useDeferredValue(input);
+  const isYamlIn = o.mode === 'yaml2json';
 
   const { output, error } = useMemo(() => {
+    if (!deferred.trim()) return { output: '', error: null };
     try {
-      const out = mode === 'yaml2json'
-        ? yamlToJson(input, Number(indent))
-        : jsonToYaml(input, { indent: Number(indent), sortKeys, splitArray });
+      const out = isYamlIn
+        ? yamlToJson(deferred, Number(o.indent))
+        : jsonToYaml(deferred, { indent: Number(o.indent), sortKeys: o.sort, splitArray: o.split });
       return { output: out, error: null };
     } catch (e) {
       return { output: '', error: e instanceof Error ? e.message : String(e) };
     }
-  }, [mode, input, indent, sortKeys, splitArray]);
+  }, [deferred, isYamlIn, o.indent, o.sort, o.split]);
 
-  const handleSwap = useCallback(() => {
+  useShareInput({ input }, (d) => d.input !== undefined && setInput(d.input), { enabled: input.length > 0 });
+
+  const swap = () => {
     if (error) return;
-    setMode((m) => (m === 'yaml2json' ? 'json2yaml' : 'yaml2json'));
+    setO({ mode: isYamlIn ? 'json2yaml' : 'yaml2json' });
     setInput(output);
-  }, [error, output]);
-
-  const isYamlIn = mode === 'yaml2json';
+  };
 
   return (
     <ToolLayout
-      title="YAML ↔ JSON Converter"
       seoTitle="YAML to JSON & JSON to YAML Converter Online"
       tagline="Convert YAML to JSON and back, with anchors, merge keys and multi-document support"
       metaDescription="Convert YAML to JSON and JSON to YAML online. Supports anchors, aliases, merge keys (<<), multi-document streams, key sorting and precise error locations. Runs in your browser."
+      variant="workspace"
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Anchors &amp; merge keys.</strong> Anchors (&amp;name), aliases (*name) and merge keys (&lt;&lt;: *name) are expanded, so the JSON shows final values, handy for checking Compose and CI files.</li>
+          <li><strong className="text-text">Multiple documents.</strong> A YAML stream with several documents separated by <code>---</code> becomes a JSON array. A top-level JSON array can be split back into documents.</li>
+          <li><strong className="text-text">What changes.</strong> Comments and anchors can’t be represented in JSON and are dropped. YAML 1.2 rules apply: yes/no/on/off stay strings.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <div className="p-6">
-          <ToolIO
-            layout="side"
-            input={input}
-            onInputChange={setInput}
-            output={output}
+      <Toolbar>
+        <SegmentedControl ariaLabel="Direction" options={[{ id: 'yaml2json', label: 'YAML → JSON' }, { id: 'json2yaml', label: 'JSON → YAML' }]} value={o.mode} onChange={(v) => setO({ mode: v as typeof o.mode })} />
+        <ToolbarDivider />
+        <ToolbarSelect label="Indent" value={o.indent} onChange={(v) => setO({ indent: v as '2' | '4' })} options={[{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }]} />
+        {!isYamlIn && (
+          <>
+            <Checkbox checked={o.sort} onChange={(v) => setO({ sort: v })} label="Sort keys" className="text-xs" />
+            <Checkbox checked={o.split} onChange={(v) => setO({ split: v })} label="Top-level array → documents" className="text-xs" />
+          </>
+        )}
+        <ToolbarSpacer />
+        <Button variant="secondary" size="sm" onClick={swap} disabled={!output}>
+          <ArrowLeftRight size={14} aria-hidden="true" /> Swap
+        </Button>
+      </Toolbar>
+      <SplitPane
+        storageKey="yaml-json"
+        left={
+          <EditorPanel
+            label={isYamlIn ? 'YAML' : 'JSON'}
+            value={input}
+            onChange={setInput}
+            placeholder={isYamlIn ? 'Paste YAML here…' : 'Paste JSON here…'}
+            sample={isYamlIn ? SAMPLE_YAML : SAMPLE_JSON}
+            fileAccept={isYamlIn ? '.yaml,.yml,text/yaml,text/plain' : '.json,application/json,text/plain'}
+            className="flex-1"
+          />
+        }
+        right={
+          <OutputPanel
+            label={isYamlIn ? 'JSON' : 'YAML'}
+            value={output}
             error={error}
-            onSwap={handleSwap}
-            inputLabel={isYamlIn ? 'YAML:' : 'JSON:'}
-            outputLabel={isYamlIn ? 'JSON:' : 'YAML:'}
-            inputPlaceholder={isYamlIn ? 'Paste YAML here...' : 'Paste JSON here...'}
+            errorTitle={isYamlIn ? 'Invalid YAML' : 'Invalid JSON'}
             downloadName={isYamlIn ? 'converted.json' : 'converted.yaml'}
             downloadMime={isYamlIn ? 'application/json' : 'application/yaml'}
-            inputClassName="min-h-96!"
-            outputClassName="min-h-96!"
-            options={
-              <div className="flex flex-wrap items-center gap-4">
-                <SegmentedControl options={modeOptions} value={mode} onChange={(v) => setMode(v as Mode)} />
-                <SegmentedControl options={indentOptions} value={indent} onChange={setIndent} variant="glass" />
-                {!isYamlIn && (
-                  <>
-                    <Checkbox checked={sortKeys} onChange={setSortKeys} label="Sort keys" />
-                    <Checkbox checked={splitArray} onChange={setSplitArray} label="Top-level array → documents" />
-                  </>
-                )}
-              </div>
-            }
-            actions={
-              <SecondaryButton onClick={() => setInput(isYamlIn ? SAMPLE_YAML : SAMPLE_JSON)}>Load sample</SecondaryButton>
-            }
+            className="flex-1"
           />
-        </div>
-      </Card>
-
-      <InfoCard title="About YAML and JSON">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'Anchors & merge keys', d: 'YAML anchors (&name), aliases (*name) and merge keys (<<: *name) are expanded, so the JSON shows the final values — handy for checking Compose and CI files.' },
-            { t: 'Multiple documents', d: 'A YAML stream with several documents separated by --- becomes a JSON array. Going the other way, a top-level JSON array can be split back into documents.' },
-            { t: 'Things that change', d: 'Comments and anchors cannot be represented in JSON and are dropped. YAML 1.2 rules are used: yes/no/on/off stay strings, not booleans.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
-        </div>
-      </InfoCard>
+        }
+      />
     </ToolLayout>
   );
 }

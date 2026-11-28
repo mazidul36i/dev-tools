@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import Tabs from '@components/ui/Tabs';
 import Checkbox from '@components/ui/Checkbox';
 import CodeBlock from '@components/ui/CodeBlock';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import { SmallButton } from '@components/ui/Button';
+import Button from '@components/ui/Button';
 import { SelectInput } from '@components/ui/Input';
+import { Panel, Toolbar } from '@components/workspace';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
 import {
   gradientCss, shadowCss, toTailwindArbitrary,
   type Gradient, type GradientStop, type GradientType, type ShadowLayer,
@@ -38,7 +38,7 @@ function ColorInput({ value, onChange, label }: { value: string; onChange: (v: s
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-10 h-10 shrink-0 rounded-lg border border-border bg-transparent cursor-pointer p-0.5"
+      className="w-9 h-9 shrink-0 rounded-md border border-border-strong bg-transparent cursor-pointer p-0.5"
     />
   );
 }
@@ -69,46 +69,49 @@ const typeOptions = [
 const positionOptions = ['center', 'top', 'bottom', 'left', 'right', 'top left', 'top right', 'bottom left', 'bottom right']
   .map((p) => ({ value: p, label: p }));
 
-function GradientEditor() {
-  const [g, setG] = useState<Gradient>({
-    type: 'linear', angle: 120, shape: 'circle', position: 'center', repeating: false,
-    stops: [
-      { id: 1, color: '#6366f1', alpha: 1, position: 0 },
-      { id: 2, color: '#8b5cf6', alpha: 1, position: 50 },
-      { id: 3, color: '#ec4899', alpha: 1, position: 100 },
-    ],
-  });
+const INITIAL_GRADIENT: Gradient = {
+  type: 'linear', angle: 120, shape: 'circle', position: 'center', repeating: false,
+  stops: [
+    { id: 1, color: '#6366f1', alpha: 1, position: 0 },
+    { id: 2, color: '#8b5cf6', alpha: 1, position: 50 },
+    { id: 3, color: '#ec4899', alpha: 1, position: 100 },
+  ],
+};
+
+function GradientEditor({ g, setG }: { g: Gradient; setG: Dispatch<SetStateAction<Gradient>> }) {
   const css = gradientCss(g);
   const updateStop = (id: number, patch: Partial<GradientStop>) =>
     setG((s) => ({ ...s, stops: s.stops.map((st) => (st.id === id ? { ...st, ...patch } : st)) }));
 
   return (
-    <div className="p-6 grid lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <div className="h-64 rounded-xl border border-border" style={{ ...CHECKER }}>
-          <div className="w-full h-full rounded-xl" style={{ background: css }} />
+    <div className="grid lg:grid-cols-2 gap-4 items-start">
+      <Panel title="Preview" bodyClassName="p-4 space-y-4">
+        <div className="h-64 rounded-md border border-border" style={{ ...CHECKER }}>
+          <div className="w-full h-full rounded-md" style={{ background: css }} />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Presets">
           {GRADIENT_PRESETS.map((p) => (
             <button
               key={p.name}
+              type="button"
               title={p.name}
+              aria-label={`${p.name} preset`}
               onClick={() => setG((s) => ({
                 ...s, type: 'linear', angle: p.angle,
                 stops: p.stops.map(([color, position]) => ({ id: uid(), color, alpha: 1, position })),
               }))}
-              className="w-10 h-10 rounded-lg border border-border hover:scale-105 transition-transform"
+              className="w-9 h-9 rounded-md border border-border-strong hover:scale-105 transition-transform focus-ring"
               style={{ background: `linear-gradient(${p.angle}deg, ${p.stops.map(([c, pos]) => `${c} ${pos}%`).join(', ')})` }}
             />
           ))}
         </div>
         <CodeBlock title="CSS" code={`background: ${css};`} />
         <CodeBlock title="Tailwind" code={toTailwindArbitrary('bg', css)} preClassName="break-all!" />
-      </div>
+      </Panel>
 
-      <div className="space-y-5">
+      <Panel title="Gradient" bodyClassName="p-4 space-y-5">
         <div className="flex flex-wrap items-center gap-4">
-          <SegmentedControl options={typeOptions} value={g.type} onChange={(v) => setG((s) => ({ ...s, type: v as GradientType }))} />
+          <SegmentedControl ariaLabel="Gradient type" options={typeOptions} value={g.type} onChange={(v) => setG((s) => ({ ...s, type: v as GradientType }))} />
           <Checkbox checked={g.repeating} onChange={(v) => setG((s) => ({ ...s, repeating: v }))} label="Repeating" />
         </div>
         {g.type !== 'radial' && (
@@ -130,32 +133,35 @@ function GradientEditor() {
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-secondary">Colour stops</h3>
-            <SmallButton
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-text-muted">Colour stops</h2>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setG((s) => ({ ...s, stops: [...s.stops, { id: uid(), color: '#22d3ee', alpha: 1, position: 75 }] }))}
             >
-              <Plus size={12} /> Add stop
-            </SmallButton>
+              <Plus size={13} aria-hidden="true" /> Add stop
+            </Button>
           </div>
           {[...g.stops].sort((a, b) => a.position - b.position).map((st) => (
-            <div key={st.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-surface-alt">
+            <div key={st.id} className="flex items-center gap-3 p-3 rounded-md border border-border bg-surface-alt">
               <ColorInput label="Stop colour" value={st.color} onChange={(c) => updateStop(st.id, { color: c })} />
               <div className="flex-1 grid grid-cols-2 gap-3">
                 <Slider label="Position" value={st.position} min={0} max={100} unit="%" onChange={(v) => updateStop(st.id, { position: v })} />
                 <Slider label="Opacity" value={st.alpha} min={0} max={1} step={0.05} onChange={(v) => updateStop(st.id, { alpha: v })} />
               </div>
               <button
+                type="button"
                 onClick={() => setG((s) => ({ ...s, stops: s.stops.filter((x) => x.id !== st.id) }))}
                 disabled={g.stops.length <= 2}
-                aria-label="Remove stop"
-                className="text-text-muted hover:text-error disabled:opacity-30"
+                aria-label={`Remove stop at ${st.position}%`}
+                className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-muted hover:text-error hover:bg-error/10 disabled:opacity-30 focus-ring"
               >
-                <Trash2 size={15} />
+                <Trash2 size={15} aria-hidden="true" />
               </button>
             </div>
           ))}
         </div>
-      </div>
+      </Panel>
     </div>
   );
 }
@@ -171,18 +177,33 @@ const SHADOW_PRESETS: { name: string; layers: Omit<ShadowLayer, 'id'>[] }[] = [
   { name: 'Neumorphic', layers: [{ x: 8, y: 8, blur: 16, spread: 0, color: '#a3b1c6', alpha: 0.6, inset: false }, { x: -8, y: -8, blur: 16, spread: 0, color: '#ffffff', alpha: 0.8, inset: false }] },
 ];
 
-function ShadowEditor() {
-  const [layers, setLayers] = useState<ShadowLayer[]>(() => SHADOW_PRESETS[1].layers.map((l) => ({ ...l, id: uid() })));
-  const [boxColor, setBoxColor] = useState('#ffffff');
-  const [bgColor, setBgColor] = useState('#e8ecf3');
-  const [radius, setRadius] = useState(16);
+interface ShadowState {
+  layers: ShadowLayer[];
+  boxColor: string;
+  bgColor: string;
+  radius: number;
+}
+
+const INITIAL_SHADOW: ShadowState = {
+  layers: SHADOW_PRESETS[1].layers.map((l) => ({ ...l, id: uid() })),
+  boxColor: '#ffffff',
+  bgColor: '#e8ecf3',
+  radius: 16,
+};
+
+function ShadowEditor({ state, setState }: { state: ShadowState; setState: Dispatch<SetStateAction<ShadowState>> }) {
+  const { layers, boxColor, bgColor, radius } = state;
+  const setLayers = (fn: (ls: ShadowLayer[]) => ShadowLayer[]) => setState((s) => ({ ...s, layers: fn(s.layers) }));
+  const setBoxColor = (v: string) => setState((s) => ({ ...s, boxColor: v }));
+  const setBgColor = (v: string) => setState((s) => ({ ...s, bgColor: v }));
+  const setRadius = (v: number) => setState((s) => ({ ...s, radius: v }));
   const css = shadowCss(layers);
   const update = (id: number, patch: Partial<ShadowLayer>) => setLayers((ls) => ls.map((l) => (l.id === id ? { ...l, ...patch } : l)));
 
   return (
-    <div className="p-6 grid lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
-        <div className="h-64 rounded-xl border border-border flex items-center justify-center" style={{ background: bgColor }}>
+    <div className="grid lg:grid-cols-2 gap-4 items-start">
+      <Panel title="Preview" bodyClassName="p-4 space-y-4">
+        <div className="h-64 rounded-md border border-border flex items-center justify-center" style={{ background: bgColor }}>
           <div className="w-40 h-32" style={{ background: boxColor, borderRadius: radius, boxShadow: css }} />
         </div>
         <div className="flex flex-wrap items-center gap-4">
@@ -190,32 +211,34 @@ function ShadowEditor() {
           <span className="flex items-center gap-2 text-sm text-text-secondary"><ColorInput label="Background colour" value={bgColor} onChange={setBgColor} /> Background</span>
           <div className="flex-1 min-w-40"><Slider label="Corner radius" value={radius} min={0} max={64} unit="px" onChange={setRadius} /></div>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Presets">
           {SHADOW_PRESETS.map((p) => (
-            <SmallButton key={p.name} onClick={() => setLayers(p.layers.map((l) => ({ ...l, id: uid() })))} className="border border-border">
+            <Button key={p.name} variant="secondary" size="sm" onClick={() => setLayers(() => p.layers.map((l) => ({ ...l, id: uid() })))}>
               {p.name}
-            </SmallButton>
+            </Button>
           ))}
         </div>
         <CodeBlock title="CSS" code={`box-shadow: ${css};`} />
         <CodeBlock title="Tailwind" code={toTailwindArbitrary('shadow', css)} preClassName="break-all!" />
-      </div>
+      </Panel>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-text-secondary">Shadow layers</h3>
-          <SmallButton onClick={() => setLayers((ls) => [...ls, { id: uid(), x: 0, y: 10, blur: 15, spread: 0, color: '#000000', alpha: 0.2, inset: false }])}>
-            <Plus size={12} /> Add layer
-          </SmallButton>
-        </div>
+      <Panel
+        title="Shadow layers"
+        bodyClassName="p-4 space-y-3"
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => setLayers((ls) => [...ls, { id: uid(), x: 0, y: 10, blur: 15, spread: 0, color: '#000000', alpha: 0.2, inset: false }])}>
+            <Plus size={13} aria-hidden="true" /> Add layer
+          </Button>
+        }
+      >
         {layers.map((l, i) => (
-          <div key={l.id} className="p-4 rounded-lg border border-border bg-surface-alt space-y-3">
+          <div key={l.id} className="p-3 rounded-md border border-border bg-surface-alt space-y-3">
             <div className="flex items-center gap-3">
               <ColorInput label="Shadow colour" value={l.color} onChange={(c) => update(l.id, { color: c })} />
               <span className="text-sm font-medium text-text">Layer {i + 1}</span>
               <Checkbox checked={l.inset} onChange={(v) => update(l.id, { inset: v })} label="Inset" className="ml-auto" />
-              <button onClick={() => setLayers((ls) => ls.filter((x) => x.id !== l.id))} aria-label="Remove layer" className="text-text-muted hover:text-error">
-                <Trash2 size={15} />
+              <button type="button" onClick={() => setLayers((ls) => ls.filter((x) => x.id !== l.id))} aria-label={`Remove layer ${i + 1}`} className="inline-flex items-center justify-center w-8 h-8 rounded-md text-text-muted hover:text-error hover:bg-error/10 focus-ring">
+                <Trash2 size={15} aria-hidden="true" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
@@ -227,41 +250,37 @@ function ShadowEditor() {
             </div>
           </div>
         ))}
-        {layers.length === 0 && <p className="text-sm text-text-muted">No shadow — add a layer.</p>}
-      </div>
+        {layers.length === 0 && <p className="text-sm text-text-muted">No shadow. Add a layer.</p>}
+      </Panel>
     </div>
   );
 }
 
+const schema = { tab: opt.oneOf(['gradient', 'shadow'] as const, 'gradient') };
+
 export default function CssGeneratorPage() {
-  const [tab, setTab] = useState(() => (new URLSearchParams(window.location.search).get('tab') === 'shadow' ? 'shadow' : 'gradient'));
+  const [o, setO] = useUrlOptions(schema);
+  // Both editors keep their state while you switch tabs.
+  const [gradient, setGradient] = useState<Gradient>(INITIAL_GRADIENT);
+  const [shadow, setShadow] = useState<ShadowState>(INITIAL_SHADOW);
 
   return (
     <ToolLayout
-      title="CSS Gradient & Shadow Generator"
       seoTitle="CSS Gradient Generator & Box Shadow Generator (with Tailwind)"
-      tagline="Design CSS gradients and layered box shadows visually and copy CSS or Tailwind classes"
+      tagline="Design CSS gradients and layered box shadows visually, then copy CSS or Tailwind classes"
       metaDescription="Create linear, radial and conic CSS gradients and multi-layer box shadows with live preview. Copy the CSS or a Tailwind arbitrary-value class."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Smoother gradients.</strong> Two very different hues can look muddy in the middle; add a mid stop or use colours of similar lightness.</li>
+          <li><strong className="text-text">Layered shadows.</strong> A tight, darker shadow combined with a large, faint one looks more natural than one heavy shadow.</li>
+          <li><strong className="text-text">Tailwind.</strong> Output uses arbitrary values (bg-[…], shadow-[…]) with spaces as underscores. For values you reuse, add them to your theme.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <Tabs tabs={[{ id: 'gradient', label: 'Gradient' }, { id: 'shadow', label: 'Box shadow' }]} activeTab={tab} onTabChange={setTab} />
-        {tab === 'gradient' ? <GradientEditor /> : <ShadowEditor />}
-      </Card>
-
-      <InfoCard title="Tips">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'Smoother gradients', d: 'Two-stop gradients between very different hues can look muddy in the middle. Add a mid stop with an in-between colour, or use colours of similar lightness.' },
-            { t: 'Layered shadows', d: 'Real shadows are soft and directional. Combining a tight, darker shadow with a large, faint one looks more natural than a single heavy shadow.' },
-            { t: 'Tailwind', d: 'The Tailwind output uses arbitrary values (bg-[…], shadow-[…]); spaces become underscores. For values you reuse, add them to your theme instead.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
-        </div>
-      </InfoCard>
+      <Toolbar>
+        <SegmentedControl ariaLabel="Generator" options={[{ id: 'gradient', label: 'Gradient' }, { id: 'shadow', label: 'Box shadow' }]} value={o.tab} onChange={(v) => setO({ tab: v as 'gradient' | 'shadow' })} />
+      </Toolbar>
+      {o.tab === 'gradient' ? <GradientEditor g={gradient} setG={setGradient} /> : <ShadowEditor state={shadow} setState={setShadow} />}
     </ToolLayout>
   );
 }

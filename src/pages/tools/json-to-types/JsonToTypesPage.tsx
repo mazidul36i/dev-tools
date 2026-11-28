@@ -1,18 +1,12 @@
-import { useCallback, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { AlertCircle, Clipboard, Download, Eraser, Sparkles } from 'lucide-react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import CodeBlock from '@components/ui/CodeBlock';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import { SmallButton } from '@components/ui/Button';
-import { TextAreaInput } from '@components/ui/TextArea';
-import { Field, TextInput } from '@components/ui/Input';
-import { downloadFile } from '@lib/download-utils';
+import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarDivider } from '@components/workspace';
 import { TARGET_LANGUAGES, generateTypes, type TargetLanguage } from '@lib/json-types-utils';
-import useLocalStorage from '@hooks/useLocalStorage';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
+import { useShareInput } from '@hooks/useShareInput';
 
 const SAMPLE = JSON.stringify({
   id: 1042,
@@ -29,113 +23,76 @@ const SAMPLE = JSON.stringify({
   createdAt: '2024-05-01T10:00:00Z',
 }, null, 2);
 
+const LANG_IDS = TARGET_LANGUAGES.map((l) => l.id) as [TargetLanguage, ...TargetLanguage[]];
+
+const schema = {
+  lang: opt.oneOf(LANG_IDS, 'typescript'),
+  root: opt.str('Root', 60),
+  optional: opt.bool(false),
+  alias: opt.bool(false),
+};
+
 export default function JsonToTypesPage() {
   const [input, setInput] = useState(SAMPLE);
-  const [lang, setLang] = useLocalStorage<TargetLanguage>('json-to-types:lang', 'typescript');
-  const [rootName, setRootName] = useState('Root');
-  const [tsTypeAlias, setTsTypeAlias] = useState(false);
-  const [allOptional, setAllOptional] = useState(false);
+  const [o, setO] = useUrlOptions(schema, { persist: { lang: 'json-to-types:lang' } });
+  const deferred = useDeferredValue(input);
 
   const { code, error } = useMemo(() => {
-    if (!input.trim()) return { code: '', error: null };
+    if (!deferred.trim()) return { code: '', error: null };
     try {
-      return { code: generateTypes(input, lang, { rootName, tsTypeAlias, allOptional }), error: null };
+      return { code: generateTypes(deferred, o.lang, { rootName: o.root, tsTypeAlias: o.alias, allOptional: o.optional }), error: null };
     } catch (e) {
       return { code: '', error: e instanceof Error ? e.message : String(e) };
     }
-  }, [input, lang, rootName, tsTypeAlias, allOptional]);
+  }, [deferred, o]);
 
-  const handlePaste = useCallback(async () => {
-    try {
-      setInput(await navigator.clipboard.readText());
-    } catch {
-      toast.error('Unable to paste');
-    }
-  }, []);
+  useShareInput({ input }, (d) => d.input !== undefined && setInput(d.input), { enabled: input.length > 0 });
 
-  const ext = TARGET_LANGUAGES.find((l) => l.id === lang)!.ext;
+  const language = TARGET_LANGUAGES.find((l) => l.id === o.lang)!;
 
   return (
     <ToolLayout
-      title="JSON to Types"
       seoTitle="JSON to TypeScript, Go, Java, Kotlin, Python & Rust Types"
-      tagline="Generate TypeScript interfaces, Go structs, Java/Kotlin classes, Python dataclasses or Rust structs from sample JSON"
+      tagline="Generate TypeScript, Go, Java, Kotlin, Python or Rust types from sample JSON"
       metaDescription="Paste JSON and instantly generate TypeScript interfaces, Go structs with json tags, Java classes, Kotlin data classes, Python dataclasses or Rust serde structs. Optional and nullable fields are detected."
+      variant="workspace"
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">Arrays are merged.</strong> Every element is combined into one type. A key missing from some elements becomes optional; a field that is sometimes null becomes nullable.</li>
+          <li><strong className="text-text">Numbers.</strong> Whole numbers map to integer types (int64, Long, i64). If any value in a field has a fraction, it becomes floating-point.</li>
+          <li><strong className="text-text">Naming.</strong> Nested types are named after their key (singular for arrays: orders → Order). Keys follow each language’s convention, with tags or rename annotations keeping the JSON name.</li>
+        </ul>
+      }
     >
-      <Card hover={false}>
-        <div className="p-6 space-y-5">
-          <div className="flex flex-wrap items-end gap-4">
-            <SegmentedControl
-              options={TARGET_LANGUAGES.map((l) => ({ id: l.id, label: l.label }))}
-              value={lang}
-              onChange={(v) => setLang(v as TargetLanguage)}
-            />
-            <Field label="Root type name" htmlFor="root-name" className="w-40">
-              <TextInput id="root-name" value={rootName} onChange={(e) => setRootName(e.target.value)} />
-            </Field>
-            <div className="flex flex-wrap gap-4 pb-2">
-              <Checkbox checked={allOptional} onChange={setAllOptional} label="All fields optional" />
-              {lang === 'typescript' && (
-                <Checkbox checked={tsTypeAlias} onChange={setTsTypeAlias} label="Use type aliases" />
-              )}
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-5">
-            <div className="min-w-0">
-              <label htmlFor="json-input" className="block text-sm font-medium text-text-secondary mb-2">JSON sample:</label>
-              <TextAreaInput
-                id="json-input"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Paste a JSON object or array..."
-                spellCheck={false}
-                className="min-h-[28rem]!"
-              />
-              <div className="flex gap-2 mt-2">
-                <SmallButton onClick={() => setInput('')}><Eraser size={12} /> Clear</SmallButton>
-                <SmallButton onClick={handlePaste}><Clipboard size={12} /> Paste</SmallButton>
-                <SmallButton onClick={() => setInput(SAMPLE)}><Sparkles size={12} /> Sample</SmallButton>
-              </div>
-            </div>
-            <div className="min-w-0">
-              <span className="block text-sm font-medium text-text-secondary mb-2">Generated code:</span>
-              {error ? (
-                <div className="flex items-start gap-2 p-3.5 rounded-lg border border-error/30 bg-error/5 text-error text-sm">
-                  <AlertCircle size={16} className="shrink-0 mt-0.5" /> {error}
-                </div>
-              ) : (
-                <CodeBlock
-                  title={TARGET_LANGUAGES.find((l) => l.id === lang)!.label}
-                  code={code}
-                  placeholder="Types will appear here"
-                  preClassName="min-h-[26rem] max-h-[40rem]"
-                  actions={
-                    <SmallButton onClick={() => (code ? downloadFile(code, `${rootName || 'types'}.${ext}`) : toast.error('Nothing to download'))}>
-                      <Download size={12} /> .{ext}
-                    </SmallButton>
-                  }
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      <InfoCard title="How types are inferred">
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { t: 'Arrays are merged', d: 'Every element of an array is combined into one type. A key missing from some elements becomes optional; a field that is sometimes null becomes nullable.' },
-            { t: 'Numbers', d: 'Whole numbers map to integer types (int64, Long, i64). If any value in the same field has a fraction, the field becomes a floating-point type.' },
-            { t: 'Naming', d: 'Nested types are named after their key (singular for arrays: orders → Order). Keys are converted to each language’s convention, with json tags or rename annotations keeping the original name.' },
-          ].map(({ t, d }) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted">{d}</p>
-            </div>
-          ))}
-        </div>
-      </InfoCard>
+      <Toolbar>
+        <SegmentedControl ariaLabel="Language" options={TARGET_LANGUAGES.map((l) => ({ id: l.id, label: l.label }))} value={o.lang} onChange={(v) => setO({ lang: v as TargetLanguage })} />
+        <ToolbarDivider />
+        <label htmlFor="root-name" className="text-xs text-text-muted">Root type</label>
+        <input
+          id="root-name"
+          value={o.root}
+          onChange={(e) => setO({ root: e.target.value })}
+          spellCheck={false}
+          className="h-7 w-32 px-2 rounded-md bg-surface-alt border border-border-strong font-mono text-xs text-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25"
+        />
+        <Checkbox checked={o.optional} onChange={(v) => setO({ optional: v })} label="All fields optional" className="text-xs" />
+        {o.lang === 'typescript' && <Checkbox checked={o.alias} onChange={(v) => setO({ alias: v })} label="Type aliases" className="text-xs" />}
+      </Toolbar>
+      <SplitPane
+        storageKey="json-to-types"
+        left={<EditorPanel label="JSON sample" value={input} onChange={setInput} placeholder="Paste a JSON object or array…" sample={SAMPLE} fileAccept=".json,application/json,text/plain" className="flex-1" />}
+        right={
+          <OutputPanel
+            label={language.label}
+            value={code}
+            error={error}
+            errorTitle="Invalid JSON"
+            placeholder="Types appear here"
+            downloadName={`${o.root || 'types'}.${language.ext}`}
+            className="flex-1"
+          />
+        }
+      />
     </ToolLayout>
   );
 }

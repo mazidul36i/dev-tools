@@ -1,233 +1,116 @@
-import {useState, useCallback} from 'react';
-import {toast} from 'sonner';
-import {Copy, RefreshCw, Trash2, Download} from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import ToolLayout from '@components/layout/ToolLayout';
-import Card from '@components/ui/Card';
-import InfoCard from '@components/ui/InfoCard';
-import CopyButton from '@components/ui/CopyButton';
-import {PrimaryButton, SecondaryButton} from '@components/ui/Button';
+import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import {downloadFile} from '@lib/download-utils';
+import { ErrorNotice, OutputPanel, Panel, ResultRows, RunButton, useRunShortcut } from '@components/workspace';
+import { formatUuid, inspectUuid, NIL_UUID, uuidV4, uuidV7 } from '@lib/uuid-utils';
+import { opt } from '@lib/url-state';
+import useUrlOptions from '@hooks/useUrlOptions';
 
-const versionOptions = [
-  {id: 'v4', label: 'v4 (Random)'},
-  {id: 'v1-like', label: 'v1-like (Time)'},
-];
+const schema = {
+  v: opt.oneOf(['v4', 'v7', 'nil'] as const, 'v4'),
+  n: opt.num(5, { min: 1, max: 1000 }),
+  upper: opt.bool(false),
+  dashes: opt.bool(true),
+  braces: opt.bool(false),
+};
 
-const countOptions = [
-  {id: '1', label: '1'},
-  {id: '5', label: '5'},
-  {id: '10', label: '10'},
-  {id: '25', label: '25'},
-];
+const versionHelp: Record<string, string> = {
+  v4: 'Random. The default choice for IDs.',
+  v7: 'Time-ordered: starts with a millisecond timestamp, so new IDs sort last. Good for database keys.',
+  nil: 'All zeros. A placeholder meaning “no UUID”.',
+};
 
-function generateUUIDv4(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 0x0f) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
-function generateUUIDv1Like(): string {
-  const now = Date.now();
-  const hex = now.toString(16).padStart(12, '0');
-  const timeLow = hex.slice(-8);
-  const timeMid = hex.slice(-12, -8);
-  const timeHi = '1' + hex.slice(0, 3);
-  const clockSeq = ((crypto.getRandomValues(new Uint8Array(1))[0] & 0x3f) | 0x80).toString(16).padStart(2, '0')
-    + (crypto.getRandomValues(new Uint8Array(1))[0] & 0xff).toString(16).padStart(2, '0');
-  const node = Array.from(crypto.getRandomValues(new Uint8Array(6)))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-  return `${timeLow}-${timeMid}-${timeHi}-${clockSeq}-${node}`;
-}
-
-function generateUUID(version: string): string {
-  return version === 'v4' ? generateUUIDv4() : generateUUIDv1Like();
-}
+const fieldClass =
+  'h-8 px-2.5 rounded-md bg-surface-alt border border-border-strong text-sm text-text focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/25';
 
 export default function UuidGeneratorPage() {
-  const [version, setVersion] = useState('v4');
-  const [count, setCount] = useState('1');
-  const [uppercase, setUppercase] = useState(false);
-  const [noDashes, setNoDashes] = useState(false);
-  const [uuids, setUuids] = useState<string[]>([]);
+  const [o, setO] = useUrlOptions(schema);
+  const [raw, setRaw] = useState<string[]>([]);
+  const [check, setCheck] = useState('');
 
-  const formatUuid = useCallback(
-    (uuid: string) => {
-      let result = uuid;
-      if (noDashes) result = result.replace(/-/g, '');
-      if (uppercase) result = result.toUpperCase();
-      return result;
-    },
-    [uppercase, noDashes],
+  const generate = useCallback(() => {
+    const make = o.v === 'v7' ? () => uuidV7() : o.v === 'nil' ? () => NIL_UUID : uuidV4;
+    setRaw(Array.from({ length: o.v === 'nil' ? 1 : o.n }, make));
+  }, [o.v, o.n]);
+
+  // Generate immediately, and again whenever version or count changes.
+  useEffect(generate, [generate]);
+  useRunShortcut(generate);
+
+  const output = useMemo(
+    () => raw.map((u) => formatUuid(u, { uppercase: o.upper, dashes: o.dashes, braces: o.braces })).join('\n'),
+    [raw, o.upper, o.dashes, o.braces],
   );
 
-  const handleGenerate = useCallback(() => {
-    const num = parseInt(count, 10);
-    const generated = Array.from({length: num}, () => formatUuid(generateUUID(version)));
-    setUuids(generated);
-    toast.success(`Generated ${num} UUID${num > 1 ? 's' : ''}!`);
-  }, [version, count, formatUuid]);
-
-  const handleClearAll = useCallback(() => {
-    setUuids([]);
-  }, []);
-
-  useCallback(async () => {
-    if (!uuids.length) {
-      toast.error('Nothing to copy');
-      return;
-    }
+  const inspected = useMemo(() => {
+    if (!check.trim()) return null;
     try {
-      await navigator.clipboard.writeText(uuids.join('\n'));
-      toast.success('All UUIDs copied!');
-    } catch {
-      toast.error('Failed to copy');
+      return { info: inspectUuid(check) };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
     }
-  }, [uuids]);
-
-  const handleDownload = useCallback(() => {
-    if (!uuids.length) {
-      toast.error('No UUIDs to download');
-      return;
-    }
-    downloadFile(uuids.join('\n'), 'uuids.txt');
-  }, [uuids]);
-
-  const output = uuids.join('\n');
+  }, [check]);
 
   return (
     <ToolLayout
-      title="UUID Generator"
-      tagline="Generate universally unique identifiers (UUIDs) instantly"
-      metaDescription="Generate random UUIDs (v4) and time-based UUIDs (v1-like). Copy, download, and customize output format."
+      seoTitle="UUID Generator – v4 & v7 (RFC 9562)"
+      tagline="Generate random (v4) or time-ordered (v7) UUIDs in bulk, and inspect existing ones"
+      metaDescription="Generate RFC 9562 UUIDs: random v4 and time-ordered v7, up to 1000 at once, with uppercase, no-dash and brace formats. Inspect any UUID's version, variant and v7 timestamp."
+      about={
+        <ul className="grid gap-3 md:grid-cols-3">
+          <li><strong className="text-text">v4</strong> is 122 random bits from the browser’s cryptographic generator. Collisions are not a practical concern.</li>
+          <li><strong className="text-text">v7</strong> puts a millisecond Unix timestamp first, so IDs created later sort later. That keeps database indexes compact.</li>
+          <li><strong className="text-text">Formats.</strong> Dashes are standard but optional in many systems; braces are common in Windows and .NET (GUIDs).</li>
+        </ul>
+      }
     >
-      <Card>
-        <div className="p-6 space-y-6">
-          {/* Version Selector */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Version:</label>
-            <SegmentedControl options={versionOptions} value={version} onChange={setVersion}/>
-          </div>
-
-          {/* Count Selector */}
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-2">Count:</label>
-            <SegmentedControl options={countOptions} value={count} onChange={setCount}/>
-          </div>
-
-          {/* Format Options */}
-          <div className="bg-surface-alt rounded-lg border border-border p-4 flex flex-wrap gap-5">
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={uppercase}
-                onChange={(e) => setUppercase(e.target.checked)}
-                className="accent-primary w-4 h-4"
-              />
-              <span className="text-sm text-text-secondary">Uppercase</span>
-            </label>
-            <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={noDashes}
-                onChange={(e) => setNoDashes(e.target.checked)}
-                className="accent-primary w-4 h-4"
-              />
-              <span className="text-sm text-text-secondary">No dashes</span>
-            </label>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
-            <PrimaryButton onClick={handleGenerate}>
-              <RefreshCw size={15}/> Generate
-            </PrimaryButton>
-            <SecondaryButton onClick={handleClearAll}>
-              <Trash2 size={15}/> Clear
-            </SecondaryButton>
-          </div>
-
-          {/* Output */}
-          {uuids.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">
-                Generated UUID{uuids.length > 1 ? 's' : ''} ({uuids.length}):
-              </label>
-              <div
-                className="bg-surface rounded-lg border border-border p-4 font-mono text-sm space-y-2 max-h-80 overflow-y-auto">
-                {uuids.map((uuid, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between gap-3 group hover:bg-surface-hover rounded-lg px-3 py-1.5 -mx-1 transition-colors"
-                  >
-                    <span className="text-text-secondary break-all">{uuid}</span>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await navigator.clipboard.writeText(uuid);
-                          toast.success('Copied!');
-                        } catch {
-                          toast.error('Failed to copy');
-                        }
-                      }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-primary shrink-0"
-                      title="Copy"
-                    >
-                      <Copy size={14}/>
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2 mt-2">
-                <CopyButton text={output} label="Copy All" size="sm"/>
-                <SecondaryButton onClick={handleDownload} className="text-xs! px-3! py-1.5!">
-                  <Download size={12}/> Download
-                </SecondaryButton>
-              </div>
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] items-start">
+        <div className="space-y-4">
+          <Panel title="Options" bodyClassName="p-4 space-y-4">
+            <div className="space-y-1.5">
+              <SegmentedControl ariaLabel="Version" options={[{ id: 'v4', label: 'v4 random' }, { id: 'v7', label: 'v7 time' }, { id: 'nil', label: 'Nil' }]} value={o.v} onChange={(v) => setO({ v: v as typeof o.v })} />
+              <p className="text-xs text-text-muted">{versionHelp[o.v]}</p>
             </div>
-          )}
-        </div>
-      </Card>
-
-      <InfoCard title="About UUIDs">
-        <div className="grid md:grid-cols-2 gap-5">
-          {[
-            {
-              t: 'UUID v4 (Random)',
-              d: 'Generated using cryptographically secure random numbers. The most commonly used version — ideal for unique IDs in databases, APIs, and distributed systems.',
-              ex: 'e.g. 3f8a1c2d-7e4b-4a91-b6f0-8c2d5e9a1b3f',
-            },
-            {
-              t: 'UUID v1-like (Time-based)',
-              d: 'Incorporates the current timestamp and random node bytes. Useful when ordering by creation time matters, though not a strict RFC 4122 v1 implementation.',
-              ex: 'e.g. 6f1a3c00-a1b2-1c3d-9e8f-0a1b2c3d4e5f',
-            },
-            {
-              t: 'Format Options',
-              d: 'Customize output with uppercase letters or remove dashes for compact representations. Dashes are standard but optional in many systems.',
-              ex: 'e.g. 3F8A1C2D7E4B4A91B6F08C2D5E9A1B3F',
-            },
-            {
-              t: 'Common Use Cases',
-              d: 'Primary keys in databases, distributed system identifiers, session tokens, file naming, correlation IDs in microservices, and more.',
-              ex: '128 bits → 2¹²² unique v4 possibilities',
-            },
-          ].map(({t, d, ex}) => (
-            <div key={t} className="bg-surface-alt rounded-lg p-5 border border-border">
-              <h3 className="font-medium text-text-secondary mb-2">{t}</h3>
-              <p className="text-sm text-text-muted mb-3">{d}</p>
-              <div className="bg-surface rounded p-3 text-xs font-mono border border-border">
-                <span className="text-primary">{ex}</span>
+            {o.v !== 'nil' && (
+              <div className="flex items-center gap-2">
+                <label htmlFor="uuid-count" className="text-sm text-text-secondary">How many</label>
+                <input id="uuid-count" type="number" min={1} max={1000} value={o.n} onChange={(e) => setO({ n: Math.max(1, Math.min(1000, Number(e.target.value) || 1)) })} className={`${fieldClass} w-24`} />
               </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Checkbox checked={o.upper} onChange={(v) => setO({ upper: v })} label="Uppercase" />
+              <Checkbox checked={!o.dashes} onChange={(v) => setO({ dashes: !v })} label="No dashes" />
+              <Checkbox checked={o.braces} onChange={(v) => setO({ braces: v })} label="Wrap in braces { }" />
             </div>
-          ))}
+            <RunButton onClick={generate}><RefreshCw size={13} aria-hidden="true" /> Generate</RunButton>
+          </Panel>
+
+          <Panel title={<label htmlFor="uuid-check">Inspect a UUID</label>} bodyClassName="p-4 space-y-3">
+            <input id="uuid-check" value={check} onChange={(e) => setCheck(e.target.value)} placeholder="Paste any UUID" spellCheck={false} className={`${fieldClass} w-full font-mono text-[13px]`} />
+            {inspected?.error && <ErrorNotice>{inspected.error}</ErrorNotice>}
+            {inspected?.info && (
+              <ResultRows
+                labelWidth="sm:w-20"
+                rows={[
+                  { label: 'Version', value: String(inspected.info.version), copy: false },
+                  { label: 'Variant', value: inspected.info.variant, mono: false, copy: false },
+                  ...(inspected.info.timestamp ? [{ label: 'Created', value: inspected.info.timestamp.toISOString() }] : []),
+                ]}
+              />
+            )}
+          </Panel>
         </div>
-      </InfoCard>
+
+        <OutputPanel
+          label={`${raw.length} UUID${raw.length === 1 ? '' : 's'}`}
+          value={output}
+          downloadName="uuids.txt"
+          className="min-h-80"
+          textareaClassName="min-h-80"
+        />
+      </div>
     </ToolLayout>
   );
 }
-
-

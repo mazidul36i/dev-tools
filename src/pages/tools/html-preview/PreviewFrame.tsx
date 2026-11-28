@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 
 export type PreviewBackground = 'white' | 'dark' | 'checker';
 
-const backgroundStyle: Record<PreviewBackground, React.CSSProperties> = {
+const backgroundStyle: Record<PreviewBackground, CSSProperties> = {
   white: { background: '#ffffff' },
   dark: { background: '#111827' },
   checker: {
@@ -23,6 +23,8 @@ interface PreviewFrameProps {
   background: PreviewBackground;
   reloadKey: number;
   className?: string;
+  /** Accessible name of the frame. */
+  title?: string;
 }
 
 export default function PreviewFrame({
@@ -33,6 +35,7 @@ export default function PreviewFrame({
   background,
   reloadKey,
   className = '',
+  title = 'HTML preview',
 }: PreviewFrameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
@@ -59,13 +62,13 @@ export default function PreviewFrame({
   return (
     <div
       ref={containerRef}
-      className={`relative flex-1 min-h-0 overflow-hidden rounded-xl border border-white/50 dark:border-gray-700/50 bg-gray-100/40 dark:bg-gray-900/40 ${className}`}
+      className={`relative flex-1 min-h-0 overflow-hidden bg-surface-alt ${className}`}
     >
       {size.w > 0 && (
         <iframe
           key={`${reloadKey}-${allowScripts}`}
           ref={iframeRef}
-          title="HTML preview"
+          title={title}
           srcDoc={srcDoc}
           sandbox={sandbox}
           className="absolute top-0 border-0 origin-top-left"
@@ -79,7 +82,7 @@ export default function PreviewFrame({
         />
       )}
       {width && (
-        <span className="absolute bottom-1.5 right-2 text-[10px] font-mono px-1.5 py-0.5 rounded bg-black/50 text-white pointer-events-none">
+        <span className="absolute bottom-1.5 right-2 text-[11px] font-mono px-1.5 py-0.5 rounded bg-black/70 text-white pointer-events-none">
           {width}px{scale < 1 ? ` · ${Math.round(scale * 100)}%` : ''}
         </span>
       )}

@@ -3,22 +3,31 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
-import { ThemeProvider } from '@hooks/useTheme';
+import { ThemeProvider, useTheme } from '@hooks/useTheme';
 import App from './App';
 import ErrorBoundary from '@components/ErrorBoundary';
-import ScrollToTop from '@components/ScrollToTop';
+import { ToolPrefsProvider } from '@hooks/useToolPrefs';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
 import './index.css';
+
+/** Toasts follow the app theme rather than the OS setting. */
+function ThemedToaster() {
+  const { isDark } = useTheme();
+  return <Toaster position="bottom-right" theme={isDark ? 'dark' : 'light'} richColors closeButton />;
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <HelmetProvider>
       <BrowserRouter>
         <ThemeProvider>
-          <ErrorBoundary>
-            <ScrollToTop />
-            <App />
-          </ErrorBoundary>
-          <Toaster position="bottom-right" richColors closeButton />
+          <ToolPrefsProvider>
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          </ToolPrefsProvider>
+          <ThemedToaster />
         </ThemeProvider>
       </BrowserRouter>
     </HelmetProvider>
