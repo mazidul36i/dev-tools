@@ -87,6 +87,19 @@ npm run test:watch
 
 Unit tests (Vitest) live next to the pure logic in `src/lib/*.test.ts`.
 
+```bash
+npm run e2e       # Playwright: builds, serves dist and runs Chromium
+```
+
+The end-to-end suite in `e2e/` runs on every pull request. It checks:
+
+- **Accessibility:** axe-core (WCAG 2.2 AA plus best practice) on every route, in light and dark.
+- **Console:** no console errors on any route.
+- **Flows:** the command palette, keyboard shortcuts, favourites and recents, URL options, share links, and that secrets never reach the URL.
+- **Phone layout:** no horizontal overflow at phone width.
+
+Routes come from `src/tools.ts`, so a new tool is covered automatically. Run `npx playwright install chromium` once before the first local run.
+
 ## Building
 
 ```bash
