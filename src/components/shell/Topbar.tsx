@@ -16,7 +16,7 @@ export default function Topbar() {
   const tool = slug ? bySlug.get(slug) : undefined;
 
   return (
-    <header className="flex items-center gap-2 h-12 px-3 sm:px-4 border-b border-border bg-bg shrink-0">
+    <header className="flex items-center gap-2 h-topbar px-3 sm:px-4 border-b border-border bg-bg shrink-0">
       <button type="button" onClick={openNav} aria-label="Open navigation" className={`${iconButton} lg:hidden`}>
         <Menu size={18} aria-hidden="true" />
       </button>

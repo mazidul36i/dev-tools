@@ -41,7 +41,7 @@ const SidebarNav = forwardRef<HTMLInputElement, SidebarNavProps>(function Sideba
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Brand */}
-      <div className="flex items-center justify-between gap-2 h-12 px-3 shrink-0">
+      <div className="flex items-center justify-between gap-2 h-topbar px-3 shrink-0">
         <Link to="/" onClick={onNavigate} className="flex items-center gap-2 rounded-md px-1 -mx-1 font-semibold text-text focus-ring">
           <span className="grid place-items-center w-7 h-7 rounded-md bg-primary text-on-primary">
             <SquareTerminal size={16} aria-hidden="true" />

@@ -141,7 +141,7 @@ export default function ToolLayout({ title, seoTitle, tagline, metaDescription, 
       {variant === 'workspace' ? (
         <div className="w-full px-4 sm:px-6 pb-8">
           {/* On large screens the header + tool fill the viewport; About/Related sit below the fold. */}
-          <div className="flex flex-col pt-5 lg:h-[calc(100dvh-3rem)] lg:min-h-[34rem]">
+          <div className="flex flex-col pt-5 lg:h-[calc(100dvh-var(--spacing-topbar))] lg:min-h-[34rem]">
             {header}
             <div className="flex flex-col flex-1 min-h-0">{children}</div>
           </div>

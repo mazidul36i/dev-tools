@@ -3,7 +3,7 @@ import { Search, X, ChevronUp, ChevronDown, ChevronsDownUp, ChevronsUpDown } fro
 import ToolLayout from '@components/layout/ToolLayout';
 import Checkbox from '@components/ui/Checkbox';
 import SegmentedControl from '@components/ui/SegmentedControl';
-import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarDivider, ToolbarSelect } from '@components/workspace';
+import { EditorPanel, OutputPanel, SplitPane, Toolbar, ToolbarDivider, ToolbarSelect, ToolbarSpacer } from '@components/workspace';
 import JsonTreeView from './JsonTreeView';
 import HighlightedOutput from './HighlightedOutput';
 import { formatJSON, minifyJSON, stringifyJSON, parseStringifiedJSON, parseDtoString } from '@lib/json-utils';
@@ -223,31 +223,64 @@ export default function JsonFormatterPage() {
         </div>
       }
     >
-      <Toolbar>
-        <SegmentedControl
-          ariaLabel="Operation"
-          options={MODES.map((m) => ({ id: m, label: modeLabels[m] }))}
-          value={o.mode}
-          onChange={(id) => setO({ mode: id as Mode })}
-        />
-        {(o.mode === 'format' || o.mode === 'dto') && <ToolbarDivider />}
-        {o.mode === 'format' && (
-          <ToolbarSelect
-            label="Indent"
-            value={o.indent}
-            onChange={(v) => setO({ indent: v as typeof o.indent })}
-            options={[{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }, { value: 'tab', label: 'Tab' }]}
-          />
-        )}
-        {o.mode === 'dto' && (
-          <>
-            <Checkbox checked={o.strip} onChange={(v) => setO({ strip: v })} label="Strip class name" className="text-xs" />
-            <Checkbox checked={o.detect} onChange={(v) => setO({ detect: v })} label="Detect types" className="text-xs" />
-          </>
-        )}
-      </Toolbar>
-
       <div ref={workspaceRef} className="flex flex-col flex-1 min-h-0">
+        <Toolbar>
+          <SegmentedControl
+            ariaLabel="Operation"
+            options={MODES.map((m) => ({ id: m, label: modeLabels[m] }))}
+            value={o.mode}
+            onChange={(id) => setO({ mode: id as Mode })}
+          />
+          {(o.mode === 'format' || o.mode === 'dto') && <ToolbarDivider />}
+          {o.mode === 'format' && (
+            <ToolbarSelect
+              label="Indent"
+              value={o.indent}
+              onChange={(v) => setO({ indent: v as typeof o.indent })}
+              options={[{ value: '2', label: '2 spaces' }, { value: '4', label: '4 spaces' }, { value: 'tab', label: 'Tab' }]}
+            />
+          )}
+          {o.mode === 'dto' && (
+            <>
+              <Checkbox checked={o.strip} onChange={(v) => setO({ strip: v })} label="Strip class name" className="text-xs" />
+              <Checkbox checked={o.detect} onChange={(v) => setO({ detect: v })} label="Detect types" className="text-xs" />
+            </>
+          )}
+          {/* Output view controls sit at the end of the toolbar so the output header stays one row. */}
+          {result.output && (
+            <>
+              <ToolbarSpacer />
+              <OutputSearchBar
+                text={result.output}
+                search={search}
+                setSearch={setSearch}
+                matchIndex={matchIdx}
+                setMatchIndex={setMatchIdx}
+                matchCountOverride={showTree ? countJsonMatches(result.parsed, search) : undefined}
+                scopeRef={workspaceRef}
+              />
+              {showTree && (
+                <>
+                  <button type="button" onClick={() => setSignal(`expand-${Date.now()}`)} className={treeBtn} title="Expand all" aria-label="Expand all">
+                    <ChevronsUpDown size={14} aria-hidden="true" />
+                  </button>
+                  <button type="button" onClick={() => setSignal(`collapse-${Date.now()}`)} className={treeBtn} title="Collapse all" aria-label="Collapse all">
+                    <ChevronsDownUp size={14} aria-hidden="true" />
+                  </button>
+                </>
+              )}
+              {treeCapable && result.parsed !== null && (
+                <SegmentedControl
+                  ariaLabel="Output view"
+                  options={[{ id: 'text', label: 'Text' }, { id: 'tree', label: 'Tree' }]}
+                  value={o.view}
+                  onChange={(id) => setO({ view: id as 'text' | 'tree' })}
+                />
+              )}
+            </>
+          )}
+        </Toolbar>
+
         <SplitPane
           storageKey="json-formatter"
           left={
@@ -272,39 +305,6 @@ export default function JsonFormatterPage() {
               downloadMime="application/json"
               onUseAsInput={() => { setInput(result.output); setSearch(''); }}
               className="flex-1"
-              actions={
-                result.output && (
-                  <>
-                    <OutputSearchBar
-                      text={result.output}
-                      search={search}
-                      setSearch={setSearch}
-                      matchIndex={matchIdx}
-                      setMatchIndex={setMatchIdx}
-                      matchCountOverride={showTree ? countJsonMatches(result.parsed, search) : undefined}
-                      scopeRef={workspaceRef}
-                    />
-                    {showTree && (
-                      <>
-                        <button type="button" onClick={() => setSignal(`expand-${Date.now()}`)} className={treeBtn} title="Expand all" aria-label="Expand all">
-                          <ChevronsUpDown size={14} aria-hidden="true" />
-                        </button>
-                        <button type="button" onClick={() => setSignal(`collapse-${Date.now()}`)} className={treeBtn} title="Collapse all" aria-label="Collapse all">
-                          <ChevronsDownUp size={14} aria-hidden="true" />
-                        </button>
-                      </>
-                    )}
-                    {treeCapable && result.parsed !== null && (
-                      <SegmentedControl
-                        ariaLabel="Output view"
-                        options={[{ id: 'text', label: 'Text' }, { id: 'tree', label: 'Tree' }]}
-                        value={o.view}
-                        onChange={(id) => setO({ view: id as 'text' | 'tree' })}
-                      />
-                    )}
-                  </>
-                )
-              }
             >
               {showTree ? (
                 <div className="p-3 font-mono text-[13px]">

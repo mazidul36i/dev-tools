@@ -28,7 +28,6 @@
       "@components/*": ["src/components/*"],
       "@pages/*": ["src/pages/*"],
       "@lib/*": ["src/lib/*"],
-      "@assets/*": ["src/assets/*"],
       "@hooks/*": ["src/hooks/*"]
     }
   },
